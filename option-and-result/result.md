@@ -42,6 +42,8 @@ Standard libraries define their own ``Result`` **aliases**.<br>
 |``std::io``|``std::io::Result``|``type Result = Result<(), Error>;``|``std::io::Error``|
 |``std::fmt``|``std::fmt::Result``|``type Result = Result<(), Error>;``|``std::fmt::Error``|
 
+<br>
+
 ### Example
 ```Rust
 use std::num::ParseIntError;
@@ -53,6 +55,3 @@ fn double_number(number_str: &str) -> Result<i32> {
     unimplemented!();
 }
 ```
-
-
-
