@@ -11,8 +11,7 @@ pub trait From<T> {
 ```
 
 Method ``from()`` performs the conversion.<br>
-Traits ``From`` and ``Into`` are **connected**: implementing ``impl From<S> for D`` **automatically** implements ``impl Into<D> for S``, but not vise versa.<br>
-The compiler is **unable** to **infer** destination type ``D`` for ``S`` when ``.into()`` is used.
+Traits ``From`` and ``Into`` are **connected**: implementing ``impl From<S> for D`` **automatically** implements ``impl Into<D> for S``, but not vise versa. The compiler is **unable** to **infer** destination type ``D`` for ``S`` when ``.into()`` is used.
 
 <br>
 
@@ -75,7 +74,7 @@ num: Number { value: 5 }
 
 # Error handling
 The ``From`` is also very useful when performing **error handling**.<br>
-By converting underlying error types to our own custom error type that encapsulates the underlying error type, we can return a single error type without losing information on the underlying cause.<br>
+By converting underlying error types to our own **custom** error type that encapsulates the underlying error type, we can return a single error type without losing information on the underlying cause.<br>
 The ``?`` operator **automatically** converts the underlying error type **to** our **custom** error type.<br>
 
 <br>
@@ -111,7 +110,7 @@ fn open_and_parse_file(file_name: &str) -> Result<i32, CliError> {
 ```
 
 <br>
- 
+
 # Trait ``TryFrom``
 Path in **std** is ``std::convert::TryFrom``.<br>
 ``TryFrom<T>`` returns ``Result<T, E>``.<br>
