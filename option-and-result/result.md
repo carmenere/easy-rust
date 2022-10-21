@@ -37,7 +37,7 @@ If we have a lot of functions that could return ``ParseIntError``, then it’s m
 
 Standard libraries define their own ``Result`` **aliases**.<br>
 
-|**Library**|**Path to** ``Result``|**Definition**|**Path to **``Error``|
+|**Library**|**Path to** ``Result``|**Definition**|**Path to** ``Error``|
 |:----------|:---------------------|:-------------|:--------------------|
 |``std::io``|``std::io::Result``|``type Result = Result<(), Error>;``|``std::io::Error``|
 |``std::fmt``|``std::fmt::Result``|``type Result = Result<(), Error>;``|``std::fmt::Error``|
