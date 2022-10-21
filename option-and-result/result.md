@@ -31,7 +31,7 @@ let r2 = example(None);
 
 # Result alias
 In the **std**, you may frequently see types like ``Result<i32>``.<br>
-Rust allows to define a ``Result`` **type alias** that **fixes** one of the **type parameters** to a **particular type**.<br>
+Rust allows to define a ``Result`` **type alias** that **fixes** **one** of the *type parameters* to a **particular type**.<br>
 Usually the **fixed type** is the **error type**.<br>
 
 Standard libraries define their own ``Result`` **aliases**.<br>
