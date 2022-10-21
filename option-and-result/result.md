@@ -26,3 +26,32 @@ fn example(s: Option<i32>) -> Result<i32, &'static str> {
 let r1 = example(Some(1));
 let r2 = example(None);
 ```
+
+<br>
+
+# Result alias
+In the **std**, you may frequently see types like ``Result<i32>``.<br>
+Rust allows to define a Result type alias that fixes one of the type parameters to a particular type. Usually the fixed type is the error type.<br>
+If we have a lot of functions that could return ParseIntError, then it’s much more convenient to define an alias that always uses ParseIntError.<br>
+
+Standard libraries define their own Result aliases.<br>
+
+|**Library**|**Path to** ``Result``|**Definition**|**Path to **``Error``|
+|:----------|:---------------------|:-------------|:--------------------|
+|``std::io``|``std::io::Result``|``type Result = Result<(), Error>;``|``std::io::Error``|
+|``std::fmt``|``std::fmt::Result``|``type Result = Result<(), Error>;``|``std::fmt::Error``|
+
+### Example
+```Rust
+use std::num::ParseIntError;
+use std::result;
+
+type Result<T> = result::Result<T, ParseIntError>;
+
+fn double_number(number_str: &str) -> Result<i32> {
+    unimplemented!();
+}
+```
+
+
+
