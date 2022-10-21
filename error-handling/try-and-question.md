@@ -5,7 +5,7 @@ The ``?`` operator is equivalent to ``try!``.<br>
 
 Syntax for ``try!``: ``let a = try!(expr);``.<br>
 
-Syntax for ``?``: ``let a = expr?``.
+Syntax for ``?``: ``let a = expr?;``.
 
 Both ``try!`` and ``?`` **unwrap** ``Result`` OR perform **prematurely** /premətʃʊəʳli/ **return** from function.<br>
 
