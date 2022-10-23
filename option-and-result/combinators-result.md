@@ -76,7 +76,7 @@ Converts from ``&Result<T, E>`` to ``Result<&T, &E>``.
 <td>
 
 ```Rust
-fn as_ mut(&mut  self) -> Result<&mut T, &mut E>
+fn as_mut(&mut  self) -> Result<&mut T, &mut E>
 ```
 
 </td>
@@ -201,13 +201,16 @@ where
 
 # Methods for transforming the contained value
 ## Transform ``Result<>`` to ``Option<>``
-- ``err()`` transforms ``Result<T, E>`` into ``Option<E>``, mapping ``Err(e)`` to ``Some(e)`` and ``Ok(v)`` to ``None``;
-- ``ok()`` transforms ``Result<T, E>`` into ``Option<T>``, mapping ``Ok(v)`` to ``Some(v)`` and ``Err(e)`` to ``None``;
-- ``transpose()`` transposes a ``Result`` of an ``Option`` into an ``Option`` of a ``Result``:
-    - ``Result<Option<i32>, E>`` => ``Option<Result<i32, E>> ``
-        - ``Ok(None)`` => ``None``;
-        - ``Ok(Some(v))`` => ``Some(Ok(v))``;
-        - ``Err(e)`` => ``Some(Err(e))``.
+- ``err()`` transforms ``Result<T, E>`` into ``Option<E>``
+    - ``Err(e)`` => ``Some(e)``;
+    - ``Ok(v)`` => ``None``;
+- ``ok()`` transforms ``Result<T, E>`` into ``Option<T>``
+    - ``Ok(v)`` => ``Some(v)``;
+    - ``Err(e)`` => ``None``;
+- ``transpose()`` transposes a ``Result`` of an ``Option`` into an ``Option`` of a ``Result``: ``Result<Option<i32>, E>`` => ``Option<Result<i32, E>>``:
+    - ``Ok(None)`` => ``None``;
+    - ``Ok(Some(v))`` => ``Some(Ok(v))``;
+    - ``Err(e)`` => ``Some(Err(e))``.
 
 <br>
 

@@ -199,17 +199,17 @@ where
 # Methods for transforming the contained value
 ## Transform ``Option<>`` to ``Result<>``
 - ``ok_or(err)`` transforms ``Option<T>`` to ``Result<T, E>``:
-    - ``Some(v)`` to ``Ok(v)``;
-    - ``None`` to ``Err(err)``, where err of type ``E``.
+    - ``Some(v)`` => ``Ok(v)``;
+    - ``None`` => ``Err(err)``, where ``err`` of type ``E``.
 
 - ``ok_or_else(f)`` transforms ``Option<T>`` to ``Result<T, E>``:
-    - ``Some(v)`` => ``Ok(v)``
+    - ``Some(v)`` => ``Ok(v)``;
     - ``None`` => ``f()``, where ``f()`` returns value of type ``E``.
 
 - ``transpose()`` transposes ``Option<Result<i32, E>>`` => ``Result<Option<i32>, E>``
-    - ``None`` => ``Ok(None)``
-    - ``Some(Ok(v))`` => ``Ok(Some(v)) ``
-    - ``Some(Err(e))`` => ``Err(e)``
+    - ``None`` => ``Ok(None)``;
+    - ``Some(Ok(v))`` => ``Ok(Some(v)) ``;
+    - ``Some(Err(e))`` => ``Err(e)``.
 
 <br>
 
@@ -251,10 +251,10 @@ The ``and_then()`` and ``or_else()`` methods take a function ``f`` as input, and
 
 - ``and_then(f)``
     - If the ``self`` is ``None`` it returns ``None``.
-    - If the ``self`` is ``Some(t)`` it calls ``f(t)`` where t is of type T and ``f(t)`` returns ``Option<U>``.
+    - If the ``self`` is ``Some(t)`` it calls ``f(t)`` where ``t`` is of type T and ``f(t)`` returns ``Option<U>``.
 
 - ``or(o)``
-    - If the ``self`` is ``None`` it returns o, where o is of type ``Option<T>``.
+    - If the ``self`` is ``None`` it returns ``o``, where ``o`` is of type ``Option<T>``.
     - If the ``self`` is ``Some(t)`` it returns ``Some(t)``.
 
 - ``or_else(f)``:
