@@ -55,7 +55,7 @@ error: could not compile `playrs` due to previous error
 
 <br>
 
-This is because the compiler **doesn’t know** what type you’re trying to collect your iterator into.<br>
+This is because the compiler **doesn’t know** what type you’re trying to collect your **iterator** into.<br>
 
 This can be fixed in two different ways:
 - by **declaring** the **type** of variable in ``let`` **binding**: 
@@ -70,9 +70,9 @@ let even_numbers = numbers
     .collect::<Vec<i32>>();
 ```
 
-The ``::<Vec<i32>>`` part is the **turbofish** and means collect this iterator into a ``Vec<i32>``.<br>
+The ``::<Vec<i32>>`` part is the **turbofish** and means collect this **iterator** into a ``Vec<i32>``.<br>
 
-You can actually replace ``i32`` with ``_`` in **turbofish** and let the compiler infer it because it knows the iterator yields ``i32``:
+You can actually replace ``i32`` with ``_`` in **turbofish** and let the compiler infer it because it knows the **iterator** yields ``i32``:
 ```Rust
 let even_numbers = numbers
     .into_iter()
