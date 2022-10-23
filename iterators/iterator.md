@@ -266,7 +266,7 @@ let mut iter = (v).into_iter();
 **=>**
 
 </td>
-<td rowspan="3">
+<td rowspan="4">
 
 ```Rust
 loop {
