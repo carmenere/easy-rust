@@ -261,7 +261,7 @@ let mut iter = (v).into_iter();
 ```
 
 </td>
-<td>
+<td rowspan="5">
 
 **=>**
 
@@ -282,9 +282,6 @@ loop {
 </td>
 </tr>
 
-
-
-
 <tr></tr>
 <tr>
 <td>
@@ -296,7 +293,6 @@ for x in &v {
 ```
 
 </td>
-
 
 <td>
 
@@ -310,14 +306,8 @@ let mut iter = (&v).into_iter();
 ```
 
 </td>
-<td>
-
-**=>**
-
-</td>
 
 </tr>
-
 
 <tr></tr>
 <tr>
@@ -342,11 +332,6 @@ for x in &mut v {
 ```Rust
 let mut iter = (&mut v).into_iter();
 ```
-
-</td>
-<td>
-
-**=>**
 
 </td>
 
