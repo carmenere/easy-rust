@@ -1,4 +1,4 @@
-# Struct std::vec::IntoIter
+# Struct ``std::vec::IntoIter``
 The ``into_iter()`` method on ``Vec`` returns **struct** ``std::vec::IntoIter``:
 ```Rust
 pub struct IntoIter<T, A = Global> where

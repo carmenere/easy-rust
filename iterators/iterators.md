@@ -57,8 +57,7 @@ fn main() {
 <br>
 
 
-
-# Method drain()
+# Method ``drain()``
 ``into_iter()`` **consumes** the **collection** **itself**, ``drain()`` only **consumes** the **values** in the collection.<br>
 
 Therefore ``drain()`` allows draining of only a **part of the collection**.<br>

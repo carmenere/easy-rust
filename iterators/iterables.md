@@ -135,7 +135,7 @@ impl<I: Iterator> IntoIterator for I {
 
 <br>
 
-# IntoIterator for arrays
+# ``IntoIterator`` for arrays
 **Until** Rust **1.53**, ``only`` **references to arrays** implement ``IntoIterator``.<br>
 
 This means you **can** iterate **over** ``&[1, 2, 3]`` and ``&mut [1, 2, 3]``, but **not** **over** ``[1, 2, 3]`` **directly**.
