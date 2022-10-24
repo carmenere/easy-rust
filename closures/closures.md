@@ -167,7 +167,7 @@ There are **3 closure traits**:
 |``FnMut``|``pub trait FnMut<Args>: FnOnce<Args>``|
 |``Fn``|``pub trait Fn<Args>: FnMut<Args>``|
 
-These traits are implemented **automatically** for closures after Rust compiler choose capture mode for values that are used inside closure.<br>
+These traits are implemented **automatically** for closures after Rust compiler choose **capture mode** for values that are used inside **closure**.<br>
 
 <br>
 
