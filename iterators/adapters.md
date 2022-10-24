@@ -27,7 +27,7 @@ The ``map()`` method takes **closure** ``f`` and returns an **iterator** ``Map``
 
 ``Map`` properties:
 - it **yields** items of the type ``B``;
-- it also implements ``DoubleEndedIterator``, meaning that you can also traverse returned ``Map`` backwards.<br>
+- it also implements ``DoubleEndedIterator``, meaning that you can also **traverse** returned ``Map`` **backwards**.<br>
 
 <br>
 
@@ -236,13 +236,13 @@ where
 
 This adapter appends **iterable** (``other``) to **iterator** (``self``) and concatenates it to single **iterator** ``Self::Item``.<br>
 
-The method ``chain()`` takes a **iterable** other and returns iterator ``Chain``.<br>
+The method ``chain()`` takes a **iterable** ``other`` and returns **iterator** ``Chain``.<br>
 
 ``other`` properties:
-- it must be iterable IntoIterator<Item = Self::Item>.
+- it must be **iterable**, i.e., it must implement ``IntoIterator<Item = Self::Item>``.
 
 ``Chain`` properties:
-- it **yields** items of type Self::Item.
+- it **yields** items of type ``Self::Item``.
 
 #### Example
 ```Rust
@@ -276,15 +276,13 @@ where
 }
 ```
 
-The method ``enumerate()`` returns iterator ``Enumerate``.<br>
+The method ``enumerate()`` returns **iterator** ``Enumerate``.<br>
 
 ``Enumerate`` properties:
-- it **yields** tuple ``(usize, Self::Item)``, where 
-    - ``.0`` element of such tuple contains the **index** of the ``.1`` element
-    - ``.1`` element of such tuple contains the **value** returned by the **iterator**.
+- it **yields** tuple ``(usize, Self::Item)``, where element of ``usize`` type contains the **index** of the **value** of ``Self::Item`` type.
 
 <br>
- 
+
 ## ``zip()``
 ```Rust
 fn zip<U>(self, other: U) -> Zip<Self, U::IntoIter>
@@ -296,8 +294,6 @@ where
 }
 ```
 
-This **adapter** appends **iterable** (``other``) to **iterator** (``self``) and concatenates it to single iterator of tuples ``(self::Item, other::Item)``.<br>
-
 The ``zip()`` method returns iterator ``Zip``.<br>
 
 ``Zip`` properties:
@@ -306,7 +302,7 @@ The ``zip()`` method returns iterator ``Zip``.<br>
 The ``zip()`` method uses **shortest semantics**: the **result** will have **length** of the **shortest iterable**.<br>
 For **longest semantics** use the ``zip_longest()`` in ``itertools`` crate.<br>
 
-#### Example for zip()
+#### Example for ``zip()``
 ```Rust
 fn main() {
     let a1 = [1, 2, 3];
@@ -325,7 +321,7 @@ fn main() {
 
 <br>
 
-#### Example for zip_longest():
+#### Example for ``zip_longest()``:
 ```Rust
 use itertools::{
     Itertools,
@@ -355,7 +351,7 @@ fn main() {
 <br>
 
 ## ``by_ref()``
-Calling **adapter** on an **iterator** **transfer ownership** of the **underlying iterator** (because of ``self`` argument).<br>
+Calling **adapter** on an **iterator** *transfer ownership* of the **underlying iterator** (because of ``self`` argument).<br>
 
 The ``by_ref()`` adapter returns a **mutable reference** to the **iterator**:
 ```Rust
@@ -369,8 +365,8 @@ where
 
 <br>
 
+The **std** includes following implementation:
 ```Rust
-The standard library includes following implementation:
 impl<I: Iterator + ?Sized> Iterator for &mut I {
     type Item = I::Item;
 
@@ -385,12 +381,12 @@ impl<I: Iterator + ?Sized> Iterator for &mut I {
 ```
  
 When you call **adapter** on a **mutable reference** to an **iterator**, this **adapter** takes ownership of the reference, not the **iterator** itself.<br>
-It is just a borrow that ends when the adapter goes out of scope and original collection is valid.<br>
+It is just a **borrow** that ends when the adapter goes out of scope and **original collection is valid**.<br>
 
 <br>
 
 ## ``cloned()``
-The c``loned()`` adapter takes an iterator that produces references and returns an **iterator** that produces values cloned from those references.<br>
+The ``cloned()`` adapter takes an **iterator** that produces references and returns an **iterator** that produces values cloned from those references.<br>
 
 Semantic of ``some_iter.cloned()`` is equivalent to: ``some_iter.map(|item| item.clone())``.<br>
 
