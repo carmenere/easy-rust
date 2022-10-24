@@ -153,7 +153,7 @@ error[E0382]: borrow of moved value: `v`
 <br>
 
 # Closure traits and closure capture modes
-There are 3 capture modes:
+There are **3 capture modes**:
 - by **Move**;
 - by **Mutable borrow**;
 - by **Immutable borrow**;
