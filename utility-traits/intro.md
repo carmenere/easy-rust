@@ -1,17 +1,13 @@
 # Utility traits
 
-|**Trait**|**Description**|
-|:--------|:--------------|
-|**AsRef** and **AsMut**||
-|**Borrow** and **BorrowMut**||
-|**Clone**||
-|**Copy**||
-|**Default**||
-|**Deref** and **DerefMut**||
-|**Drop**||
-|**From** and **Into**||
-|**Sized**||
-|**ToOwned**||
-|**TryFrom** and **TryInto**||
-
-
+- **AsRef** and **AsMut**
+- **Borrow** and **BorrowMut**
+- **Clone**
+- **Copy**
+- **Default**
+- **Deref** and **DerefMut**
+- **Drop**
+- **From** and **Into**
+- **Sized**
+- **ToOwned**
+- **TryFrom** and **TryInto**
