@@ -127,7 +127,7 @@ Semantic of ``filter_map(f)`` is equivalent to: ``map(f).filter()``.<br>
 The ``filter_map()`` method takes a closure ``f`` and returns iterator ``FilterMap``.<br>
 
 ``f`` properties:
-- it takes an ``Self::Item`` and returns a ``Option``<B>.
+- it takes an ``Self::Item`` and returns a ``Option<B>``.
 
 ``FilterMap`` properties:
 - it **yields** only items of type ``B`` for which closure ``f`` returns ``Some(B)``.
