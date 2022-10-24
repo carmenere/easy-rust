@@ -167,13 +167,15 @@ There are **3 closure traits**:
 |``FnMut``|``pub trait FnMut<Args>: FnOnce<Args>``|
 |``Fn``|``pub trait Fn<Args>: FnMut<Args>``|
 
+These traits are implemented **automatically** for closures after Rust compiler choose capture mode for values that are used inside closure.<br>
+
 <br>
 
 So:
 - ``FnOnce`` is **supertrait** for ``FnMut``.
 - ``FnMut`` is **supertrait** for ``Fn``.
 
-These traits are implemented **automatically** for closures after Rust compiler choose capture mode for values that are used inside closure.<br>
+<br>
 
 **Mapping** between **capture modes** and **traits**:
 <table>
