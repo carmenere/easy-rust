@@ -1,8 +1,8 @@
 # Ordinary closure
 **Closure** aka **anonymous function** or **lambda**.<br>
 
-We create a **closure** using the ``|...| {...}`` syntax, and then we create a **binding** so we can use it later.<br>
-Note that we call the closure using the binding name and two parentheses, just like we would for a named function.<br>
+We create a **closure** using the ``|...| {...}`` syntax, and then we create a ``let`` **binding** so we can use it later.<br>
+Note that we call the closure using the **binding name** and **parentheses**, just like we would for a **named function**.<br>
 
 **Closure has access to values in the scope where it defined**. In other words, **closure** **captures** any **values** it uses from **scope** where it is **defined**.<br>
 
@@ -153,10 +153,6 @@ error[E0382]: borrow of moved value: `v`
 <br>
 
 # Closure traits and closure capture modes
-In order to understand how to capture values from context, the Rust compiler performs the analysis of the closure body.<br>
-
-<br>
-
 There are 3 capture modes:
 - by **Move**;
 - by **Mutable borrow**;
@@ -171,6 +167,8 @@ There are **3 closure traits**:
 |``FnMut``|``pub trait FnMut<Args>: FnOnce<Args>``|
 |``Fn``|``pub trait Fn<Args>: FnMut<Args>``|
 
+<br>
+
 So:
 - ``FnOnce`` is **supertrait** for ``FnMut``.
 - ``FnMut`` is **supertrait** for ``Fn``.
@@ -178,15 +176,6 @@ So:
 These traits are implemented **automatically** for closures after Rust compiler choose capture mode for values that are used inside closure.<br>
 
 **Mapping** between **capture modes** and **traits**:
-|**Trait**|**Capture mode**|**Description**|**Syntax**|
-|:--------|:---------------|:--------------|:---------|
-|``FnOnce``|**Move**|||
-|``FnMut``|**Mutable borrow**||
-|``Fn``|**Immutable borrow**.<br>It’s **by default**.
-|||
-|||||
-
-
 <table>
 <tr>
 <th>Trait</th>
@@ -268,7 +257,7 @@ let mut FnMut_closure = || {
 
 <td rowspan="3">
 
-**Immutable borrow**, **by default**.
+**Immutable borrow** (*by default*).
 
 </td>
 <td>
