@@ -20,8 +20,11 @@ where
 
 # ``Turbofish``
 Because ``collect()`` is so general, it can cause **problems** with **type inference**.<br>
+Internally, ``collect()`` just uses ``FromIterator``, but it also **infers** the **type** of the **output**.<br>
+Sometimes there **isn't enough** information to infer the type, so you may need to **explicitly** specify the type you want.<br>
 There is *special syntax* in Rust called **turbofish**: ``::<SomeType>``.<br>
-**Turbofish** helps the **inference** algorithm to understand type of item of **resulting collection**.
+Example: ``let all_scores = score_table.values().cloned().collect::<Vec<Score>>();``.<br>
+**Turbofish** helps the **inference** algorithm to understand type of item of **resulting collection**.<br>
 
 ### Example
 ```Rust
