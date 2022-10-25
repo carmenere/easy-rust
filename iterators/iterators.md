@@ -53,14 +53,3 @@ fn main() {
     let value = iter.next();
 }
 ```
-
-<br>
-
-
-# Method ``drain()``
-``into_iter()`` **consumes** the **collection** **itself**, ``drain()`` only **consumes** the **values** in the collection.<br>
-
-Therefore ``drain()`` allows draining of only a **part of the collection**.<br>
-
-So use ``into_iter()`` if you want to **consume** the entire collection, and use ``drain()`` if you only want to consume part of the collection or if you want to reuse the emptied collection later.
-
