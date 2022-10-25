@@ -11,11 +11,10 @@ pub trait FromIterator<A> {
 ```
 
 By implementing ``FromIterator`` for a **collection** type, you define how it will be created **from** an **iterator**.<br>
-``FromIterator::from_iter()`` is rarely called explicitly, and ``FromIterator::from_iter()`` is usually used through ``Iterator::collect()`` method.<br>
+``FromIterator::from_iter()`` is rarely called explicitly, and ``FromIterator::from_iter()`` is usually used through ``Iterator::collect()`` method.
 
 <br>
 
-### Examples
 #### Using ``Iterator::collect()`` to implicitly use ``FromIterator``:
 ```Rust
 let five_fives = std::iter::repeat(5).take(5);
