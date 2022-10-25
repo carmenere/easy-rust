@@ -15,6 +15,12 @@ By implementing ``FromIterator`` for a **collection** type, you define how it wi
 
 <br>
 
+# Method ``Iterator::collect()``
+``collect()`` transforms an **iterator** into a **collection**.<br>
+``collect()`` can also create instances of types that are not typical collections, e.g., ``collect()`` can return ``Result<SomeCollection<T>, E>``.
+
+<br>
+
 #### Using ``Iterator::collect()`` to implicitly use ``FromIterator``:
 ```Rust
 let five_fives = std::iter::repeat(5).take(5);
@@ -23,12 +29,6 @@ let v: Vec<i32> = five_fives.collect();
 
 assert_eq!(v, vec![5, 5, 5, 5, 5]);
 ```
-
-<br>
-
-# Method ``Iterator::collect()``
-``collect()`` transforms an **iterator** into a **collection**.<br>
-``collect()`` can also create instances of types that are not typical collections, e.g., ``collect()`` can return ``Result<SomeCollection<T>, E>``.
 
 <br>
 
