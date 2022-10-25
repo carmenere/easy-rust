@@ -92,7 +92,7 @@ extend_struct! (
 
 <br>
 
-# Example 2
+# Example 3
 ```Rust
 macro_rules! gen_enum {
   (
@@ -146,7 +146,7 @@ gen_enum! {
 
 <br>
 
-# Example 2
+# Example 4
 ```Rust
 macro_rules! gen_structs {
   (
