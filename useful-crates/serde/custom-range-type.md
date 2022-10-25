@@ -1,4 +1,5 @@
 # ``serde``
+
 #### Example: custom range type
 ```Rust
 use serde::{Deserialize, Serialize};
