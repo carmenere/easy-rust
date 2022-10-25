@@ -39,7 +39,7 @@ Syntax ``$(<statement>;)*`` is used to repeat code for every captured parameter 
 <br>
 
 # Procedural macros
-**Procedural macros** allow you to operate on the **abstract syntax tree** (**AST**).<br>
+**Procedural macros** allow you to operate on the **AST** (**abstract syntax tree**).<br>
 A **procedural macro** is a function that recieves one or more ``TokenStream`` and returns ``TokenStream`` and its **output** **replaces** the **macro invocation**.<br>
 
 There are **3 types** of **procedural macros**:
