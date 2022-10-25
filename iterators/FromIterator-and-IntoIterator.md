@@ -11,27 +11,11 @@ pub trait FromIterator<A> {
 ```
 
 By implementing ``FromIterator`` for a **collection** type, you define how it will be created **from** an **iterator**.<br>
-``FromIterator::from_iter()`` is rarely called explicitly, and is instead used through ``Iterator::collect()`` method.<br>
-
-<br>
-
-If you want to create a **collection** from the **content** of an **iterator**, the ``Iterator::collect()`` method is preferred.<br>
-However, when you need to specify the **container type**, ``FromIterator::from_iter()`` can be more readable than using a **turbofish**, e.g., ``::<Vec<_>>()``.<br>
+``FromIterator::from_iter()`` is rarely called explicitly, and ``FromIterator::from_iter()`` is usually used through ``Iterator::collect()`` method.<br>
 
 <br>
 
 ### Examples
-#### Basic usage
-```Rust
-let five_fives = std::iter::repeat(5).take(5);
-
-let v = Vec::from_iter(five_fives);
-
-assert_eq!(v, vec![5, 5, 5, 5, 5]);
-```
-
-<br>
-
 #### Using ``Iterator::collect()`` to implicitly use ``FromIterator``:
 ```Rust
 let five_fives = std::iter::repeat(5).take(5);
