@@ -28,9 +28,7 @@ assert_eq!(v, vec![5, 5, 5, 5, 5]);
 
 # Method ``Iterator::collect()``
 ``collect()`` transforms an **iterator** into a **collection**.<br>
-``collect()`` can also create instances of types that are not typical collections.<br>
-
-For example, ``collect()`` can return ``Result<SomeCollection<T>, E>``.
+``collect()`` can also create instances of types that are not typical collections, e.g., ``collect()`` can return ``Result<SomeCollection<T>, E>``.
 
 <br>
 
