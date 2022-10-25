@@ -1,5 +1,5 @@
 # ``serde``
-#### Example: custom range type
+#### Example (custom range type)
 ```Rust
 use serde::{Deserialize, Serialize};
 use validator::{Validate, ValidationError};

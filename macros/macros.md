@@ -1,7 +1,7 @@
 # Macros
-Rust has following types of macros:
+Rust supports following types of macros:
 1. **Declarative macros**.
-2. **Procedural macros**.
+2. **Procedural /prəˈsiːdʒərəl/ macros**.
 
 <br>
 
@@ -15,8 +15,8 @@ Rust has following types of macros:
 The operators are very similar to the regular expression.<br>
 ``*`` is used for *zero* or *more* **token types**.<br>
 ``+`` is used for *zero* or *one* **argument**.<br>
-Syntax ``$<parameter_name>:<token_type>`` is used to capture parameters is used.
-Syntax ``$($<parameter_name>:<token_type> ),*`` is used to capture nonfixed number of arguments.
+Syntax ``$<parameter_name>:<token_type>`` is used to capture parameters is used.<br>
+Syntax ``$($<parameter_name>:<token_type> ),*`` is used to capture nonfixed number of arguments.<br>
 Syntax ``$(<statement>;)*`` is used to repeat code for every captured parameter inside ``{ ... }``.
 
 <br>
@@ -39,8 +39,8 @@ Syntax ``$(<statement>;)*`` is used to repeat code for every captured parameter 
 <br>
 
 # Procedural macros
-**Procedural macros** allow you to operate on the **abstract syntax tree** (**AST**).<br>
-A **procedural macro** is a function from a ``TokenStream`` (or two) to another ``TokenStream``, where the **output** **replaces** the **macro invocation**.<br>
+**Procedural macros** allow you to operate on the **AST** (**abstract syntax tree**).<br>
+A **procedural macro** is a function that recieves one or more ``TokenStream`` and returns ``TokenStream`` and its **output** **replaces** the **macro invocation**.<br>
 
 There are **3 types** of **procedural macros**:
 1. **Attribute-like macros**.
@@ -50,7 +50,7 @@ There are **3 types** of **procedural macros**:
 <br>
 
 # Attribute-like macros
-**Attribute-like macros** enable you to create a **custom attribute** allows manipulation of item.<br>
+**Attribute-like macros** enable you to create a **custom attribute**.<br>
 They can also take arguments.<br>
 
 ```Rust
@@ -59,8 +59,6 @@ fn perform_task(){
     // some code
 }
 ```
-
-In the above code, ``some_attribute_macros`` is an **attribute macro** and it manipulates the *function* ``perform_task``.<br>
 
 <br>
 
@@ -76,7 +74,6 @@ struct MyStruct{}
 
 ## Function-like
 **Function-like macros** are **similar** to *declarative macros* in that they’re invoked with the macro invocation operator ``!`` and **look like function calls**.<br>
-They **operate** **on the code** that is inside the parentheses.
 
 #### Example
 ```Rust
@@ -89,4 +86,3 @@ pub fn a_proc_macro(_input: TokenStream) -> TokenStream {
     ))
 }
 ```
-

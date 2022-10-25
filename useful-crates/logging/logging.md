@@ -1,7 +1,9 @@
 # ``log`` crate
 The ``log`` crate is the de-facto **logging API** in Rust.<br>
 
-One important note is that the log crate only provides the API, not implementations.<br>
+One important note is that the ``log`` crate only provides the API, not implementations.<br>
+
+``log`` crate takes an environment variable ``RUST_LOG`` to configure its **log level**: ``std::env::set_var("RUST_LOG", "debug");``.<br>
 
 There are **5 log levels**:
 - **error** (**highest** priority);
@@ -68,7 +70,7 @@ fn main() {
 <br>
 
 # ``log4rs`` crate
-Another logging library in Rust is log4rs crate.<br>
+Another logging library in Rust is ``log4rs`` crate.<br>
 
 ```Rust
 use log::error;
