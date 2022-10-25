@@ -18,8 +18,7 @@ macro_rules! simple_macros {
 
 macro_rules! var_macros {
   (
-    $($opt: expr),*       // , не является частью захватываемого выражения,
-                          // поэтому вне скобок
+    $($opt: expr),*   // comma ',' is out of parentheses, because it isn't part of captured value
 
   ) => {
         $(println!("{}", $opt);)*
@@ -63,9 +62,7 @@ fn main() {
 ```Rust
 macro_rules! extend_struct {
     (struct $base:ident {
-        $($field_name:ident: $field_type:ty,)* // , является частью 
-                                               // захватываемого выражения,
-                                               // поэтому внутри скобок
+        $($field_name:ident: $field_type:ty,)*   // comma ',' is inside parentheses, because it isn't part of captured value
 
     },
     struct $extended:ident {
@@ -100,9 +97,7 @@ extend_struct! (
 macro_rules! gen_enum {
   (
     enum $name:ident {
-        $($variant:ident = $val:expr,)*   // , является частью 
-                                          // захватываемого выражения,
-                                          // поэтому внутри скобок
+        $($variant:ident = $val:expr,)*   // comma ',' is inside parentheses, because it isn't part of captured value
 
     }
   ) => {
