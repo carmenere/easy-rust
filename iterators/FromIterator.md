@@ -21,17 +21,6 @@ By implementing ``FromIterator`` for a **collection** type, you define how it wi
 
 <br>
 
-#### Using ``Iterator::collect()`` to implicitly use ``FromIterator``:
-```Rust
-let five_fives = std::iter::repeat(5).take(5);
-
-let v: Vec<i32> = five_fives.collect();
-
-assert_eq!(v, vec![5, 5, 5, 5, 5]);
-```
-
-<br>
-
 **Declaration**:
 ```Rust
 fn collect<B: FromIterator<Self::Item>>(self) -> B
@@ -40,6 +29,17 @@ where
 {
     FromIterator::from_iter(self)
 }
+```
+
+<br>
+
+#### Using ``Iterator::collect()`` to implicitly use ``FromIterator``:
+```Rust
+let five_fives = std::iter::repeat(5).take(5);
+
+let v: Vec<i32> = five_fives.collect();
+
+assert_eq!(v, vec![5, 5, 5, 5, 5]);
 ```
 
 <br>
