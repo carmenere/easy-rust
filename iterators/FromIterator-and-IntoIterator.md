@@ -26,19 +26,87 @@ assert_eq!(v, vec![5, 5, 5, 5, 5]);
 
 <br>
 
-# Trait ``IntoIterator``
-Trait ``IntoIterator`` is used for conversion **from** **collection** **to** an ``Iterator``.<br>
-Path in **std**: ``std::iter::IntoIterator``.<br>
-**Defenition**:
-```Rust
-pub trait IntoIterator {
-    type Item;
-    type IntoIter: Iterator
-    where
-        <Self::IntoIter as Iterator>::Item == Self::Item;
+# Method ``Iterator::collect()``
+``collect()`` transforms an **iterator** into a **collection**.<br>
+``collect()`` can also create instances of types that are not typical collections.<br>
 
-    fn into_iter(self) -> Self::IntoIter;
+For example, ``collect()`` can return ``Result<SomeCollection<T>, E>``.
+
+<br>
+
+**Declaration**:
+```Rust
+fn collect<B: FromIterator<Self::Item>>(self) -> B
+where
+    Self: Sized,
+{
+    FromIterator::from_iter(self)
 }
 ```
 
-One benefit of implementing ``IntoIterator`` is that your type will work with Rust’s for loop syntax.<br>
+<br>
+
+# ``Turbofish``
+Because ``collect()`` is so general, it can cause **problems** with **type inference**.<br>
+Internally, ``collect()`` just uses ``FromIterator``, but it also **infers** the **type** of the **output**.<br>
+Sometimes there **isn't enough** information to infer the type, so you may need to **explicitly** specify the type you want.<br>
+There is *special syntax* in Rust called **turbofish**: ``::<SomeType>``.<br>
+Example: ``let all_scores = score_table.values().cloned().collect::<Vec<Score>>();``.<br>
+**Turbofish** helps the **inference** algorithm to understand type of item of **resulting collection**.<br>
+
+### Example
+```Rust
+fn main() {
+    let numbers: Vec<i32> = vec![
+        1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+    ];
+
+    let even_numbers = numbers
+        .into_iter()
+        .filter(|n| n % 2 == 0)
+        .collect();
+
+    println!("{:?}", even_numbers);
+}
+```
+
+**Output**:
+```bash
+cargo run
+   Compiling playrs v0.1.0 (/Users/an.romanov/Projects/play.rust-lang.org)
+error[E0282]: type annotations needed
+ --> src/main.rs:6:9
+  |
+6 |     let even_numbers = numbers
+  |         ^^^^^^^^^^^^ consider giving `even_numbers` a type
+
+For more information about this error, try `rustc --explain E0282`.
+error: could not compile `playrs` due to previous error
+```
+
+<br>
+
+This is because the compiler **doesn’t know** what type you’re trying to collect your **iterator** into.<br>
+
+This can be fixed in two different ways:
+- by **declaring** the **type** of variable in ``let`` **binding**: 
+```Rust
+let even_numbers: Vec<i32> = ...
+```
+- by using a **turbofish**:
+```Rust
+let even_numbers = numbers
+    .into_iter()
+    .filter(|n| n % 2 == 0)
+    .collect::<Vec<i32>>();
+```
+
+The ``::<Vec<i32>>`` part is the **turbofish** and means collect this **iterator** into a ``Vec<i32>``.<br>
+
+You can actually replace ``i32`` with ``_`` in **turbofish** and let the compiler infer it because it knows the **iterator** yields ``i32``:
+```Rust
+let even_numbers = numbers
+    .into_iter()
+    .filter(|n| n % 2 == 0)
+    .collect::<Vec<_>>();
+```
