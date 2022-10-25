@@ -19,7 +19,6 @@ macro_rules! simple_macros {
 macro_rules! var_macros {
   (
     $($opt: expr),*   // comma ',' is out of parentheses, because it isn't part of captured value
-
   ) => {
         $(println!("{}", $opt);)*
   };
@@ -63,7 +62,6 @@ fn main() {
 macro_rules! extend_struct {
     (struct $base:ident {
         $($field_name:ident: $field_type:ty,)*   // comma ',' is inside parentheses, because it isn't part of captured value
-
     },
     struct $extended:ident {
         $($field_name2:ident: $field_type2:ty,)*
@@ -98,7 +96,6 @@ macro_rules! gen_enum {
   (
     enum $name:ident {
         $($variant:ident = $val:expr,)*   // comma ',' is inside parentheses, because it isn't part of captured value
-
     }
   ) => {
         #[derive(Serialize, Deserialize)]
