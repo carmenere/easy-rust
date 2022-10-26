@@ -1,8 +1,23 @@
+# Trait ``FromIterator``
+Trait ``FromIterator`` is used for conversion **from** an ``Iterator`` **to** **collection**.<br>
+Path in **std**: ``std::iter::FromIterator``.<br>
+**Defenition**:
+```Rust
+pub trait FromIterator<A> {
+    fn from_iter<T>(iter: T) -> Self
+    where
+        T: IntoIterator<Item = A>;
+}
+```
+
+By implementing ``FromIterator`` for a **collection** type, you define how it will be created **from** an **iterator**.<br>
+``FromIterator::from_iter()`` is rarely called explicitly, and ``FromIterator::from_iter()`` is usually used through ``Iterator::collect()`` method.
+
+<br>
+
 # Method ``Iterator::collect()``
 ``collect()`` transforms an **iterator** into a **collection**.<br>
-``collect()`` can also create instances of types that are not typical collections.<br>
-
-For example, ``collect()`` can return ``Result<SomeCollection<T>, E>``.
+``collect()`` can also create instances of types that are not typical collections, e.g., ``collect()`` can return ``Result<SomeCollection<T>, E>``.
 
 <br>
 
@@ -14,6 +29,17 @@ where
 {
     FromIterator::from_iter(self)
 }
+```
+
+<br>
+
+#### Using ``Iterator::collect()`` to implicitly use ``FromIterator``:
+```Rust
+let five_fives = std::iter::repeat(5).take(5);
+
+let v: Vec<i32> = five_fives.collect();
+
+assert_eq!(v, vec![5, 5, 5, 5, 5]);
 ```
 
 <br>
