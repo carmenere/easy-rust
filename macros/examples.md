@@ -61,7 +61,7 @@ fn main() {
 ```Rust
 macro_rules! extend_struct {
     (struct $base:ident {
-        $($field_name:ident: $field_type:ty,)*   // comma ',' is inside parentheses, because it isn't part of captured value
+        $($field_name:ident: $field_type:ty,)*   // comma ',' is inside parentheses, because it's part of captured value
     },
     struct $extended:ident {
         $($field_name2:ident: $field_type2:ty,)*
@@ -95,7 +95,7 @@ extend_struct! (
 macro_rules! gen_enum {
   (
     enum $name:ident {
-        $($variant:ident = $val:expr,)*   // comma ',' is inside parentheses, because it isn't part of captured value
+        $($variant:ident = $val:expr,)*   // comma ',' is inside parentheses, because it's part of captured value
     }
   ) => {
         #[derive(Serialize, Deserialize)]
