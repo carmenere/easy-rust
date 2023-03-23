@@ -28,15 +28,8 @@ Maping between **lint level** and **type of message** that is produced by linter
 
 <br>
 
-**Force-warn** is the same as **warn**, but **unlike** the **warn** level:
-- the **force-warn** level **cannot** be capped via ``--cap-lints LEVEL`` **flag**.
-- the **force-warn** level **cannot** be capped via **compiler lint flags**.
-
-<br>
-
-**Forbid** is the same as **deny**, but **unlike** the **deny** level:
-- the **forbid** level **cannot** be capped via **compiler lint flags**. 
-- however, the **forbid** level **can be** capped with ``--cap-lints LEVEL`` **flag**.
+**Force-warn** is the same as **warn**, but **unlike** the **warn** it has another priority.<br>
+**Forbid** is the same as **deny**, but **unlike** the **deny** it has another priority.
 
 <br>
 
