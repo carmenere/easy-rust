@@ -55,7 +55,8 @@ The level of any lint or whole lint group can be changed:
 <br>
 
 > **Note**:<br>
-> If ``cargo`` is used, then **env** ``RUSTFLAGS`` must be used to pass **lint flags**, e.g.,<br>``RUSTFLAGS="-D unused" cargo run``.
+> If ``cargo`` is used, then **env** ``RUSTFLAGS`` must be used to pass **lint flags**.<br>
+> Example: ``RUSTFLAGS="-D unused" cargo run``.
 
 <br>
 
