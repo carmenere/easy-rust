@@ -54,6 +54,11 @@ The level of any lint or whole lint group can be changed:
 
 <br>
 
+> **Note**:<br>
+> If ``cargo`` is used, then **env** ``RUSTFLAGS`` must be used to pass **lint flags**, e.g.,<br>``RUSTFLAGS="-D unused" cargo run``.
+
+<br>
+
 ### Example: ways to disable some compiler warnings
 #### Using *outer* **allow attribute** above item
 ```Rust
@@ -126,11 +131,6 @@ Notes:
 The following commands **allows** the ``unused-variables`` lint, because it is the last:
 - ``rustc lib.rs --crate-type=lib -D unused -A unused-variables``
 - ``rustc lib.rs --crate-type=lib -D unused-variables -A unused-variables``, here `-A` wins.
-
-
-<br>
-
-If ``cargo`` is used, then **env** ``RUSTFLAGS`` is used to pass **lint flags**, e.g.,<br>``RUSTFLAGS="-D unused" cargo run``.
 
 <br>
 
