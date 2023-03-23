@@ -49,7 +49,7 @@ All lints are divided into **lint groups**.
 
 ## Configuring lint levels
 The level of any lint or whole lint group can be changed:
-- via compiler's cli **lint flags**;
+- via `rustc` cli **lint flags**;
 - via **attributes** in the source code.
 
 <br>
