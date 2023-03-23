@@ -54,6 +54,36 @@ The level of any lint or whole lint group can be changed:
 
 <br>
 
+### Example: ways to disable some compiler warnings
+#### Using *outer* **allow attribute** above item
+```Rust
+#[allow(dead_code)]
+struct SemanticDirection;
+```
+
+<br>
+
+#### Using *inner* **allow attribute** inside block
+```Rust
+#![allow(dead_code)]
+```
+
+<br>
+
+#### Using ``rustc`` **lint flags**
+```Rust
+rustc -A unused_variables main.rs
+```
+
+<br>
+
+#### Via ``cargo`` ``RUSTFLAGS`` env
+```Rust
+RUSTFLAGS="$RUSTFLAGS -A unused_variables" cargo build
+```
+
+<br>
+
 ## Priorities
 Priorities:<br>
 `lint flags (-A, -W, -D)` **<** `lint attributes (allow, warn, deny, forbid)` **<** `lint flag -F` **<** `--cap-lints` **<** `--force-warn`
@@ -130,33 +160,7 @@ Examples:
 
 <br>
 
-# Example: ways to disable some compiler warnings
-#### Using *outer* **allow attribute** above item
-```Rust
-#[allow(dead_code)]
-struct SemanticDirection;
-```
 
-<br>
-
-#### Using *inner* **allow attribute** inside block
-```Rust
-#![allow(dead_code)]
-```
-
-<br>
-
-#### Using ``rustc`` **lint flags**
-```Rust
-rustc -A unused_variables main.rs
-```
-
-<br>
-
-#### Via ``cargo`` ``RUSTFLAGS`` env
-```Rust
-RUSTFLAGS="$RUSTFLAGS -A unused_variables" cargo build
-```
 
 <br>
 
