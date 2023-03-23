@@ -28,15 +28,8 @@ Maping between **lint level** and **type of message** that is produced by linter
 
 <br>
 
-**Force-warn** is the same as **warn**, but **unlike** the **warn** level:
-- the **force-warn** level **cannot** be capped via ``--cap-lints LEVEL`` **flag**.
-- the **force-warn** level **cannot** be capped via **compiler lint flags**.
-
-<br>
-
-**Forbid** is the same as **deny**, but **unlike** the **deny** level:
-- the **forbid** level **cannot** be capped via **compiler lint flags**. 
-- however, the **forbid** level **can be** capped with ``--cap-lints LEVEL`` **flag**.
+**Force-warn** is the same as **warn**, but **unlike** the **warn** it has another priority.<br>
+**Forbid** is the same as **deny**, but **unlike** the **deny** it has another priority.
 
 <br>
 
@@ -56,64 +49,19 @@ All lints are divided into **lint groups**.
 
 ## Configuring lint levels
 The level of any lint or whole lint group can be changed:
-- via **compiler lint flags**;
-- via **attribute** in the source code.
+- via `rustc` cli **lint flags**;
+- via **attributes** in the source code.
 
 <br>
 
-### Via ``rustc`` lint flag
-|Flag|Lint level|
-|:---|:---------|
-|``-A <lint> \| <lint-group>``|Sets lint ``<lint>`` or lint-group ``<lint-group>`` into **allow** level.|
-|``-W <lint> \| <lint-group>``|Sets lint ``<lint>`` or lint-group ``<lint-group>`` into **warn** level.|
-|``--force-warn <lint> \| <lint-group>``|Sets lint ``<lint>`` or lint-group ``<lint-group>`` into **force-warn** level.|
-|``-D <lint> \| <lint-group>``|Sets lint ``<lint>`` or lint-group ``<lint-group>`` into **deny** level.|
-|``-F <lint> \| <lint-group>``|Sets lint ``<lint>`` or lint-group ``<lint-group>`` into **forbid** level.|
+> **Note**:<br>
+> If ``cargo`` is used, then **env** ``RUSTFLAGS`` must be used to pass **lint flags**.<br>
+> Example: ``RUSTFLAGS="-D unused" cargo run``.
 
 <br>
 
-Notes:
-- it is possible to pass each **lint flag** more than once for changing **multiple lints**.
-- the **order** of **lint flags** is **taken into account**.
-
-#### Example
-The following commands **allows** the ``unused-variables`` lint, because it is the last:<br>
-``rustc lib.rs --crate-type=lib -D unused -A unused-variables``<br>
-``rustc lib.rs --crate-type=lib -D unused-variables -A unused-variables``
-
-
-<br>
-
-If ``cargo`` is used, then **env** ``RUSTFLAGS`` is used to pass **lint flags**, e.g.,<br>``RUSTFLAGS="-D unused" cargo run``.
-
-<br>
-
-### Via attribute in the source code
-|Attribute|Lint level|
-|:--------|:---------|
-|``#![allow(<lint>)]``|Sets lint ``<lint>`` into **allowed** level.|
-|``#![warn(<lint>)]``|Sets lint ``<lint>`` into **warn** level.|
-|``#![deny(<lint>)]``|Sets lint ``<lint>`` into **deny** level.|
-|``#![forbid(<lint>)]``|Sets lint ``<lint>`` into **forbid** level.|
-
-<br>
-
-There is **no way** to set a lint to **force-warn** using an **attribute**.
-
-<br>
-
-## Capping lints
-``rustc`` supports a flag ``--cap-lints LEVEL`` that sets the **lint cap level**.
-
-The **lint cap level** *sets* **global level** for all lints.
-
-Examples:
-1.	Set all lints to **warn** level: ``rustc lib.rs --cap-lints warn``;
-2.	Set all lints to **allow** level: ``rustc lib.rs --cap-lints allow``.
-
-
-# Ways to disable some compiler warnings
-#### Using *outer* **allow attribute**
+### Example: ways to disable some compiler warnings
+#### Using *outer* **allow attribute** above item
 ```Rust
 #[allow(dead_code)]
 struct SemanticDirection;
@@ -121,7 +69,7 @@ struct SemanticDirection;
 
 <br>
 
-#### Using *inner* **allow attribute**
+#### Using *inner* **allow attribute** inside block
 ```Rust
 #![allow(dead_code)]
 ```
@@ -139,6 +87,81 @@ rustc -A unused_variables main.rs
 ```Rust
 RUSTFLAGS="$RUSTFLAGS -A unused_variables" cargo build
 ```
+
+<br>
+
+## Priorities
+Priorities:<br>
+`lint flags (-A, -W, -D)` **<** `lint attributes (allow, warn, deny, forbid)` **<** `lint flag -F` **<** `--cap-lints` **<** `--force-warn`
+
+<br>
+
+> **Notes**:<br>
+> Between `-A`, `-W`, `-D` the **last** *wins*.<br>
+> Between `--force-warn` and `-F` lint flags the **first** *wins*.<br>
+> *Order* **doesn't matter** for `--cap-lints`.<br>
+
+<br>
+
+### Examples
+|Command|Description|
+|:------|:----------|
+|`RUSTFLAGS="-F dead_code --force-warn dead_code" cargo build`|Here `-F` wins.|
+|`RUSTFLAGS="--force-warn dead_code -F dead_code" cargo build`|Here `--force-warn` wins.|
+|`RUSTFLAGS="-F dead_code --cap-lints warn --force-warn dead_code" cargo build`|Here `--cap-lints` wins: `-F` **first**, so it rewrites `--force-warn`, but then `--cap-lints` rewrites `-F`.|
+|`RUSTFLAGS="--cap-lints allow --force-warn dead_code -F dead_code" cargo build`|Here `--force-warn` wins: `--force-warn` **first**, so it suppresses `-F` and then rewrites `--cap-lints`.|
+
+<br>
+
+### Via lint flags
+|Flag|Lint level|
+|:---|:---------|
+|``-A <lint> \| <lint-group>``|Sets lint ``<lint>`` or lint-group ``<lint-group>`` into **allow** level.|
+|``-W <lint> \| <lint-group>``|Sets lint ``<lint>`` or lint-group ``<lint-group>`` into **warn** level.|
+|``--force-warn <lint> \| <lint-group>``|Sets lint ``<lint>`` or lint-group ``<lint-group>`` into **force-warn** level.|
+|``-D <lint> \| <lint-group>``|Sets lint ``<lint>`` or lint-group ``<lint-group>`` into **deny** level.|
+|``-F <lint> \| <lint-group>``|Sets lint ``<lint>`` or lint-group ``<lint-group>`` into **forbid** level.|
+
+<br>
+
+Notes:
+- it is possible to pass each **lint flag** more than once for changing **multiple lints**.
+- the **order** of **lint flags** is **taken into account**: **last wins**.
+
+#### Example
+The following commands **allows** the ``unused-variables`` lint, because it is the last:
+- ``rustc lib.rs --crate-type=lib -D unused -A unused-variables``
+- ``rustc lib.rs --crate-type=lib -D unused-variables -A unused-variables``, here `-A` wins.
+
+<br>
+
+### Via attribute in the source code
+|Attribute|Lint level|
+|:--------|:---------|
+|``#![allow(<lint>)]``|Sets lint ``<lint>`` into **allowed** level.|
+|``#![warn(<lint>)]``|Sets lint ``<lint>`` into **warn** level.|
+|``#![deny(<lint>)]``|Sets lint ``<lint>`` into **deny** level.|
+|``#![forbid(<lint>)]``|Sets lint ``<lint>`` into **forbid** level.|
+
+<br>
+
+> **Note**:
+> There is **no way** to set a lint to **force-warn** using an **attribute**.
+
+<br>
+
+## Capping lints
+``rustc`` supports a flag ``--cap-lints LEVEL`` that sets the **lint cap level**.
+
+The **lint cap level** *sets* **global level** for all lints.
+
+Examples:
+1.	Set all lints to **warn** level: ``rustc lib.rs --cap-lints warn``;
+2.	Set all lints to **allow** level: ``rustc lib.rs --cap-lints allow``.
+
+<br>
+
+
 
 <br>
 
