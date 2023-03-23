@@ -56,12 +56,35 @@ All lints are divided into **lint groups**.
 
 ## Configuring lint levels
 The level of any lint or whole lint group can be changed:
-- via **compiler lint flags**;
-- via **attribute** in the source code.
+- via compiler's cli **lint flags**;
+- via **attributes** in the source code.
 
 <br>
 
-### Via ``rustc`` lint flag
+## Priorities
+Priorities:<br>
+`lint flags (-A, -W, -D)` **<** `lint attributes (allow, warn, deny, forbid)` **<** `lint flag -F` **<** `--cap-lints` **<** `--force-warn`
+
+<br>
+
+> **Notes**:<br>
+> Between `-A`, `-W`, `-D` the **last** *wins*.<br>
+> Between `--force-warn` and `-F` lint flags the **first** *wins*.<br>
+> *Order* **doesn't matter** for `--cap-lints`.<br>
+
+<br>
+
+### Examples
+|Command|Description|
+|:------|:----------|
+|`RUSTFLAGS="-F dead_code --force-warn dead_code" cargo build`|Here `-F` wins.|
+|`RUSTFLAGS="--force-warn dead_code -F dead_code" cargo build`|Here `--force-warn` wins.|
+|`RUSTFLAGS="-F dead_code --cap-lints warn --force-warn dead_code" cargo build`|Here `--cap-lints` wins: `-F` **first**, so it rewrites `--force-warn`, but then `--cap-lints` rewrites `-F`.|
+|`RUSTFLAGS="--cap-lints allow --force-warn dead_code -F dead_code" cargo build`|Here `--force-warn` wins: `--force-warn` **first**, so it suppresses `-F` and then rewrites `--cap-lints`.|
+
+<br>
+
+### Via lint flags
 |Flag|Lint level|
 |:---|:---------|
 |``-A <lint> \| <lint-group>``|Sets lint ``<lint>`` or lint-group ``<lint-group>`` into **allow** level.|
@@ -74,12 +97,12 @@ The level of any lint or whole lint group can be changed:
 
 Notes:
 - it is possible to pass each **lint flag** more than once for changing **multiple lints**.
-- the **order** of **lint flags** is **taken into account**.
+- the **order** of **lint flags** is **taken into account**: **last wins**.
 
 #### Example
-The following commands **allows** the ``unused-variables`` lint, because it is the last:<br>
-``rustc lib.rs --crate-type=lib -D unused -A unused-variables``<br>
-``rustc lib.rs --crate-type=lib -D unused-variables -A unused-variables``
+The following commands **allows** the ``unused-variables`` lint, because it is the last:
+- ``rustc lib.rs --crate-type=lib -D unused -A unused-variables``
+- ``rustc lib.rs --crate-type=lib -D unused-variables -A unused-variables``, here `-A` wins.
 
 
 <br>
@@ -98,7 +121,8 @@ If ``cargo`` is used, then **env** ``RUSTFLAGS`` is used to pass **lint flags**,
 
 <br>
 
-There is **no way** to set a lint to **force-warn** using an **attribute**.
+> **Note**:
+> There is **no way** to set a lint to **force-warn** using an **attribute**.
 
 <br>
 
@@ -111,9 +135,10 @@ Examples:
 1.	Set all lints to **warn** level: ``rustc lib.rs --cap-lints warn``;
 2.	Set all lints to **allow** level: ``rustc lib.rs --cap-lints allow``.
 
+<br>
 
-# Ways to disable some compiler warnings
-#### Using *outer* **allow attribute**
+# Example: ways to disable some compiler warnings
+#### Using *outer* **allow attribute** above item
 ```Rust
 #[allow(dead_code)]
 struct SemanticDirection;
@@ -121,7 +146,7 @@ struct SemanticDirection;
 
 <br>
 
-#### Using *inner* **allow attribute**
+#### Using *inner* **allow attribute** inside block
 ```Rust
 #![allow(dead_code)]
 ```

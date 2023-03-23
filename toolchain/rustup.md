@@ -44,7 +44,7 @@ The profiles available now:
 |rustup **toolchain install** ``toolchain``|Installs last toolchain for release channel ``toolchain`` for current date.|
 |rustup **default** ``toolchain``|Sets the **default toolchain** to ``toolchain``.|
 |rustup **target add** ``toolchain``|Enables **cross compilation** for ``toolchain`` for **current toolchain**.|
-|rustup **update**|Updates **default toolchain**.|
+|rustup **update**|Updates **toolchains** that begin with ``stable``-`*`.|
 |rustup **component list**|Lists all **available** and **installed** components.|
 |rustup **component add** ``rust-docs``|Adds component ``rust-docs`` to default toolchain.|
 |rustup **set profile** ``minimal``|To select the ``minimal`` **profile** you can use.|
