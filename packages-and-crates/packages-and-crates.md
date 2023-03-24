@@ -88,7 +88,7 @@ Fields ``name`` and ``version`` are **required**.
 
 The **package name** (``name``) is an identifier used to refer to the package. It is used when listed as a dependency in another package.
 
-**By default**, the **package name** is used as **name** for *auto discovered crate* **binary** (``src/main.rs``) and/or **library** (``src/lib.rs``).<br>
+**By default**, the **package name** is used as **name** for *auto discovered crate*: **binary** (``src/main.rs``) and/or **library** (``src/lib.rs``).<br>
 **Any hyphens** in the ``name`` *field* of the ``[package]`` *section* are **replaced** with **underscores**.
 
 <br>
@@ -101,7 +101,7 @@ All targets (``[lib]``, ``[[bin]]``, ``[[example]]``, ``[[test]]``, ``[[bench]]`
 
 The name field is **optional** *for library crate* and is **required** *for all other crates*.
 
-**By default**, the **package name** is used as **name** for *auto discovered crate* **binary** (``src/main.rs``) and/or **library** (``src/lib.rs``).<br>
+**By default**, the **package name** is used as **name** for *auto discovered crate*: **binary** (``src/main.rs``) and/or **library** (``src/lib.rs``).<br>
 
 <br>
 
