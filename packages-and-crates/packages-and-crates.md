@@ -7,8 +7,9 @@ Each package can be fetched from https://crates.io. <br>
 
 <br>
 
-# Packages and Crates
+# Workspace, Packages and Crates
 A **package** is a *collection* of **crates**.  
+A **workspace** is a collection of **packages**, called **workspace members**, that are **managed together**.
 
 Every **package** has **Cargo.toml** file also called **package’s manifest**. <br>
 **Directory** with *Cargo.toml* file is called **package root**.<br>
@@ -27,8 +28,22 @@ Every *Cargo.toml* file consists of the following sections:
 |``[[bin]]``|**Binary crate** settings.|
 |``[dependencies]``|Package dependencies.|
 |``[dev-dependencies]``|Dependencies for **examples**, **tests**, and **benchmarks**.|
-|``[build-dependencies]``|Dependencies for **build scripts**.|
-|``[target]``|**Platform-specific** dependencies.|
+|``[build-dependencies]``|Dependencies for build scripts.|
+|``[target]``|Platform-specific dependencies.|
+|`[profile.*]`|Compiler settings and **optimizations**.|
+
+<br>
+
+Cargo has 4 **built-in profiles**:
+- `profile.dev`;
+- `profile.release`;
+- `profile.test`;
+- `profile.bench`.
+
+<br>
+
+The profile is *automatically chosen* if a profile is **not** specified on the cli by `--profile <PROFILE-NAME>` option.<br>
+In addition to the *built-in profiles*, additional **custom profiles** can be defined.<br>
 
 More details here: https://doc.rust-lang.org/cargo/reference/manifest.html.
 
