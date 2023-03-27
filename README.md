@@ -62,7 +62,7 @@ Easy manual for Rust language.
    - [Trait objects](traits/trait-objects.md)
    - [Operator overloading](traits/operator-overloading.md)
    - [Phantom data](traits/phantom-data.md)
-9.  **Type convertions**
+9. **Type convertions**
    - [Into and TryInto](type-convertions/Into-and-TryInto.md)
    - [From and TryFrom](type-convertions/From-and-TryFrom.md)
    - [Examples](type-convertions/examples.md)
