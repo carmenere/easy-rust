@@ -4,6 +4,7 @@ Easy manual for Rust language.
 # Table of contents
 - **Rust toolchain**
   - [Toolchain](toolchain/toolchain.md)
+
 - **Basics**
   - [Assertions](basics/assertions.md)
   - [Closures](basics/closures.md)
