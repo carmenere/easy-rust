@@ -1,12 +1,14 @@
 # Iterators
-Consider xample:
+Consider example:
 ```Rust
 for item in collection {
     ...
 }
 ```
 
-In this example, after ``for`` loop *collection* ``collection`` is become **invalid**. Access to **collections** in loops uses ``move semantics`` by default.
+In this example, after ``for`` loop *collection* ``collection`` is become **invalid**.<br>
+
+Access to **collections** in loops uses ``move semantics`` by default.
 
 <br>
 

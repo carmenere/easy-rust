@@ -63,7 +63,7 @@ println!("{} and {}.", "x", 22);
 <td><b>Formatting traits</b>.
 
 <br>
-Mapping foramatting sign to formatting trait:
+Mapping formatting sign to formatting trait:
 
 <br>
 <ul>
