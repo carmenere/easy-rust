@@ -1,9 +1,10 @@
 # Variables declarations (aka let bindings)
-## Notations ("\[\]" means "optional")
-- Declaration of **immutable** variables:``let <name>``\[``: <type>``\]\[``= <value>``\]``;``
+## Notations
+Here "\[\]" means *optional*. <br>
+- Declaration of **immutable** variables: ``let <name>``\[``: <type>``\]\[``= <value>``\]``;``
+- Declaration of **mutable** variables: ``let``**``mut``**``<name>``\[``: <type>``\]\[``= <value>``\]``;``
 
-- Declaration of **immutable** variables:
-``let``**``mut``**``<name>``\[``: <type>``\]\[``= <value>``\]``;``
+<br>
 
 ## Examples
 - Declarations of **immutable** variables:
