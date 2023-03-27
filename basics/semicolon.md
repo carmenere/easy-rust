@@ -5,7 +5,7 @@ Rust is an **expression-oriented language**. This means that **most things are e
 **Semicolon** ``;`` is used to **turn** an *expression* **into** *statement*.
 <br>
 
-*Semicolon* **drops** *left part* and **returns** *right part*. If there is **nothing** *on the right* ``;`` returns ``()`` type. 
+*Semicolon* **drops** *left part* and **returns** *right part*. If there is **nothing** *on the right* ``;`` returns [**unit type**](../types/unit.md). 
 <br>
 
 *Semicolon* is **necessary** after **let bindings** and **assignments**:
