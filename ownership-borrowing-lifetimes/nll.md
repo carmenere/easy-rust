@@ -1,11 +1,11 @@
 # Rules of references
 A **lifetime** is a **scope** within a **reference** is **valid**, i.e., until **borrow** lasts.<br>
 
-**Reference** has **non-lexical lifetime** (**NLL**).<br>
-
-**NLL** vs. **LL**:
+**NLL** (**non-lexical lifetime**) vs. **LL** (**lexical lifetime**):
 - **LL** means that **scope** of reference starts **from** the **point at which it was declared** by ``let`` keyword **until** the **end of the block** (until ``{``).
 - **NLL** means that **scope** of reference starts **from** the **point at which it was declared** by ``let`` keyword **until** the **last time reference is used**.
+
+All **references** in Rust have **NLL**.<br>
 
 <br>
 
