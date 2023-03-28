@@ -10,7 +10,7 @@ When a function accepts **multiple references**, they’re **each** given **thei
 
 From Rust point of view, signature:``fn f (s1: &str, s2: &str) → &str `` is **equal** to signature:``fn f<'a, 'b> (s1: &'a str, s2: &'b str) → &'??? str``<br>
 
-So, rustc sets to ``s1`` and ``s2`` **different** lifetimes and rustc **doesn't** know what lifetime to assign to **returning value**.<br>
+So, `rustc` sets to ``s1`` and ``s2`` **different** lifetimes and `rustc` **doesn't** know what lifetime to assign to **returning value**.<br>
 That is why compiler return error. So we must **explicitly** set lifetimes for input and output parameters.<br>
 Example: ``fn f<'a> (s1: &'a str, s2: &'a str) → &'a str``.<br>
 
@@ -63,10 +63,20 @@ For function there are 2 kind of lifetimes:
 - **Input lifetime** is a lifetime associated with a **parameter** of a function. 
 - **Output lifetime** is a lifetime associated with the **return value** of a function.
 
-Lifetimes rules:
+<br>
+
+**Lifetimes rules**:
 - Each elided lifetime in a function’s signature becomes a **distinct** lifetime of function’s parameter.
 - If there is exactly one **input lifetime**, it is assigned to all *elided* **lifetimes** in the **return values** of that function.
 - If there are **multiple** **input lifetimes**, but one of them is ``&self`` or ``&mut self``, the **lifetime** of ``self`` is assigned to all *elided* **output lifetimes**.
+
+<br>
+
+Declaration `fn foo<'a>(a: &'a i32, b: &'a i32) -> () { ... }` means that **lenders** of `a` and `b` can't go out of their scopes until function execution ends, i.e., **lenders** of `a` and `b` must live as long as function call.
+
+<br>
+
+Declaration `fn foo<'a>(a: &'a i32, b: &'a i32) -> Foo<'a> { ... }` means that **return value** of function should live as long as **input argument** of function, i.e., **lenders** of `a` and `b` must live as long as **return value** of function.
 
 <br>
 
@@ -155,4 +165,6 @@ Notations of **lifetime subtyping**:<br>
 - ``fn max<'a, 'b: 'a>(x: &'a i32, y: &'b i32) -> &'a i32``;
 - ``fn max<'a, 'b>(x: &'a i32, y: &'b i32) -> &'a i32 where 'b: 'a``;
 
-Notation ``'b: 'a`` means ``'b`` **outlives** ``'a``, and ``'b`` is a **subtype** of ``'a``, i.e., ``'a`` <= ``'b``.
+<br>
+
+Notation ``'left: 'right`` means ``'left`` **outlives** ``'right``, and ``'left`` is a **subtype** of ``'right``, i.e., ``'right`` <= ``'left``.
