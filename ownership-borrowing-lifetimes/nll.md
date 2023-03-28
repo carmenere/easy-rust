@@ -21,12 +21,8 @@ a. **only 1** *mutable reference* ``&mut T``;<br>
 **OR**<br>
 b. **any number** of *shared references* ``&T``.<br>
 
-<br>
-
 Rules 1 and 2 **prevent data races** at compile time.<br>
 Rule 3 **prevents from dangling references**.<br>
-
-<br>
 
 **Owner restrictions** during borrowing:
 1. During a **shared borrow**, the **owner can’t**:
