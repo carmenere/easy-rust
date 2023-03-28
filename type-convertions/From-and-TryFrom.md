@@ -1,17 +1,73 @@
 # Trait ``From``
 Path in **std** is ``std::convert::From``.<br>
-Trait ``From`` is used to convert value **from** type ``S`` **to** type ``D`` and **must** be implemented on ``D`` type.<br>
-Trait ``From`` **must** **not** **fail**. If the conversion **can** **fail**, use ``TryFrom``.<br>
+Trait ``From`` is used to convert value **from** *source* type ``S`` **to** *destination* type ``D`` on which it is implemented.<br>
+Trait ``From`` **must not fail**.<br>
+If the conversion **can** **fail**, use ``TryFrom``.<br>
 
-**Declaration** of ``From``:
+**Declaration** of ``From``, here `Self` will become `D`:
 ```Rust
-pub trait From<T> {
-    fn from(T) -> Self;
+pub trait From<S> {
+    fn from(S) -> Self;
 }
 ```
 
 Method ``from()`` performs the conversion.<br>
-Traits ``From`` and ``Into`` are **connected**: implementing ``impl From<S> for D`` **automatically** implements ``impl Into<D> for S``, but not vise versa. The compiler is **unable** to **infer** destination type ``D`` for ``S`` when ``.into()`` is used.
+
+Traits ``From`` and ``Into`` are **connected**: implementing ``impl From<S> for D`` **automatically** implements ``impl Into<D> for S``, but not vise versa.<br>
+
+In other words:<br>
+```Rust
+impl From<i32> for Number {
+    fn from(item: i32) -> Self {
+        Number { value: item }
+    }
+}
+```
+
+<br>
+
+**will implicitly creates**<br>
+
+```Rust
+impl Into<Number> for i32 {
+    fn into(self) -> Number {
+        Number { value: self }
+    }
+}
+```
+
+<br>
+
+There is **blanket implementation** for implicit `impl Into<D> for S`:
+```Rust
+impl<S, D> const Into<D> for S
+where
+    D: ~const From<S>,
+{
+    fn into(self) -> D {
+        D::from(self)
+    }
+}
+```
+
+<br>
+
+Every type can be converted to itself, **blanket implementation** for that:
+```Rust
+impl<T> const From<T> for T {
+    /// Returns the argument unchanged.
+    #[inline(always)]
+    fn from(t: T) -> T {
+        t
+    }
+}
+```
+
+<br>
+
+> **Note**:<br>
+> The compiler is **unable** to **infer** destination type ``D`` for ``S`` when ``.into()`` is used.<br>
+> Explicit type declaration must be used in **let binding**.
 
 <br>
 
@@ -74,8 +130,7 @@ num: Number { value: 5 }
 
 # Error handling
 The ``From`` is also very useful when performing **error handling**.<br>
-By converting underlying error types to our own **custom** error type that encapsulates the underlying error type, we can return a single error type without losing information on the underlying cause.<br>
-The ``?`` operator **automatically** converts the underlying error type **to** our **custom** error type.<br>
+The ``?`` operator **automatically** converts the **underlying error** type **to** our **custom error** type.<br>
 
 <br>
 

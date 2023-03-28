@@ -61,6 +61,7 @@ For example, ``impl<T: Debug>`` trait for ``T`` overlaps with ``impl<T: Display>
 - ``SomeTrait`` is from current crate **OR** ``SomeType`` is from current crate;
 - Few edge cases (see **RFC 1023**).
 
+<br>
 
 Consider example:
 ```Rust
@@ -70,6 +71,8 @@ impl ToString for Vec<char> {
     }
 }
 ```
+
+<br>
 
 **Output**:
 ```bash
@@ -105,7 +108,3 @@ impl<T> ABC for Vec<T>
 impl<T> ABC for Vec<T> where T: Eq
 impl<T> ABC for Vec<T> where T: Hash
 ```
-
-Problems:
-- Every time you add an ``impl``, you need to check if it overlaps with any other ``impl``.
-- The **overlap rule** can only be enforced if you know all of the ``impl`` in the universe.

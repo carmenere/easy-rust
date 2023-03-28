@@ -18,9 +18,22 @@ Therefore, you should always try to implement ``From`` and then fall back to ``I
 <br>
 
 ### Example
+Prior to Rust 1.41, if the **destination type** was not part of the current crate then you couldn’t implement `From` directly.
+For example, the code below will fail  in older versions:
 ```Rust
 struct Wrapper<T>(Vec<T>);
+impl<T> From<Wrapper<T>> for Vec<T> {
+    fn from(w: Wrapper<T>) -> Vec<T> {
+        w.0
+    }
+}
+```
 
+<br>
+
+To bypass this, you could implement Into directly:
+```Rust
+struct Wrapper<T>(Vec<T>);
 impl<T> Into<Vec<T>> for Wrapper<T> {
     fn into(self) -> Vec<T> {
         self.0
