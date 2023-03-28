@@ -10,8 +10,8 @@ Kinds of polymorphism:
 |**Kind of polymorphism**|**Dispatch form**|**Way of implementation**|
 |:-----------------------|:----------------|:------------------------|
 |**Ad hoc** polymorphism|**Static**|Function or operator **overloading**|
-|**Parametric** polymorphism|**Dynamic**: monomorphization|**Generics**|
-|**Subtyping** polymorphism|**Dynamic**:- late binding<br>- vtable|**Inheritance**|
+|**Parametric** polymorphism|**Static**|**Generics**|
+|**Subtyping** polymorphism|**Dynamic**|**Inheritance**|
 
 <br>
 

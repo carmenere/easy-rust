@@ -61,6 +61,7 @@ For example, ``impl<T: Debug>`` trait for ``T`` overlaps with ``impl<T: Display>
 - ``SomeTrait`` is from current crate **OR** ``SomeType`` is from current crate;
 - Few edge cases (see **RFC 1023**).
 
+<br>
 
 Consider example:
 ```Rust
@@ -70,6 +71,8 @@ impl ToString for Vec<char> {
     }
 }
 ```
+
+<br>
 
 **Output**:
 ```bash
@@ -93,19 +96,15 @@ error: could not compile `playrs` due to previous error
 <br>
 
 ## Overlapping rule
-**Rule**: You can never have two ``impl`` of **the same trait** for **the same type**.<br>
+**Rule**: you can never have two overlapping ``impl`` of **the same trait** for **the same type**.<br>
 
-- This implementation will **not** compile:
+- This implementation will **not** compile, because `Vec<T>` and `Vec<i32>` overlap:
 ```Rust
 impl ABC for Vec<i32>
 impl<T> ABC for Vec<T>
 ```
-- This implementation will **not** compile:
+- This implementation will **not** compile, because `T: Eq` and `T: Hash` overlap, type that implements `Eq` also may implement `Hash` and vice versa:
 ```Rust
 impl<T> ABC for Vec<T> where T: Eq
 impl<T> ABC for Vec<T> where T: Hash
 ```
-
-Problems:
-- Every time you add an ``impl``, you need to check if it overlaps with any other ``impl``.
-- The **overlap rule** can only be enforced if you know all of the ``impl`` in the universe.

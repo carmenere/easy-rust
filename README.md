@@ -62,8 +62,9 @@ The ``Rust`` language **gets rid** of *some issues* that ``C`` and ``C++`` langu
 5. **Ownership. Borrowing. Lifetimes**
       - [Ownership](ownership-borrowing-lifetimes/ownership.md)
       - [Borrowing](ownership-borrowing-lifetimes/borrowing.md)
-      - [Lifetimes](ownership-borrowing-lifetimes/lifetimes.md)
       - [Non lexical lifetime](ownership-borrowing-lifetimes/nll.md)
+      - [Lifetimes](ownership-borrowing-lifetimes/lifetimes.md)
+      - [Anonymous lifetimes](ownership-borrowing-lifetimes/anonymous-lifetimes.md)
       - [Slices](ownership-borrowing-lifetimes/slices.md)
 6. **Generics**
       - [Polymorphism](generics/polymorphism.md)
