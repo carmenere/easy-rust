@@ -1,18 +1,20 @@
 # Rules of references
-A **lifetime** is a **scope** within a **reference** is **valid**.
+A **lifetime** is a **scope** within a **reference** is **valid**.<br>
 
-**Reference** has **non lexical lifetime** (**NLL**). It means **scope** of reference starts **from** the **point at which it was declared** by ``let`` keyword **until** the **last time reference is used**.
+**Reference** has **non lexical lifetime** (**NLL**).<br>
+**NLL** means that **scope** of reference starts **from** the **point at which it was declared** by ``let`` keyword **until** the **last time reference is used**.
 
 <br>
 
-NLL rules:
-1. Scope of **mutable reference** ``&mut T`` **can’t** *intersect* with scope of any other reference to type ``T``.
-2. Scope of **shared reference** ``&T`` **can** *intersect* with scope of any other reference to type ``T``.
-3. Reference **can’t outlive value it points to**, i.e. function cannot return reference to value it owns.
+> **NLL rules**:<br>
+> 1. Scope of **mutable reference** ``&mut T`` **can’t** *intersect* with scope of any other reference to type ``T``.<br>
+> 2. Scope of **shared reference** ``&T`` **can** *intersect* with scope of any other reference to type ``T``.<br>
+> 3. Reference **can’t outlive value it points to**, i.e. function cannot return reference to value it owns.<br>
 
-Rules 1 and 2 **prevent data races** at compile time.
-Rule 3 **prevents from dangling references**.
+<br>
 
+Rules 1 and 2 **prevent data races** at compile time.<br>
+Rule 3 **prevents from dangling references**.<br>
 
 Rules 1 and 2 are means: **at any given time there can be**:
 - **only 1** *mutable reference* ``&mut T``;
@@ -23,13 +25,13 @@ OR
 
 **Owner restrictions** during borrowing:
 1. During a **shared borrow**, the **owner can’t**:
-- **mutate** the *value*;
-- **mutably lend** the *value*;
-- **move** the *value*.
+   - **mutate** the *value*;
+   - **mutably lend** the *value* (but still can **immutably lend** the *value*);
+   - **move** the *value*.
 
 2. During a **mutable borrow**, the **owner can’t**:
-- have **any access** (**read** or **mutate**) to the *value*;
-- **lend** (**mutably** or **immutably**) the *value*.
+   - have **any access** (**read** or **mutate**) to the *value*;
+   - **lend** (**mutably** or **immutably**) the *value*.
 
 <br>
 
