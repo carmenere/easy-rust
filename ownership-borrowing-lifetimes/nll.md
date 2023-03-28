@@ -7,6 +7,8 @@ A **lifetime** is a **scope** within a **reference** is **valid**, i.e., until *
 - **LL** means that **scope** of reference starts **from** the **point at which it was declared** by ``let`` keyword **until** the **end of the block** (until ``{``).
 - **NLL** means that **scope** of reference starts **from** the **point at which it was declared** by ``let`` keyword **until** the **last time reference is used**.
 
+<br>
+
 > **NLL rules**:<br>
 > 1. Scope of **mutable reference** ``&mut T`` **can’t** *intersect* with scope of any other reference to type ``T``.<br>
 > 2. Scope of **shared reference** ``&T`` **can** *intersect* with scope of any other reference to type ``T``.<br>
