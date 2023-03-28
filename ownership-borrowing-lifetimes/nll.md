@@ -16,10 +16,10 @@ All **references** in Rust have **NLL**.<br>
 
 <br>
 
-In other words, rules 1 and 2 are means: **at any given time** there can be:
-- **only 1** *mutable reference* ``&mut T``;<br>
-**OR**
-- **any number** of *shared references* ``&T``.
+In other words, rules 1 and 2 are means: **at any given time** there can be:<br>
+a. **only 1** *mutable reference* ``&mut T``;<br>
+**OR**<br>
+b. **any number** of *shared references* ``&T``.<br>
 
 <br>
 
