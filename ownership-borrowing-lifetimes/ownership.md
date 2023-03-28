@@ -37,7 +37,7 @@ Ownership rules:
 2. There can only be **one owner at a time**.
 3. When the **owner** goes **out of scope**, the **value** will be **dropped**, (**scope based resource management**).
 
-In C++ this **pattern of deallocating resources at the end of variable lifetime** is called **RAII**.  Doing this correctly without GC is a difficult problem.
+In C++ this **pattern of deallocating resources at the end of variable lifetime** is called **RAII**. Doing this correctly without GC is a difficult problem.
 
 <br>
 
@@ -45,15 +45,15 @@ In C++ this **pattern of deallocating resources at the end of variable lifetime*
 **Completely independent copy** of object is such copy that can be safely used separately to the origin one.<br>
 
 Types of copying:
-- **Bitwise copy** (aka **shallow copy**/**bit block transfer**) **type-independed logic** to duplicate values and implemented in syscall ``memcpy()``, in other words, **bitwise copy** copies contiguous block of memory bit-by-bit (byte-by-byte) to another location.
+- **Bitwise copy** (aka **shallow copy**/**bit block transfer**) is **type-independed logic** to duplicate values, in other words, **bitwise copy** copies contiguous block of memory bit-by-bit (byte-by-byte) to another location. **Bitwise copy** is implemented in syscall ``memcpy()``.
 - **Semantic copy** (aka **deep copy**) requires **type-specific logic** to duplicate values safely.
 
 **bitblt**/**bit blit**/**blit** are contractions for **bit block transfer**.
 
 |Type|Layout in memory|Type of copying|
 |:---|:---------------|:---|
-|**Blittable type**|Object of blittable type occupies exactly one contiguous /kəntɪgjuəs/ block of memory.|**Bitwise copy** *can* create completely independent copy of object of blittable type.|
-|**Non-blittable type**|Object of non-blittable type occupies more than one not adjacent contiguous /kəntɪgjuəs/ blocks of memory.|**Bitwise copy** *cannot* create completely independent copy of object of non-blittable type. To create completely independent copy of object of non-blittable type **semantic copy** must be used.|
+|**Blittable type**|Object of blittable type occupies exactly one contiguous block of memory.|**Bitwise copy** *can* create completely independent copy of object of blittable type.|
+|**Non-blittable type**|Object of non-blittable type occupies more than one not adjacent contiguous blocks of memory.|**Bitwise copy** *cannot* create completely independent copy of object of non-blittable type. To create completely independent copy of object of non-blittable type **semantic copy** must be used.|
 
 <br>
 
@@ -141,9 +141,9 @@ fn returns_ownership() -> String { 	// gives_ownership will move its return valu
 <br>
 
 ## Clone trait
-Rust **will never automatically** create deep copies of your data.<br>
-**Deep copy** in Rust **is always explicit action**: ``x.clone()``.<br>
 **Clone trait** is used to implement **deep copy** in ``clone()`` method.
+**Deep copy** in Rust **is always explicit action**: ``x.clone()``.<br>
+Rust **will never automatically** create deep copies of your data.<br>
 
 <br>
 
@@ -151,7 +151,7 @@ Rust **will never automatically** create deep copies of your data.<br>
 **Copy trait** is **marker trait**.<br>
 **Copy trait** is implemented in Rust language on:
 - the **atomic primitive types**;
-- the **composite primitive types** if all their constituent /kənstɪtʃuənt/ types implement the **Copy trait**;
+- the **composite primitive types** if all their constituent types implement the **Copy trait**;
 - **shared references**.
 
 <br>
@@ -178,9 +178,7 @@ impl Clone for MyStruct {
 <br>
 
 ## Deriving Copy and Clone traits
-**Copy trait** and **Clone trait** are **derivable traits**. It means their implementations can be derived automatically by **derive attribute**.
-
-The **derive attribute** generates code that will implement a trait with its own default implementation on the type you’ve annotated with the derive syntax.
+**Copy trait** and **Clone trait** are **derivable traits**. It means their implementations can be derived automatically by **derive attribute**.<br>
 
 Example:
 ```Rust
@@ -239,8 +237,11 @@ cargo run
 ## Drop trait
 A **resource management** in Rust is **scope based**.
 **Drop trait** is used to implement **destructors** for types.<br>
-If type implements the **Drop trait** it cannot implement **Copy trait**. So, it can only be of **Move type**, **even if blittable**.
+If type implements the **Drop trait** it cannot implement **Copy trait**, because **Copy trait** imply **shallow copy** and if we drop
+one of such shallow copies, another copy becomes broken immediately.<br>
+So, if type implements the **Drop trait** it implies that this type is also **Move type**.
 
+<br>
 
 ### Double free problem
 Rust must call ``.drop()`` **exactly one time** and there is a problem.<br>
@@ -254,12 +255,13 @@ Consider following example:
 
 For which var ``x`` or ``y`` should Rust call the **destructor**? We cannot call the destructor for both because this will result in a **double free**. 
 
-To overcome **double free** there are concept of **ownership** and **2nd ownership rule.**. So, if variable was moved it is no longer valid and it cannot be used further inside scope and compiler doesn’t call destructor for it at the end of scope.
+To overcome **double free** there are concept of **ownership** and **2nd ownership rule**. So, if variable was moved it is no longer valid and it cannot be used further inside scope and compiler doesn’t call destructor for it at the end of scope.
 
 <br>
 
 ### Drop flags
-If the **assignment is conditional**, then Rust can define the variable that should free the memory **only at runtime**. To do this, the compiler generates a flag on the stack (drop flags), which stores information about which of the alternative objects was actually used and calls the appropriate drop.
+If the **assignment is conditional**, then Rust can define the variable that should free the memory **only at runtime**.<br>
+To do this, the compiler generates a flag on the stack (**drop flags**), which stores information about which of the alternative objects was actually used and calls the appropriate drop.
 
 ```Rust
 let x: Box<i32>;
@@ -281,12 +283,12 @@ else {
 ## Primitive and Non-primitive types
 In Rust language:
 1. If type has a **known size** *at compile time* (**fixed size**) it is called **primitive type**.
-- all **primitive types** implement **Copy trait** and have **copy semantics**.
-- all **primitive types** are stored entirely on the **stack**.
-2. If type has an **unknown size** a*t compile time* it is called **complex type**. 
-- **complex types** have **move semantics**.
-- **static part** (aka **control part**) of complex type is stored entirely on the **stack** and it is used to manage **dynamic part**.
-- **dynamic part** of complex type is **dynamically changed** *at run time* and it is stored in the **heap**.
+   - all **primitive types** implement **Copy trait** and have **copy semantics**.
+   - all **primitive types** are stored entirely on the **stack**.
+2. If type has an **unknown size** *at compile time* it is called **complex type**. 
+   - **complex types** have **move semantics**.
+   - **static part** (aka **control part**) of complex type is stored entirely on the **stack**, it is used to manage **dynamic part**.
+   - **dynamic part** of complex type is **dynamically changed** *at run time*, it is stored in the **heap**.
 
 So, in Rust language **Copy type** is **primitive type**.
 

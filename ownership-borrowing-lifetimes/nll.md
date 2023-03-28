@@ -1,41 +1,43 @@
 # Rules of references
-A **lifetime** is a **scope** within a **reference** is **valid**.
+A **lifetime** is a **scope** within a **reference** is **valid**, i.e., until **borrow** lasts.<br>
 
-**Reference** has **non lexical lifetime** (**NLL**). It means **scope** of reference starts **from** the **point at which it was declared** by ``let`` keyword **until** the **last time reference is used**.
+**NLL** (**non-lexical lifetime**) vs. **LL** (**lexical lifetime**):
+- **LL** means that **scope** of reference starts **from** the point at which it was declared by ``let`` keyword **until** the **end of the block** (until ``{``).
+- **NLL** means that **scope** of reference starts **from** the point at which it was declared by ``let`` keyword **until** the **last time reference is used**.
+
+All **references** in Rust have **NLL**.<br>
+
+<br>
+
+> **NLL rules**:<br>
+> 1. Scope of **mutable reference** ``&mut T`` **can’t** *intersect* with scope of any other reference to type ``T``.<br>
+> 2. Scope of **shared reference** ``&T`` **can** *intersect* with scope of any other reference to type ``T``.<br>
+> 3. Reference **can’t outlive value it points to**, i.e. function cannot return reference to value it owns.<br>
 
 <br>
 
-NLL rules:
-1. Scope of **mutable reference** ``&mut T`` **can’t** *intersect* with scope of any other reference to type ``T``.
-2. Scope of **shared reference** ``&T`` **can** *intersect* with scope of any other reference to type ``T``.
-3. Reference **can’t outlive value it points to**, i.e. function cannot return reference to value it owns.
+In other words, rules 1 and 2 are means: **at any given time** there can be:<br>
+a. **only 1** *mutable reference* ``&mut T``;<br>
+**OR**<br>
+b. **any number** of *shared references* ``&T``.<br>
 
-Rules 1 and 2 **prevent data races** at compile time.
-Rule 3 **prevents from dangling references**.
-
-
-Rules 1 and 2 are means: **at any given time there can be**:
-- **only 1** *mutable reference* ``&mut T``;
-OR 
-- **any number** of *shared references* ``&T``.
-
-<br>
+Rules 1 and 2 **prevent data races** at compile time.<br>
+Rule 3 **prevents from dangling references**.<br>
 
 **Owner restrictions** during borrowing:
 1. During a **shared borrow**, the **owner can’t**:
-- **mutate** the *value*;
-- **mutably lend** the *value*;
-- **move** the *value*.
+   - **mutate** the *value*;
+   - **mutably lend** the *value* (but still can **immutably lend** the *value*);
+   - **move** the *value*.
 
 2. During a **mutable borrow**, the **owner can’t**:
-- have **any access** (**read** or **mutate**) to the *value*;
-- **lend** (**mutably** or **immutably**) the *value*.
+   - have **any access** (**read** or **mutate**) to the *value*;
+   - **lend** (**mutably** or **immutably**) the *value*.
 
 <br>
 
 #### Example
 ```Rust
-Example:
 fn main() {
     let mut owner = 5;
     let ro_ref = &owner;
@@ -46,12 +48,19 @@ fn main() {
 
 <br>
 
-# Non-lexical lifetime
-It's easiest to understand what **non-lexical lifetimes** (**NLL**) are by understanding what **lexical lifetimes** (**LL**) are.<br>
+# NLL and iterator invalidation
+**NLL** prevents a common error called **iterator invalidation**, where the program modifies a collection while iterating over it.<br>
 
-**Lexical lifetimes** (**LL**) vs. **Non-lexical lifetimes** (**NLL**):
-- **LL** means that borrow lasts until the **end of the block** (until ``{``).
-- **NLL** means that borrow lasts until the **end of the block** (until ``{``) **until** the **last time reference is used**..
+Rust rejects following code, because it borrows ``v`` both **immutably** and **mutably**:
+```Rust
+let mut v = vec![1, 2];
+
+// Borrows `v` immutably
+for i in &v {
+    // Error: borrows `v` mutably, but `v` was already borrowed.
+    v.push(*i);
+}
+```
 
 <br>
 
@@ -219,20 +228,4 @@ cargo run
      Running `target/debug/playrs`
 reborrow_rw(): p: 0
 p0: 0
-```
-
-<br>
-
-# NLL and iterator invalidation
-**NLL** prevents a common error called **iterator invalidation**, where the program modifies a collection while iterating over it.<br>
-
-Rust rejects following code, because it borrows ``v`` both **immutably** and **mutably**:
-```Rust
-let mut v = vec![1, 2];
-
-// Borrows `v` immutably
-for i in &v {
-    // Error: borrows `v` mutably, but `v` was already borrowed.
-    v.push(*i);
-}
 ```
