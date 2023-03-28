@@ -24,8 +24,6 @@ impl From<i32> for Number {
 }
 ```
 
-<br>
-
 **will implicitly creates**<br>
 
 ```Rust
