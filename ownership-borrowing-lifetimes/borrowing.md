@@ -167,6 +167,34 @@ cargo run
 
 <br>
 
+#### More complex example
+```Rust
+fn main() {
+    enum Foo {
+        A,
+    }
+
+    struct Bar {
+        a: i32,
+    }
+
+    fn main() {
+        let foo = &Foo::A;
+        let bar = &Bar{a: 0};
+
+        let foo_2 = *foo; // A move occurs here and Rust generates following error:
+                          // cannot move out of `*foo` which is behind a shared reference
+
+        let bar_2 = *bar; // A move occurs here and Rust generates following error:
+                          // cannot move out of `*bar` which is behind a shared reference
+
+        let a = (*bar).a; // *bar works here because Rust doesn't move it, Rust understands that it only needs acccess field "a".
+    }
+}
+```
+
+<br>
+
 # Reborrowing
 Consider ``b`` is **borrower**:
 - if ``b`` contains *shared reference*, it is possible to **reborrow** *shared reference*: ``let b1 = &*b``.
