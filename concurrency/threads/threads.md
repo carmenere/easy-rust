@@ -1,7 +1,7 @@
 # Threads
 An executing Rust program consists of a collection of **native OS threads**, each with their **own stack** and **local state**.<br>
-When the **main thread** of a Rust program **terminates**, the **entire program shuts down**, even if other threads are still running.<br>
-So, the spawned thread **may outlive** the caller *unless the caller thread is the main thread*. The **whole process** is terminated when the **main thread finishes**.
+When the **main thread** *terminates*, the **whole process** is *terminated*, even if other threads are *still running*.<br>
+So, the spawned thread **may outlive** the caller *unless the caller thread is the main thread*.
 
 <br>
 
@@ -36,8 +36,11 @@ To **retrieve** the thread name from within the thread, use `Thread::name`.<br>
 <br>
 
 ## `JoinHandle` type
-Due to platform restrictions, it is not possible to `Clone` this handle: the ability to **join a thread** is a uniquely-owned permission.<br>
-This struct is created by the `thread::spawn` function and the `thread::Builder::spawn` method.<br>
+Instance of `JoinHandle` is created by the `thread::spawn` function and the `thread::Builder::spawn` method.<br>
+
+The `JoinHandle` provides a `join` method that can be used to **join the spawned thread**, i.e., to **wait for thread to finish** and obtain its **result**.<br>
+If the *spawned thread* panics, `join` will return an `Err` containing the argument given to `panic!`.<br>
+Due to platform restrictions, it is not possible to `Clone` this `JoinHandle` and the ability to **join a thread** is a uniquely-owned permission.<br>
 
 <br>
 
@@ -51,8 +54,7 @@ where
 
 This call will create a thread using default parameters of `Builder`, if you want to specify the **stack size** or the **name** of the thread, use `thread::Builder`.<br>
 If the **join handle** is not used, the *spawned thread* will implicitly be **detached**. In this case, the *spawned thread* may no longer be joined.<br>
-The **join handle** provides a `join` method that can be used to **join the spawned thread**.<br>
-If the *spawned thread* panics, `join` will return an `Err` containing the argument given to `panic!`.<br>
+
 
 <br>
 
@@ -101,12 +103,15 @@ handler.join().unwrap();
 #### `'static` constraint
 The `'static` constraint means that the **closure** and its **return value** must have a **lifetime** of the **whole program execution**.<br>
 The reason for this is that threads **can outlive** the lifetime they have been created in.<br>
-Indeed if the thread and its return value can outlive their caller, we need to make sure that they will be valid afterwards, and since we **can’t know** when it will return we need to have them valid **as long as possible**, that is **until the end of the program**, hence the `'static` **lifetime**.
+Indeed if the **thread** and its **return value** can **outlive** their **caller**, we need to make sure that they will be **valid** afterwards, and since we **can’t know** when it will return we need to have them valid **as long as possible**, that is **until the end of the program**, hence the `'static` **lifetime**.<br>
+
+Rust has no way of knowing how long the child thread will run, so it **assumes** the **worst**: it assumes the **child thread** can **outlive** **parent thread**.<br>
+So when you pass reference to `thread::spawn` closure, it assumes this **reference can outlive original value it points to**.<br>
 
 <br>
 
 #### `Send` constraint
-The `Send` constraint is because the closure will need to be passed **by value** from the thread where it is spawned to the new thread.
+The `Send` constraint is because the closure is passed **by value** from the thread where it is spawned to the new thread.
 
 <br>
 
@@ -115,7 +120,6 @@ The `Send` constraint is because the closure will need to be passed **by value**
 
 <br>
 
-## Example
 ```Rust
 use std::thread;
 use std::time::Duration;
@@ -135,4 +139,93 @@ println!("Unpark the thread");
 parked_thread.thread().unpark();
 
 parked_thread.join().unwrap();
+```
+
+<br>
+
+# Examples
+## Just one thread
+```Rust
+use std::{thread, thread::JoinHandle, time::Duration};
+use rand::{Rng};
+
+fn main() {
+    let mut v = (1..=100).collect::<Vec<u32>>();
+
+    let handle: JoinHandle<u64> = thread::spawn(|| {
+        let mut r = rand::thread_rng();
+        let id = thread::current().id();
+        let delay = r.gen_range(1..=5);
+        println!("Thread id: {:?}", id);
+        thread::sleep(Duration::from_secs(delay));
+        println!("Thread id: {:?}", id);
+        delay
+    });
+    
+    let r = handle.join();
+    if let Ok(r) = r {
+        println!("Result: {}", r);
+    }
+}
+```
+
+<br>
+
+## Multiple threads
+```Rust
+use std::{thread, thread::JoinHandle, time::Duration};
+use rand::{Rng};
+
+fn main() {
+    let mut v = (1..=10).collect::<Vec<u32>>();
+
+    let handles: Vec<JoinHandle<u64>> = v.iter().map(|i| {
+        thread::spawn(|| {
+            let mut r = rand::thread_rng();
+            let id = thread::current().id();
+            let delay = r.gen_range(1..=5);
+            println!("Thread id: {:?}, will sleep {} sec. ", id, delay);
+            thread::sleep(Duration::from_secs(delay));
+            println!("Thread id: {:?}, waked up, continue execution.", id);
+            delay * delay
+        })
+    }).collect();
+
+    for h in handles {
+        let id = h.thread().id();
+        if let Ok(r) = h.join() {
+            println!("Thread id: {:?}, result: {}", id, r);
+        }
+    }
+}
+```
+
+<br>
+
+# Sharing immutable data across threads
+To share data between threads there is `Arc` type.<br>
+
+```Rust
+use std::thread;
+
+use std::sync::Arc;
+
+fn main() {
+    let shared_vector = Arc::new(vec![100, 200, 300]);
+    let ids = [1, 2, 3];
+    let mut threads = Vec::with_capacity(10);
+    for id in ids {
+        let shared_vector_per_thread = shared_vector.clone();
+        threads.push(
+            thread::spawn(move || {
+                let v = &shared_vector_per_thread;
+                println!("My thread id is {}. v.len() = {}", id, v.len())}
+            )
+        )
+    }
+
+    for thread in threads {
+        let r = thread.join();
+    }
+}
 ```
