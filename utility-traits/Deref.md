@@ -1,16 +1,21 @@
 # Coercions
-**Coercions** (/kəʊˈɜːrʒnz/ or /kəʊˈɜːʃnz/) are **implicit** type conversions.
+**Type coercions** are **implicit** type conversions.
+
+<br>
+
+More about type here [type coercions in Rust](https://doc.rust-lang.org/reference/type-coercions.html)
 
 <br>
 
 # Reference type and Dereferenceable type
 What types can be **dereferenced**?<br>
 A type can be **dereferenced** if it **dereferenceable type**.<br>
-**Dereferenceable type** is a type that implements the ``Deref`` and/or ``DerefMut`` traits.<br>
-**Reference type** is a type of **reference** that was created by ``&`` **reference operator**. Compiler automatically adds ``Deref`` and/or ``DerefMut`` traits for **reference types**.<br>
+**Dereferenceable type** is a type that implements the `Deref` and/or `DerefMut` traits.<br>
+**Reference type** is a type of **reference** that was created by `&` **reference operator**.<br>
+Compiler automatically adds `Deref` and/or `DerefMut` traits for **reference types**.<br>
 So, **reference type** is **dereferenceable type**.<br>
 
-Non-pointer types like ``bool`` or ``char`` or ``(u8, u8)`` **cannot** be **dereferenced**: they **don't** implement the ``Deref`` trait and **don't** act like pointers to some other type.<br>
+Non-pointer types like `bool` or `char` or `(u8, u8)` **cannot** be **dereferenced**: they **don't** implement the `Deref` trait and **don't** act like pointers to some other type.<br>
 
 ```Rust
 fn foo(b: &bool) -> bool { *b }
@@ -18,11 +23,10 @@ fn foo(b: &bool) -> bool { *b }
 
 <br>
 
-# ``Deref`` trait
-``Deref`` trait is used for **immutable** dereferencing operations, like ``let v = *s;``.<br>
-Path to ``Deref`` trait in **std**: ``std::ops::Deref``. <br>
+# `Deref` trait
+`Deref` trait is used for **immutable** dereferencing operations, like `let v = *s;`.<br>
 
-**Defenition** of ``Deref`` trait:
+**Defenition** of `Deref` trait:
 ```Rust
 pub trait Deref {
     type Target: ?Sized;
@@ -53,19 +57,18 @@ assert_eq!('a', *x);
 
 <br>
 
-``deref`` method returns a **reference** to the value we want to access with the ``*`` **dereference operator**.<br>
-Without the ``Deref`` trait, the compiler can only **dereference** **reference types**.<br>
-The ``deref`` method gives the compiler the ability to take a value of any type that implements ``Deref`` and call the ``deref`` method to get a **reference type** that it knows how to dereference.
+`deref` method returns a **reference** to the value we want to access with the `*` **dereference operator**.<br>
+Without the `Deref` trait, the compiler can only **dereference** **reference types**.<br>
+The `deref` method gives the compiler the ability to take a value of any type that implements `Deref` and call the `deref` method to get a **reference type** that it knows how to dereference.
 
-When we type ``*y`` in our code, behind the scenes Rust actually converts it to: ``*(y.deref())``.<br>
+When we type `*y` in our code, behind the scenes Rust actually converts it to: `*(y.deref())`.<br>
 
 <br>
 
-# ``DerefMut`` trait
-``DerefMut`` trait is used for **mutable** dereferencing operations, like ``*v = 5;``.<br>
-Path to ``DerefMut`` trait in **std**: ``std::ops::DerefMut``. <br>
+# `DerefMut` trait
+`DerefMut` trait is used for **mutable** dereferencing operations, like `*v = 5;`.<br>
 
-**Defenition** of ``Deref`` trait:
+**Defenition** of `Deref` trait:
 ```Rust
 pub trait DerefMut: Deref {
     fn deref_mut(&mut self) -> &mut Self::Target;
@@ -96,29 +99,31 @@ fn main() {
 }
 ```
 
-Here we’re calling the ``hello`` function with the argument ``&m``, which is a **reference** to a ``MyBox<String>`` value.<br>
+Here we’re calling the `hello` function with the argument `&m`, which is a **reference** to a `MyBox<String>` value.<br>
 Rust performs following **deref chain**: 
-- ``&MyBox<String>`` -> ``&String`` (because ``MyBox<T>`` implements ``Deref`` trait such that it returns ``&String``);
-- ``&String`` -> ``&str`` (because ``String`` implements ``Deref`` trait such that it returns ``&str``).
+- `&MyBox<String>` -> `&String` (because `MyBox<T>` implements `Deref` trait such that it returns `&String`);
+- `&String` -> `&str` (because `String` implements `Deref` trait such that it returns `&str`).
 
 <br>
 
 # Deref coercion cases
-Rust performs **deref coercion** in three cases:
 |From => To|Trait boudary|Description|
 |:---------|:-------------|:----------|
-|``&T`` => ``&U``|if ``T: Deref<Target=U>``|If you have a ``&T``, and ``T`` implements ``Deref`` to some type ``U``, compiler will **coerce** ``&T`` into ``&U`` **transparently**.|
-|``&mut T`` => ``&mut U``|if ``T: DerefMut<Target=U>``|If you have a ``&mut T``, and ``T`` implements ``DerefMut`` to some type ``U``, compiler will **coerce** ``&mut T`` into ``&mut U`` **transparently**.|
-|``&mut T`` => ``&U``|if ``T: Deref<Target=U>``|If you have a ``&mut T``, and ``T`` implements ``Deref`` to some type ``U``, compiler will **coerce** ``&mut T`` into ``&U`` **transparently**.|
-
-**Note**, that compiler **will not** *coerce* **immutable** *reference* to **mutable** *reference*.
+|`&T` => `&U`|`T: Deref<Target=U>`|If you have a `&T`, and `T` implements `Deref` to some type `U`, compiler will **coerce** `&T` into `&U` **transparently**.|
+|`&mut T` => `&mut U`|`T: DerefMut<Target=U>`|If you have a `&mut T`, and `T` implements `DerefMut` to some type `U`, compiler will **coerce** `&mut T` into `&mut U` **transparently**.|
+|`&mut T` => `&U`|`T: Deref<Target=U>`|If you have a `&mut T`, and `T` implements `Deref` to some type `U`, compiler will **coerce** `&mut T` into `&U` **transparently**.|
 
 <br>
 
-# Dot ``.`` operator
-When you use **dot operator** ``.``, the compiler will insert as many ``*`` (dereferencing operations) as necessary to find the appropriate method. As **this happens** **at compile tim**e, there is **no** **runtime cost** of finding the method.
+> Note<br>
+> Compiler **will not** *coerce* **immutable** *reference* to **mutable** *reference*.
 
-For example, if ``x`` has type ``&i32``, then writing ``x.count_ones()`` is shorthand for ``(*x).count_ones()``, because the ``count_ones`` method requires an ``i32``.
+<br>
+
+# Dot `.` operator
+When you use **dot operator** `.`, the compiler will insert as many `*` (dereferencing operations) as necessary to find the appropriate method. As **this happens** **at compile tim**e, there is **no** **runtime cost** of finding the method.
+
+For example, if `x` has type `&i32`, then writing `x.count_ones()` is shorthand for `(*x).count_ones()`, because the `count_ones` method requires an `i32`.
 
 <br>
 

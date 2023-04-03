@@ -4,7 +4,7 @@ Easy manual for Rust language.
 <br>
 
 # Issues Rust solves
-The ``Rust`` language **gets rid** of *some issues* that ``C`` and ``C++`` languages have.
+The `Rust` language **gets rid** of *some issues* that `C` and `C++` languages have.
 
 <br>
 
@@ -12,7 +12,7 @@ The ``Rust`` language **gets rid** of *some issues* that ``C`` and ``C++`` langu
 |:--------------------------|:-------|
 |**Double free**|**Move semantics** and **scope based** resource management.|
 |**Use after free** \(aka **dangling pointers**\)|**Borrow checker** tracks *references* **lifetimes**, i.e., *reference* **can’t outlive** its *owner*.|
-|**Buffer overflow**|``slice`` types and ``.last()``/``.last_mut()`` methods for **sequences**.|
+|**Buffer overflow**|`slice` types and `.last()`/`.last_mut()` methods for **sequences**.|
 
 <br>
 
@@ -47,18 +47,18 @@ The ``Rust`` language **gets rid** of *some issues* that ``C`` and ``C++`` langu
       - [Assertions](basics/assertions.md)
       - [Docstrings](basics/docstrings.md)
 4. **Types**
-      - [Scalars](types/scalars.md)
-      - [Enums](types/enums.md)
-      - [Arrays](types/arrays.md)
-      - [Vectors](types/vectors.md)
-      - [Strings](types/strings.md)
-      - [Structs](types/structs.md)
-      - [Tuples](types/tuples.md)
-      - [Unit](types/unit.md)
-      - [Tuple-structs](types/tuple-structs.md)
-      - [Unit-like structs](types/unit-like-structs.md)
-      - [Newtype pattern](types/new-type-pattern.md)
-      - [Dynamically sized types (DST)](types/dst.md)
+      - [Scalars](basics/types/scalars.md)
+      - [Enums](basics/types/enums.md)
+      - [Arrays](basics/types/arrays.md)
+      - [Vectors](basics/types/vectors.md)
+      - [Strings](basics/types/strings.md)
+      - [Structs](basics/types/structs.md)
+      - [Tuples](basics/types/tuples.md)
+      - [Unit](basics/types/unit.md)
+      - [Tuple-structs](basics/types/tuple-structs.md)
+      - [Unit-like structs](basics/types/unit-like-structs.md)
+      - [Newtype pattern](basics/types/new-type-pattern.md)
+      - [Dynamically sized types (DST)](basics/types/dst.md)
 5. **Ownership. Borrowing. Lifetimes**
       - [Ownership](ownership-borrowing-lifetimes/ownership.md)
       - [Borrowing](ownership-borrowing-lifetimes/borrowing.md)
@@ -77,9 +77,9 @@ The ``Rust`` language **gets rid** of *some issues* that ``C`` and ``C++`` langu
       - [Operator overloading](traits/operator-overloading.md)
       - [Phantom data](traits/phantom-data.md)
 8. **Type convertions**
-      - [Into and TryInto](type-convertions/Into-and-TryInto.md)
-      - [From and TryFrom](type-convertions/From-and-TryFrom.md)
-      - [Examples](type-convertions/examples.md)
+      - [Into and TryInto](utility-traits/Into-and-TryInto.md)
+      - [From and TryFrom](utility-traits/From-and-TryFrom.md)
+      - [Examples](utility-traits/examples.md)
 9.  **Utility traits**
        - [Intro](utility-traits/intro.md)
        - [AsRef](utility-traits/AsRef.md)
