@@ -20,8 +20,8 @@ The type `Cow` is a smart pointer providing **clone-on-write** functionality:
 
 > **Notes**:<br>
 > `Cow<T>` implements the `Deref` trait which means it can directly call the immutable methods of `T`.<br>
+> `.to_mut()` returns **mutable reference** to owned data. It **clones** the data if it is **not** already owned.<br>
+> Multiple calls to `.to_mut()` will produce only **one** `.clone()`.<br>
 > If we need to **mutate** `T`, then we can convert it into an **owned** variable using the `into_owned()`:<br>
 >  - if the variant of `Cow` was already `Owned` then we **move ownership**.<br>
 >  - if the variant of `Cow` is `Borrowed`, then we **allocate** new memory.<br>
-> `.to_mut()` returns **mutable reference** to owned data. It clones the data if it is not already owned.<br>
-> Multiple calls to `.to_mut()` will produce only **one** `.clone()`.<br>
