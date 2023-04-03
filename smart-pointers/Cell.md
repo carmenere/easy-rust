@@ -4,14 +4,13 @@ There are 2 types that allow implement **interior mutability**: ``Cell<T>`` and 
 
 <br>
 
-# ``Cell<T>``
-``T`` must be of **Copy type**.	
-Path to type in **std**: ``std::cell::Cell``.
+# `Cell<T>`
+`T` must be of **Copy type**.	
 
-Some usefull methods of ``Cell<T>``:
-- ``Cell::new(somevalue)`` creates new ``Cell``, **moving** value ``somevalue`` into it;
-- ``.get()`` returns **copy** of the value inside ``Cell``;
-- ``.set(somevalue)`` **stores** the given value ``somevalue`` in the ``Cell``; **dropping** the **previous** **value**.
+Some usefull methods of `Cell<T>`:
+- `Cell::new(somevalue)` creates new `Cell`, **moving** value `somevalue` into it;
+- `.get()` returns **copy** of the value inside `Cell`;
+- `.set(somevalue)` **stores** the given value `somevalue` in the `Cell`; **dropping** the **previous** **value**.
 
 <br>
 

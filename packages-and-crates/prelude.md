@@ -14,6 +14,11 @@ There are several different preludes:
 There are 2 *standard library* **crates** in Rust: 
 - ``std`` crate
 - ``core`` crate
+
+<br>
+
+[Crate std](https://doc.rust-lang.org/std/index.html)
+
 <br>
 
 What *standard library* **crate** is chosen (``std`` or ``core``) depends on ``no_std`` **attribute**.<br>

@@ -110,7 +110,7 @@ In some cases, you may not want to expose a feature that has the same name as th
 For example, perhaps the optional dependency is an internal detail, or you want to group multiple optional dependencies together, or you just want to use a better name.<br>
 If you specify the **optional dependency** with the ``dep:`` prefix **anywhere in the** ``[features]`` **table**, this **disables** the **implicit feature**.<br>
 
-**Note**: The ``dep:`` syntax is only available starting with ``Rust 1.60``.<br>
+**Note**: The ``dep:`` syntax is only available starting with `Rust 1.60`.<br>
 
 For example, let's say in order to support the **AVIF** image format, our library needs two other dependencies to be enabled:
 ```toml
