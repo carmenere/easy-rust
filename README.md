@@ -77,15 +77,15 @@ The `Rust` language **gets rid** of *some issues* that `C` and `C++` languages h
       - [Operator overloading](traits/operator-overloading.md)
       - [Phantom data](traits/phantom-data.md)
 8. **Type convertions**
-      - [Into and TryInto](utility-traits/Into-and-TryInto.md)
-      - [From and TryFrom](utility-traits/From-and-TryFrom.md)
-      - [Examples](utility-traits/examples.md)
+      - [Into and TryInto](traits/utility-traits/Into-and-TryInto.md)
+      - [From and TryFrom](traits/utility-traits/From-and-TryFrom.md)
+      - [Examples](traits/utility-traits/examples.md)
 9.  **Utility traits**
-       - [Intro](utility-traits/intro.md)
-       - [AsRef](utility-traits/AsRef.md)
-       - [Borrow](utility-traits/Borrow.md)
-       - [Deref](utility-traits/Deref.md)
-       - [ToOwned](utility-traits/ToOwned.md)
+       - [Intro](traits/utility-traits/intro.md)
+       - [AsRef](traits/utility-traits/AsRef.md)
+       - [Borrow](traits/utility-traits/Borrow.md)
+       - [Deref](traits/utility-traits/Deref.md)
+       - [ToOwned](traits/utility-traits/ToOwned.md)
 10. **Option and Result**
        - [Option](option-and-result/option.md)
        - [Result](option-and-result/result.md)
