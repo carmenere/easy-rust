@@ -1,7 +1,7 @@
 # Utility traits
 
-`std::ops` module defines the traits for all the **overloadable operators**.
-`std::convert` module defines the traits related to **type conversions.**
+`std::ops` module defines the traits for all the **overloadable operators**.<br>
+`std::convert` module defines the traits related to **type conversions**.<br>
 `std::borrow` module defines the traits that expressing **borrow**/**ownership** semantics.
 
 <br>

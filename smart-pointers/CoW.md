@@ -1,5 +1,5 @@
-# Cow<B>
-Defenition of type ``Cow``:
+# Cow
+Defenition of type `Cow`:
 ```Rust
 pub enum Cow<'a, B>
 where
@@ -12,7 +12,7 @@ where
 
 <br>
 
-The type ``Cow`` is a smart pointer providing **clone-on-write** functionality: 
+The type `Cow` is a smart pointer providing **clone-on-write** functionality: 
 - it can enclose and provide **immutable** access to **borrowed** data;
 - it can **clone** the data lazily when **mutation** or **ownership** is required.
 
