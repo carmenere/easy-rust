@@ -1,19 +1,18 @@
-# Trait ``From``
-Path in **std** is ``std::convert::From``.<br>
-Trait ``From`` is used to convert value **from** *source* type ``S`` **to** *destination* type ``D`` on which it is implemented.<br>
-Trait ``From`` **must not fail**.<br>
-If the conversion **can** **fail**, use ``TryFrom``.<br>
+# Trait `From`
+Trait `From` is used to convert value **from** *source* type `S` **to** *destination* type `D` on which it is implemented.<br>
+Trait `From` **must not fail**.<br>
+If the conversion **can** **fail**, use `TryFrom`.<br>
 
-**Declaration** of ``From``, here `Self` will become `D`:
+**Declaration** of `From`, here `Self` will become `D`:
 ```Rust
 pub trait From<S> {
     fn from(S) -> Self;
 }
 ```
 
-Method ``from()`` performs the conversion.<br>
+Method `from()` performs the conversion.<br>
 
-Traits ``From`` and ``Into`` are **connected**: implementing ``impl From<S> for D`` **automatically** implements ``impl Into<D> for S``, but not vise versa.<br>
+Traits `From` and `Into` are **connected**: implementing `impl From<S> for D` **automatically** implements `impl Into<D> for S`, but not vise versa.<br>
 
 In other words:<br>
 ```Rust
@@ -64,7 +63,7 @@ impl<T> const From<T> for T {
 <br>
 
 > **Note**:<br>
-> The compiler is **unable** to **infer** destination type ``D`` for ``S`` when ``.into()`` is used.<br>
+> The compiler is **unable** to **infer** destination type `D` for `S` when `.into()` is used.<br>
 > Explicit type declaration must be used in **let binding**.
 
 <br>
@@ -127,8 +126,8 @@ num: Number { value: 5 }
 <br>
 
 # Error handling
-The ``From`` is also very useful when performing **error handling**.<br>
-The ``?`` operator **automatically** converts the **underlying error** type **to** our **custom error** type.<br>
+The `From` is also very useful when performing **error handling**.<br>
+The `?` operator **automatically** converts the **underlying error** type **to** our **custom error** type.<br>
 
 <br>
 
@@ -164,11 +163,10 @@ fn open_and_parse_file(file_name: &str) -> Result<i32, CliError> {
 
 <br>
 
-# Trait ``TryFrom``
-Path in **std** is ``std::convert::TryFrom``.<br>
-``TryFrom<T>`` returns ``Result<T, E>``.<br>
+# Trait `TryFrom`
+`TryFrom<T>` returns `Result<T, E>`.<br>
 
-**Declaration** of ``TryFrom``:
+**Declaration** of `TryFrom`:
 ```Rust
 pub trait TryFrom<T> {
     type Error;

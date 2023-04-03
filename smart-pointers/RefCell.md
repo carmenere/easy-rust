@@ -4,16 +4,15 @@ There are 2 types that allow implement **interior mutability**: ``Cell<T>`` and 
 
 <br>
 
-# ``RefCell<T>``
-``T`` must be of **Move type**.	
-Path to type in **std**: ``std::cell::RefCell``.
+# `RefCell<T>`
+`T` must be of **Move type**.	
 
-Some usefull methods of ``RefCell<T>`` methods:
-- ``RefCell::new(somevalue)`` creates new ``RefCell``, moving value ``somevalue`` into it;
-- ``.borrow()`` returns **shared reference** to value inside ``RefCell``; panics if the value is **already** **mutably** *borrowed*;
-- ``.borrow_mut()`` returns **mutable reference** to value in ``RefCell``; panics if the value is **already** *borrowed*;
-- ``.try_borrow()`` returns ``Result``, returns ``Err`` if the value is already **mutably** *borrowed*;
-- ``.try_borrow_mut()`` returns ``Result``, returns ``Err`` if the value is **already** *borrowed*.
+Some usefull methods of `RefCell<T>` methods:
+- `RefCell::new(somevalue)` creates new `RefCell`, moving value `somevalue` into it;
+- `.borrow()` returns **shared reference** to value inside `RefCell`; panics if the value is **already** **mutably** *borrowed*;
+- `.borrow_mut()` returns **mutable reference** to value in `RefCell`; panics if the value is **already** *borrowed*;
+- `.try_borrow()` returns `Result`, returns `Err` if the value is already **mutably** *borrowed*;
+- `.try_borrow_mut()` returns `Result`, returns `Err` if the value is **already** *borrowed*.
 
 <br>
 
