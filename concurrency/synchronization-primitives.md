@@ -1,6 +1,5 @@
 # Mutex type
-The only way is to get data inside `Mutex` is to call `.lock()` on `Mutex`.<br>
-
+The only way is to get data inside `Mutex` is to call `.lock()` on `Mutex`:
 - `.lock()` returns `Result<MutexGuard<T>>`;
 - `.unwrap()` returns `MutexGuard<T>`.
 
@@ -8,7 +7,9 @@ The only way is to get data inside `Mutex` is to call `.lock()` on `Mutex`.<br>
 
 Due to **deref coercions** we can call `T`’s methods on the wrapping `MutexGuard` instance.<br>
 When `MutexGuard` instance is **dropped** – the **lock** is **released**.<br>
-To **drop** `MutexGuard` explicitly as soon as possible there is `drop()` function: `drop(vsafe);`.<br>
+To **drop** `MutexGuard` explicitly as soon as possible there is `drop()` function: `drop(vsafe);`.
+
+<br>
 
 ```Rust
 use std::thread::{self, JoinHandle};
