@@ -24,6 +24,12 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --defaul
 
 <br>
 
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.65.0-aarch64-apple-darwin
+```
+
+<br>
+
 # Profiles
 ``rustup`` has the concept of **profiles**. 
 
