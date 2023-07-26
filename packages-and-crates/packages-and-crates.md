@@ -1,9 +1,8 @@
 # Registry
-A **registry** is a storage for **packages**. 
-
-The *crates.io* is the Rust community’s **package registry**. <br>
-Each package can be published on https://crates.io independently. <br>
-Each package can be fetched from https://crates.io. <br>
+A **registry** is a storage for **packages**, i.e., it is a central location that serves as permanent storage for versions of a crate over time.<br>
+The *crates.io* is the Rust community’s **package registry**.<br>
+Each package can be published on https://crates.io independently.<br>
+Each package can be fetched from https://crates.io.<br>
 
 <br>
 
