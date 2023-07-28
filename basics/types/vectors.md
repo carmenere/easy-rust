@@ -20,10 +20,15 @@ let v = vec![100; 5];
 ```
 
 ### Syntax options for *empty* vectors:
-- **Vector type constructor**: \[``V``; ``N``\], where the **value** ``V`` is **repeated** ``N``times:
+- **Vector type constructor**:
 ```Rust
 let v3: Vec<i64> = Vec::with_capacity(10);
 ```
+- **Repeat expression** where `N` = 0:
+```Rust
+let v = vec![100; 0];
+```
+
 
 <br>
 

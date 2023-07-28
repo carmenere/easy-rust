@@ -1,5 +1,5 @@
 # Rules of references
-A **lifetime** is a **scope** within a **reference** is **valid**, i.e., until **borrow** lasts.<br>
+A **lifetime** is the **scope** within which a **reference** is **valid**, i.e., until **borrow** lasts.<br>
 
 **NLL** (**non-lexical lifetime**) vs. **LL** (**lexical lifetime**):
 - **LL** means that **scope** of reference starts **from** the point at which it was declared by ``let`` keyword **until** the **end of the block** (until ``{``).
@@ -11,7 +11,7 @@ All **references** in Rust have **NLL**.<br>
 
 > **NLL rules**:<br>
 > 1. Scope of **mutable reference** ``&mut T`` **can’t** *intersect* with scope of any other reference to type ``T``.<br>
-> 2. Scope of **shared reference** ``&T`` **can** *intersect* with scope of any other reference to type ``T``.<br>
+> 2. Scope of **shared reference** ``&T`` **can** *intersect* with scope of any other **shared reference** to type ``T``.<br>
 > 3. Reference **can’t outlive value it points to**, i.e. function cannot return reference to value it owns.<br>
 
 <br>

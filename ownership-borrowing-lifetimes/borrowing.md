@@ -204,11 +204,6 @@ Consider ``b`` is **borrower**:
 
 Following code **does not work**:
 ```Rust
-fn some_fn(p: &mut Foo) {
-    let p1 = p;
-    println!("p1 => {}", p1.val);
-}
-
 struct Foo {
     val: i32,
 }
@@ -226,11 +221,6 @@ To fix this code it is needed to use **reborrow**: ``&mut *``.<br>
 
 Following code **works**:
 ```Rust
-fn some_fn(p: &mut Foo) {
-    let p1 = p;
-    println!("p1 => {}", p1.val);
-}
-
 struct Foo {
     val: i32,
 }
@@ -249,9 +239,48 @@ fn main() {
 # Semantics for references
 Semantics for references:
 - **Shared reference** has **Copy semantics**.
-- **Mutable reference** is **Move semantics**.
+- **Mutable reference** has **Move semantics**.
 
-But **in function calls** **mutable references** **aren’t moved**, they are **implicitly reborrowed**. More details on it below.
+But **in function calls** **mutable references** **aren’t moved**, they are **implicitly reborrowed**.
+
+Following code **does not work**:
+```Rust
+fn some_foo(f: Foo) {
+    println!("f => {:?}", f);
+}
+
+#[derive(Debug)]
+struct Foo {
+    val: i32,
+}
+
+fn main() {
+    let mut owner = Foo { val: 100 };
+    some_foo(owner);
+    println!("owner = {:?}", owner);
+}
+```
+
+<br>
+
+Following code **works**:
+```rust
+fn some_foo(p: &mut Foo) {
+    println!("p = {:?}", p);
+}
+
+#[derive(Debug)]
+struct Foo {
+    val: i32,
+}
+
+fn main() {
+    let mut owner = Foo { val: 100 };
+    let p0 = &mut owner;
+    some_foo(p0);
+    println!("p0 = {:?}", p0);
+}
+```
 
 <br>
 
