@@ -65,6 +65,8 @@ Output:
 ## Predicate loops
 There is ``while`` loop in Rust when *number of iterations* in **unknown**.
 
+<br>
+
 ### Syntax
 ```Rust
 while expression {
