@@ -18,6 +18,17 @@ For instance:
 
 `AsRef` and `AsMut` conversions are expected to be **cheap** - i.e. they don't require any data **copying** or **allocation** of new memory and in most cases performed in **constant time** O(1), whereas `From` and `Into` conversions are **not** guaranteed to be cheap.<br>
 
+### Antipattern
+`AsRef` is useful where you **only** need to **borrow** the input parameter.<br>
+If you find yourself doing `let x = param.as_ref().to_owned();` you’re doing it **wrong**. Use `Into` instead.<br>
+
+```Rust
+fn f<S>(p: S)
+where S: AsRef<String> { 
+    let x = p.as_ref().to_owned();
+}
+```
+
 <br>
 
 ## Declarations

@@ -7,6 +7,17 @@ The `Borrow` is similar to `AsRef` (`a` is an instance of `A`):
 
 <br>
 
+The main difference: `AsRef` is used with concrete types for **type conversion**, `Borrow` is used with genereics.<br>
+Also `Borrow` is **stricter** than `AsRef`: if type `T` implements `Borrow` it means that `Eq`, `Ord` and `Hash` are **equivalent** for `&T`.<br>
+Use `Borrow` and `BorrowMut` if `Eq`, `Ord` and `Hash` must be **equivalent** for **borrowed** and **owned** values: `x.borrow() == y.borrow()` should give the same result as `x == y`.<br>
+
+<br>
+
+> **Note**:<br>
+> Choose `Borrow` when you’re building a data structure that treats **owned** (`T`) and **borrowed** (`&T`) values in **equivalent** ways, such as **hashing** and **comparison**.<br>
+
+<br>
+
 ### Example 1: Own HashMap implementation
 ```Rust
 use std::borrow::Borrow;
@@ -97,7 +108,7 @@ impl<K, V> HashMap<K, V> {
 }
 ```
 
-We can **insert** **key** of ``String`` type into ``HashMap`` and then use **key** of ``&str`` type for **searching**.<br>
+We can **insert key** of `String` type into `HashMap` and then use **key** of `&str` type for **searching**.<br>
 
 ```Rust
 use std::collections::HashMap;
@@ -127,12 +138,6 @@ impl AsRef<str> for MyBox<&str> {
     }
 }
 ```
-
-<br>
-
-The main difference: `AsRef` is used with concrete types for **type conversion**, `Borrow` is used with genereics.<br>
-Also `Borrow` is **stricter** than `AsRef`: if type `T` implements `Borrow` it means that `Eq`, `Ord` and `Hash` are **equivalent** for `&T`, in other words, `&T` **hashes** and **compares** the same way as the value of `T`.<br>
-Use `Borrow` and `BorrowMut` if `Eq`, `Ord` and `Hash` must be **equivalent** for **borrowed** and **owned** values: `x.borrow() == y.borrow()` should give the same result as `x == y`.
 
 <br>
 
