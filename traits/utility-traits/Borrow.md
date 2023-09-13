@@ -7,22 +7,67 @@ The `Borrow` is similar to `AsRef` (`a` is an instance of `A`):
 
 <br>
 
-There is a **difference** between `Borrow` and `AsRef` and they both have their own uses:
-- the `Borrow` trait is used to **borrow** data;
-- the `AsRef` trait is used for **type conversion**.
+### Example 1: Own HashMap implementation
+```Rust
+use std::borrow::Borrow;
+
+#[derive(Debug)]
+struct MyBox<T>(T);
+
+impl Borrow<str> for MyBox<&str> {
+    fn borrow(&self) -> &str {
+        &self.0
+    }
+}
+
+struct MyHashMap<K, V> {
+    keys: Vec<K>,
+    vals: Vec<V>
+}
+
+impl<K,V> MyHashMap<K,V> {
+    fn new() -> Self {
+        MyHashMap {
+            keys: vec![],
+            vals: vec![]
+        }
+    }
+    fn insert(&mut self, k: K, v: V) {
+        self.keys.push(k);
+        self.vals.push(v)
+    }
+
+    fn get<Q>(&self, key: &Q) -> Option<&V>
+    where
+        K: Borrow<Q>,
+        Q: Eq + ?Sized
+    {
+        let mut found = None;
+        for (index, k) in self.keys.iter().enumerate() {
+            if k.borrow() == key {
+                found = Some(&self.vals[index])
+            }
+        }
+        found
+    }
+}
+
+impl<K, V> Default for MyHashMap<K,V> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+fn main() {
+    let mut hm: MyHashMap<MyBox<&str>, MyBox<&str>> = MyHashMap::new();
+    hm.insert(MyBox("key"), MyBox("value"));
+    println!("{:?}", hm.get("key"));
+}
+```
 
 <br>
 
-Also `Borrow` is **stricter** than `AsRef`: if type `T` implements `Borrow` it means that `&T` **hashes** and **compares** the same way as the value of `T`.<br>
-
-<br>
-
-## When to use Borrow and BorrowMut?<br>
-Use `Borrow` and `BorrowMut` if `Eq`, `Ord` and `Hash` must be **equivalent** for **borrowed** and **owned** values: `x.borrow() == y.borrow()` should give the same result as `x == y`.
-
-<br>
-
-### Example 1
+### Example 2
 For types ``A`` and ``B`` ``impl Borrow<B> for A`` indicates that a borrowed ``A`` may be used where a ``B`` is desired.<br>
 
 For instance, ``std::collections::HashMap.get()`` uses ``Borrow`` for its ``get()`` method, allowing a ``HashMap`` with keys of ``K`` to be indexed with a ``&Q``.<br>
@@ -67,40 +112,151 @@ This is because the `std` has ``impl Borrow<&str> for String``.
 
 <br>
 
-### Example 2
+## AsRef vs. Borrow
+`Borrow` and `AsRef` are almost the same.<br>
 ```Rust
-pub struct CaseInsensitiveString(String);
-
-impl PartialEq for CaseInsensitiveString {
-    fn eq(&self, other: &Self) -> bool {
-        // Note that the comparison here is required to ignore ascii case
-        self.0.eq_ignore_ascii_case(&other.0)
+impl Borrow<str> for MyBox<&str> {
+    fn borrow(&self) -> &str {
+        &self.0
     }
 }
 
-impl Eq for CaseInsensitiveString { }
-
-impl Hash for CaseInsensitiveString {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        for c in self.0.as_bytes() {
-            c.to_ascii_lowercase().hash(state)
-        }
+impl AsRef<str> for MyBox<&str> {
+    fn as_ref(&self) -> &str {
+        &self.0
     }
 }
 ```
 
 <br>
 
-Can `CaseInsensitiveString` implement `Borrow<&str>`?
-
-Obviously, `CaseInsensitiveString` and `&str` have **different** implementations of `Hash`:
-- `&str` **doesn't** ignore case;
-- `CaseInsensitiveString` **ignores** case.
+The main difference: `AsRef` is used with concrete types for **type conversion**, `Borrow` is used with genereics.<br>
+Also `Borrow` is **stricter** than `AsRef`: if type `T` implements `Borrow` it means that `Eq`, `Ord` and `Hash` are **equivalent** for `&T`, in other words, `&T` **hashes** and **compares** the same way as the value of `T`.<br>
+Use `Borrow` and `BorrowMut` if `Eq`, `Ord` and `Hash` must be **equivalent** for **borrowed** and **owned** values: `x.borrow() == y.borrow()` should give the same result as `x == y`.
 
 <br>
 
-So, `CaseInsensitiveString` **cannot** be used as a key for a `HashMap` and `Borrow<&str>` must **not** be implemented for `CaseInsensitiveString`.<br>
-But `AsRef` can be implemented for `CaseInsensitiveString`.<br>
+### Example: CaseInsensitiveStr
+Consider type `CaseInsensitiveStr`:
+```Rust
+#[derive(Debug)]
+pub struct CaseInsensitiveStr(&'static str);
+
+impl PartialEq for CaseInsensitiveStr {
+    fn eq(&self, other: &Self) -> bool {
+        // Note that the comparison here is required to ignore ascii case
+        self.0.eq_ignore_ascii_case(other.0)
+    }
+}
+
+impl Eq for CaseInsensitiveStr { }
+```
+
+<br>
+
+`CaseInsensitiveStr("OK")` is **equal** to `CaseInsensitiveStr("ok")`.
+
+<br>
+
+**Question**: is it correct to implement `Borrow<CaseInsensitiveStr>` for `MyBox<CaseInsensitiveStr>`?<br>
+
+To answer the question above consider following code:
+```Rust
+use std::borrow::Borrow;
+
+#[derive(Debug)]
+struct MyBox<T>(T);
+
+impl Borrow<str> for MyBox<&str> {
+    fn borrow(&self) -> &str {
+        &self.0
+    }
+}
+
+impl Borrow<CaseInsensitiveStr> for MyBox<CaseInsensitiveStr> {
+    fn borrow(&self) -> &CaseInsensitiveStr {
+        &self.0
+    }
+}
+
+#[derive(Debug)]
+pub struct CaseInsensitiveStr(&'static str);
+
+impl PartialEq for CaseInsensitiveStr {
+    fn eq(&self, other: &Self) -> bool {
+        // Note that the comparison here is required to ignore ascii case
+        self.0.eq_ignore_ascii_case(other.0)
+    }
+}
+
+impl Eq for CaseInsensitiveStr { }
+
+struct MyHashMap<K, V> {
+    keys: Vec<K>,
+    vals: Vec<V>
+}
+
+impl<K,V> MyHashMap<K,V> {
+    fn new() -> Self {
+        MyHashMap {
+            keys: vec![],
+            vals: vec![]
+        }
+    }
+    fn insert(&mut self, k: K, v: V) {
+        self.keys.push(k);
+        self.vals.push(v)
+    }
+
+    fn get<Q>(&self, key: &Q) -> Option<&V>
+    where
+        K: Borrow<Q>,
+        Q: Eq + ?Sized
+    {
+        let mut found = None;
+        for (index, k) in self.keys.iter().enumerate() {
+            if k.borrow() == key {
+                found = Some(&self.vals[index])
+            }
+        }
+        found
+    }
+}
+
+impl<K, V> Default for MyHashMap<K,V> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+fn main() {
+    assert_eq!(CaseInsensitiveStr("KEY"), CaseInsensitiveStr("key"));
+
+    let mut hm: MyHashMap<MyBox<CaseInsensitiveStr>, MyBox<&str>> = MyHashMap::new();
+    hm.insert(MyBox(CaseInsensitiveStr("key")), MyBox("value"));
+    println!("{:?}", hm.get(&CaseInsensitiveStr("key")));
+    println!("{:?}", hm.get(&CaseInsensitiveStr("KE")));
+    println!("{:?}", hm.get(&CaseInsensitiveStr("KEY")));
+}
+```
+
+<br>
+
+**Output**:
+```bash
+~/Projects/play-rust [master] % cargo run
+   Compiling ololo v0.1.0 (/Users/an.romanov/Projects/play-rust)
+    Finished dev [unoptimized + debuginfo] target(s) in 0.14s
+     Running `target/debug/ololo`
+Some(MyBox("value"))
+None
+Some(MyBox("value"))
+```
+
+<br>
+
+`CaseInsensitiveStr` **cannot** be used as a key for a `HashMap` and `Borrow<CaseInsensitiveStr>` must **not** be implemented for `CaseInsensitiveStr` because `hm.get(&CaseInsensitiveStr("key"))` and `hm.get(&CaseInsensitiveStr("KEY"))` return the same object.<br>
+But `AsRef` can be implemented for `CaseInsensitiveStr`.<br>
 
 <br>
 
