@@ -1,8 +1,18 @@
 # ToOwned
-Method ``to_owned`` called on *reference* returns **owned type**.<br>
 Some types make it possible to go from **borrowed** to **owned**, usually by implementing the `Clone` trait.<br>
 But `Clone` works only for going from `&T` to `T`.<br>
-The `ToOwned` trait generalizes `Clone` to construct *owned* data from **any** *borrow* of a given type.
+The `ToOwned` trait is a **generalized** way to **convert** a **borrowed type** to an **owned type**.<br>
+Method ``to_owned`` called on *reference* (*borrowed type*) returns **owned type**.
+
+<br>
+
+#### Example
+```Rust
+fn f<S>(p: S)
+where S: AsRef<String> { 
+    let x = p.as_ref().to_owned();
+}
+```
 
 <br>
 

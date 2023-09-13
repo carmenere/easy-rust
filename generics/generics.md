@@ -124,7 +124,26 @@ fn main() {
 
 <br>
 
-When a **trait** has a **generic parameter**, it **can** be implemented for a **some type**, e.g., ``Mytype`` **multiple** **times**, **changing** the **concrete** **types** of the **type var** **each time**, example:
+More generic version:
+```Rust
+trait Summable<T> {
+    fn sum(&self) -> T;
+}
+
+impl<T: std::ops::Add + Copy + Default + std::ops::AddAssign> Summable<T> for Vec<T> {
+    fn sum(&self) -> T {
+        let mut sum: T = T::default();
+        for i in self {
+            sum += *i;
+        }
+        sum
+    }
+}
+```
+
+<br>
+
+When a **trait** has a **generic parameter**, it **can** be implemented for a **some type**, e.g., ``Mytype`` **multiple times**, **changing** the **concrete types** of the **type var each time**, example:
 
 
 ```Rust
