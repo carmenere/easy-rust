@@ -123,8 +123,8 @@ There are some **conventions**:
 <br>
 
 So:
-- ``iter()`` is shorthand for ``(&mut T).into_iter()``;
-- ``iter_mut()`` is shorthand for ``(&T).into_iter()``.
+- ``iter()`` is shorthand for ``(&T).into_iter()``;
+- ``iter_mut()`` is shorthand for ``(&mut T).into_iter()``.
 
 <br>
 
