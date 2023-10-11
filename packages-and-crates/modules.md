@@ -3,30 +3,89 @@
 A **crate** consists of a **hierarchy of modules**, called **crate’s module tree**.
 
 Every **module** corresponds to:
-- ``.rs`` **file**;
-- **module item**: ``mod <name> { … }``.
+- `.rs` **file**;
+- **module item**: `mod <name> { … }`.
 
 A **module** is a **collection of items**. **Module** acts as **namespace for items**.
 
 Every *module tree* has a **root module**. 
 
 - The *root module* is an **entry point** into *crate*. 
-- The *root module* **always** corresponds to some ``.rs`` file in *package*.
+- The *root module* **always** corresponds to some `.rs` file in *package*.
 
 For **auto discovered crates**:
-- the **root module** of a **library crate** corresponds to ``src/lib.rs``;
-- the **root module** of a **binary crate** corresponds to ``src/ main.rs``.
+- the **root module** of a **library crate** corresponds to `src/lib.rs`;
+- the **root module** of a **binary crate** corresponds to `src/ main.rs`.
 
-The **module tree** *must be built manually*. It means **every** ``.rs`` file in *package* is included to *module tree* **explicitly** by ``mod`` *keyword*.<br>
+The **module tree** *must be built manually*. It means **every** `.rs` file in *package* is included to *module tree* **explicitly** by `mod` *keyword*.<br>
 
-``mod`` *keyword*:
+<br>
+
+## `mod` *keyword*:
+`mod` *keyword*:
 - is used to **add** *module* to *module tree*. 
 - can be used **once** for particular *module*. 
 
-``mod.rs`` file:
-- if you write ``mod bar;`` in ``d/foo.rs`` file, then compiler will search  for ``d/bar.rs`` and then (if it doesn’t exists) for ``d/bar/mod.rs``.
-- if you write ``mod bar;`` in ``d/mod.rs`` rustc will search for ``d/bar.rs``.
-- **Rust 2018 changes**: if you write ``mod bar;`` in ``d/foo.rs`` then rustc will search for ``d/foo/bar.rs``.
+<br>
+
+Lookup rules:
+- if you write `mod bar;` in `foo.rs` file, then compiler will search for `bar.rs` and then (if it doesn’t exists) for `bar/mod.rs` (inside the directory where `foo.rs` is).
+- if you write `mod bar;` in `mod.rs` file, then compiler will search for `bar.rs` (inside the directory where `foo.rs` is).
+
+<br>
+
+### Rust 2018 changes
+Consider hiearachy:
+```bash
+src
+|- lib.rs
+|- tall.rs
+|- tall
+    |- grande.rs
+```
+
+Content of files:
+- `lib.rs`:
+```rust
+    pub mod tall;
+```
+- `tall.rs`:
+```rust
+    pub mod grande;
+```
+- `tall/grande.rs`:
+```rust
+    pub mod venti {
+        pub fn lib_fn () {
+            
+        }
+    }
+```
+
+<br>
+
+In `lib.rs` we define **module** `tall`.<br>
+In `tall.rs` we define **child module** `grande`.<br>
+
+> **Note**:<br>
+> The correspondig **file** (`grande.rs`) of **child module** (`grande`) must be placed into **directory** with the same name as its **parent module** (`tall`).
+
+<br>
+
+### Equavelent
+It is also equalent to
+- `lib.rs`:
+```rust
+    mod tall {
+        mod grande {
+            mod venti {
+                fn lib_fn () {
+                    
+                }
+            }
+        }
+    }
+```
 
 <br>
 
