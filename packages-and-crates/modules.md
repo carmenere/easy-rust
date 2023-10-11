@@ -35,7 +35,7 @@ Lookup rules:
 <br>
 
 ### Rust 2018 changes
-Consider hiearachy:
+Consider hieararchy:
 ```bash
 src
 |- lib.rs
