@@ -1,18 +1,18 @@
 # Lifetime
 A **lifetime** is the **scope** within which a **reference** is **valid**.<br>
 
-The notation ``'a`` is **lifetime** ``a``.<br>
+The notation `'a` is **lifetime** `a`.<br>
 
 Technically, **every reference** **has** some **lifetime** associated with it, but the compiler lets you **elide** them in common cases.<br>
 It is called **lifetime elision** or **implicit lifetime annotation**. It is because the Rust compiler is smart enough to infer lifetimes in many cases.<br>
 But sometimes it is needed to specify lifetimes **explicitly**. That’s because of how the lifetime elision works.<br>
 When a function accepts **multiple references**, they’re **each** given **their own lifetime**.<br>
 
-From Rust point of view, signature:``fn f (s1: &str, s2: &str) → &str `` is **equal** to signature:``fn f<'a, 'b> (s1: &'a str, s2: &'b str) → &'??? str``<br>
+From Rust point of view, signature:`fn f (s1: &str, s2: &str) → &str ` is **equal** to signature:`fn f<'a, 'b> (s1: &'a str, s2: &'b str) → &'??? str`<br>
 
-So, `rustc` sets to ``s1`` and ``s2`` **different** lifetimes and `rustc` **doesn't** know what lifetime to assign to **returning value**.<br>
+So, `rustc` sets to `s1` and `s2` **different** lifetimes and `rustc` **doesn't** know what lifetime to assign to **returning value**.<br>
 That is why compiler return error. So we must **explicitly** set lifetimes for input and output parameters.<br>
-Example: ``fn f<'a> (s1: &'a str, s2: &'a str) → &'a str``.<br>
+Example: `fn f<'a> (s1: &'a str, s2: &'a str) → &'a str`.<br>
 
 The **lifetimes** help Rust find **dangling pointers**. Example:<br>
 ```Rust
@@ -20,55 +20,64 @@ The **lifetimes** help Rust find **dangling pointers**. Example:<br>
 #![allow(unused_variables)]
 #![allow(unused_mut)]
 
-fn max<'a>(x: &'a i32, y: &'a i32) -> &'a i32 {
-    if *x > *y {
-        x
-    } else {
-        y
+fn main() {
+    let s1 = String::from("ABC");
+    let result: &str;
+    {
+        let s2 = String::from("XYZ");
+        result = longest_string(s1.as_str(), s2.as_str());
     }
+    println!("The longest string is {}", result);
+
 }
 
-fn main() {
-    let x = 1;
-    let z = {
-        let y = 2;
-        max(&x, &y)
-    }; // returning value must outlive y because y deallocated here
-    println!("z: {}", *z)
+
+fn longest_string<'a>(s1: &'a str, s2: &'a str) -> &'a str {
+    if s1.len() >= s2.len() {
+        s1
+    }
+    else {
+        s2
+    }
 }
 ```
 
 ```bash
-cargo run
-   Compiling playrs v0.1.0 (/Users/an.romanov/Projects/play.rust-lang.org)
-error[E0597]: `y` does not live long enough
-  --> src/main.rs:18:17
-   |
-16 |     let z = {
-   |         - borrow later stored here
-17 |         let y = 2;
-18 |         max(&x, &y)
-   |                 ^^ borrowed value does not live long enough
-19 |     }; // returning value must outlive y because y deallocated here
-   |     - `y` dropped here while still borrowed
+error[E0597]: `s2` does not live long enough
+ --> src/main.rs:6:46
+  |
+5 |         let s2 = String::from("XYZ");
+  |             -- binding `s2` declared here
+6 |         result = longest_string(s1.as_str(), s2.as_str());
+  |                                              ^^^^^^^^^^^ borrowed value does not live long enough
+7 |     }
+  |     - `s2` dropped here while still borrowed
+8 |     println!("The longest string is {}", result);
+  |                                          ------ borrow later used here
 
 For more information about this error, try `rustc --explain E0597`.
-error: could not compile `playrs` due to previous error
 ```
 
 <br>
 
-## Lifetimes in functions
-For function there are 2 kind of lifetimes:
-- **Input lifetime** is a lifetime associated with a **parameter** of a function. 
-- **Output lifetime** is a lifetime associated with the **return value** of a function.
+We get error because compiler assigns the **lifetime** of the `result` variable to the **smallest** lifetime of passed arguments' lifetimes.<br>
+In general `s1` and `s2` both can have **different** lifetimes. So compiler assigns the **lifetime** of the **returned value** to the **smallest lifetime** of passed parameters.<br>
+It means that the **lifetime** of varibale `result` can last until the end of scope where argument with **smallest lifetime** goes **out of scope**.
 
 <br>
 
+## Lifetimes in functions
+For function there are 2 kind of **lifetime parameters**:
+- **Input lifetime parameter** is a lifetime associated with a **parameter** of a function. 
+- **Output lifetime parameter** is a lifetime associated with the **return value** of a function.
+
+<br>
+
+## Lifetimes rules
 **Lifetimes rules**:
-- Each elided lifetime in a function’s signature becomes a **distinct** lifetime of function’s parameter.
-- If there is exactly one **input lifetime**, it is assigned to all *elided* **lifetimes** in the **return values** of that function.
-- If there are **multiple** **input lifetimes**, but one of them is ``&self`` or ``&mut self``, the **lifetime** of ``self`` is assigned to all *elided* **output lifetimes**.
+1. Each function’s parameter that is **reference** gets its own **lifetime parameter** (aka **elided lifetime**).
+2. If there is exactly **one input** *lifetime parameter*, it is assigned to **all output** *lifetime parameters*.
+3. If there are **multiple input** *lifetime parameters*, but one of them is `&self` or `&mut self`, the **lifetime** of `self` is assigned to **all output** *lifetime parameters*.
 
 <br>
 
@@ -115,10 +124,10 @@ fn main() {
 <br>
 
 ## 'static
-The lifetime named ``'static`` is a special lifetime. It signals that something has the **lifetime of the entire program**.<br>
-**String literal** has the type ``&str``, but under the hood, ``&str`` is ``&'static str`` because the **reference** is **always alive**: it's **hardcoded into the data segment of the final binary**.
+The lifetime named `'static` is a special lifetime. It signals that something has the **lifetime of the entire program**.<br>
+**String literal** has the type `&str`, but under the hood, `&str` is `&'static str` because the **reference** is **always alive**: it's **hardcoded into the data segment of the final binary**.
 
-``'static`` *lifetime* **allows return reference to value from function**:
+`'static` *lifetime* **allows return reference to value from function**:
 ```Rust
 fn create_string() -> &'static str {
     let s = String::from("abc");
@@ -158,13 +167,13 @@ For more information about this error, try `rustc --explain E0623`.
 error: could not compile `playrs` due to previous error
 ```
 
-This program **doesn't compile**, because the lifetimes ``'a`` and ``'b`` are **independent**.<br>
+This program **doesn't compile**, because the lifetimes `'a` and `'b` are **independent**.<br>
 
-Rust allows you to declare that lifetime ``a`` contains another lifetime. It is called **lifetime subtyping**.<br>
+Rust allows you to declare that lifetime `a` contains another lifetime. It is called **lifetime subtyping**.<br>
 Notations of **lifetime subtyping**:<br>
-- ``fn max<'a, 'b: 'a>(x: &'a i32, y: &'b i32) -> &'a i32``;
-- ``fn max<'a, 'b>(x: &'a i32, y: &'b i32) -> &'a i32 where 'b: 'a``;
+- `fn max<'a, 'b: 'a>(x: &'a i32, y: &'b i32) -> &'a i32`;
+- `fn max<'a, 'b>(x: &'a i32, y: &'b i32) -> &'a i32 where 'b: 'a`;
 
 <br>
 
-Notation ``'left: 'right`` means ``'left`` **outlives** ``'right``, and ``'left`` is a **subtype** of ``'right``, i.e., ``'right`` <= ``'left``.
+Notation `'left: 'right` means `'left` **outlives** `'right`, and `'left` is a **subtype** of `'right`, i.e., `'right` <= `'left`.
