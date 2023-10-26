@@ -5,10 +5,16 @@ But, **Rc** is **faster** than **Arc**.
 
 <br>
 
+```Rust
+use std::sync::Arc;
+```
+
+<br>
+
 # `Rc<T>`
 `Rc` stands for **Reference Counter**.<br>
 The `Rc<T>` type provides **shared ownership** of some **value** of type `T`, allocated in the **heap**.<br>
-The `Rc<T>` type is useful when we **can’t** determine *at compile time* which scope will destroy value.<br>
+The `Rc<T>` type is useful when we **can’t** determine which scope will destroy value *at compile time*.<br>
 
 > Note:<br>
 > A value owned by `Rc` pointer is **immutable**, i.e., `Rc` **can't** return a **mutable reference** (`&mut T`).<br>

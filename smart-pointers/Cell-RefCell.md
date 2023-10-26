@@ -193,6 +193,6 @@ string: abc!
 <br>
 
 # Rc<RefCell<T>>
-For example, `Rc<RefCell<T>>` is composition of `Rc` and `RefCell`.<br
-`Rc` itself **can’t** be dereferenced **mutably**, so we put `RefCell` inside to get **dynamically verified shared mutability**.<br>
-Now we have **shared mutable data**, but it’s shared in a way that there can only be **one mutator** (and no readers) or multiple readers.
+For example, `Rc<RefCell<T>>` is a composition of `Rc` and `RefCell`.<br>
+`Rc` itself **can’t** be dereferenced **mutably**, so we put `RefCell` inside to get **shared mutability**.<br>
+Now we have **dynamically verified (borrow checks are performed at runtime) shared mutable data**.
