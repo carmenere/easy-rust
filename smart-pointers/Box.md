@@ -9,7 +9,7 @@ fn main() {
 Notes:
 - The value (`1`) is allocated on the **heap**.
 - The data in the **box** is accessed the same way as the data were on the stack. 
-- When a **box** goes out of scope, the value of `Box` type (`v`) and the value it points to (`1`) are both dealocated.
+- When a `Box` **goes out of scope**, the value of `Box` type (`v`) and the value it points to (`1`) are both dealocated.
 
 <br>
 
