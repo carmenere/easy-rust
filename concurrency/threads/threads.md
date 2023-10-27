@@ -17,14 +17,17 @@ There are 2 ways to obtain instance of `Thread` type:
 
 All threads have `id`:
 ```Rust
-use std::thread;
+use std::thread::{self, JoinHandle};
 
-let other_thread = thread::spawn(|| {
-    thread::current().id()
-});
-
-let other_thread_id = other_thread.join().unwrap();
-assert!(thread::current().id() != other_thread_id);
+fn main() {
+    let other_thread: JoinHandle<u64> = thread::spawn(|| {
+        dbg!(thread::current().id());
+        1
+    });
+    
+    let result: u64 = other_thread.join().unwrap();
+    dbg!(result);
+}
 ```
 
 <br>
@@ -72,15 +75,17 @@ where
 
 ## Examples
 ```Rust
-use thread;
+use std::thread;
 
-let computation = thread::spawn(|| {
-    // Some expensive computation.
-    42
-});
+fn main() {
+    let computation: thread::JoinHandle<i32> = thread::spawn(|| {
+        // Some expensive computation.
+        42
+    });
 
-let result = computation.join().unwrap();
-println!("{result}");
+    let result: i32 = computation.join().unwrap();
+    println!("{result}");
+}
 ```
 
 <br>
@@ -88,13 +93,15 @@ println!("{result}");
 ```Rust
 use std::thread;
 
-let builder = thread::Builder::new();
+fn main() {
+    let builder: thread::Builder = thread::Builder::new();
 
-let handler = builder.spawn(|| {
-    // thread code
-}).unwrap();
+    let handler: thread::JoinHandle<()> = builder.spawn(|| {
+        // thread code
+    }).unwrap();
 
-handler.join().unwrap();
+    handler.join().unwrap();
+}
 ```
 
 <br>
@@ -124,21 +131,23 @@ The `Send` constraint is because the closure is passed **by value** from the thr
 use std::thread;
 use std::time::Duration;
 
-let parked_thread = thread::Builder::new()
-    .spawn(|| {
-        println!("Parking thread");
-        thread::park();
-        println!("Thread unparked");
-    })
-    .unwrap();
+fn main () {
+    let parked_thread: thread::JoinHandle<()> = thread::Builder::new()
+        .spawn(|| {
+            println!("Parking thread");
+            thread::park();
+            println!("Thread unparked");
+        })
+        .unwrap();
 
-// Let some time pass for the thread to be spawned.
-thread::sleep(Duration::from_millis(10));
+    // Let some time pass for the thread to be spawned.
+    thread::sleep(Duration::from_millis(10));
 
-println!("Unpark the thread");
-parked_thread.thread().unpark();
+    println!("Unpark the thread");
+    parked_thread.thread().unpark();
 
-parked_thread.join().unwrap();
+    parked_thread.join().unwrap();
+}
 ```
 
 <br>

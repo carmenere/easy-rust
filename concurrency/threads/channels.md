@@ -3,69 +3,45 @@
 **Channel** is like Unix pipe: one end is for **sending** data and the other end is for **receiving** and every of 2 ends is placed in **separated thread**.<br>
 
 There is `std::sync::mpsc::channel` for **channels**.<br>
-
 `mpsc` means **multiproducer**, **single consumer**, i.e., **multisender**, **single reciever**.<br>
-
 `mpsc::channel::<(S, R)>()` returns tuple `(Sender<S>, Receiver<R>)`. Then `Sender<S>` and `Receiver<R>` both can be sent to to the spawned threads.<br>
-
-`Sender<T>` implements `Clone` trait. To get channel with multiple senders create channel and clone the sender as many times as necessary.<br>
+`Sender<T>` implements `Clone` trait. To get channel with **multiple senders** create channel and **clone** the sender as many times as necessary.<br>
 `Receiver<T>` **can’t** be cloned.<br>
-
 `Sender<T>` **moves** the **value** it sends into the channel.<br>
-
 `.send()` and `.recv()` methods both return `Result`.<br>
-
 `Receiver<T>` implements the `IntoIterator` trait that allows us to use the `reciever` as an `Iterator` in a `for` loop: `for val in receiver { ... }`.
 
 <br>
 
 #### Example
 ```Rust
+use std::sync::mpsc::{self, Sender, Receiver, RecvError};
 use std::thread::{self, JoinHandle};
-use std::sync::mpsc;
-
-fn pipe_1(id: u32) -> (thread::JoinHandle<()>, mpsc::Receiver<(u32, u32)>) {
-    let (sender, receiver) = mpsc::channel::<(u32, u32)>();
-    let t = thread::spawn(move || {
-        println!("My id = {}", id);
-        let r = sender.send((id, id + 100));
-    });
-
-    (t, receiver)
-}
-
-fn pipe_2(rcv: mpsc::Receiver<(u32, u32)>) -> thread::JoinHandle<()> {
-    let t = thread::spawn(move || {
-        for (id, v) in rcv {
-            println!("Got value {} from thred with id = {}.", v, id)
-        }
-    });
-    t
-}
-
-fn pipe_chain (ids: &[u32], threads: &mut Vec<thread::JoinHandle<()>>) {
-    for id in ids {
-        // First pipe
-        let (t, rcv) = pipe_1(*id);
-        threads.push(t);
-        
-        // Second pipe
-        let t = pipe_2(rcv);
-        threads.push(t);
-    }
-}
+use std::time::Duration;
 
 fn main() {
-    let ids: [u32; 3] = [1, 2, 3];
-    let mut threads: Vec<JoinHandle<()>> = Vec::with_capacity(10);
+    let (tx, rx): (Sender<u64>, Receiver<u64>) = mpsc::channel();
+    let mut threads: Vec<JoinHandle<()>> = Vec::with_capacity(2);
 
-    pipe_chain(&ids, &mut threads);
+    threads.push(thread::spawn(move || {
+        let r: Result<(), mpsc::SendError<u64>> = tx.send(10);
+        match r {
+            Ok(_) => println!("The value is successfully sent."),
+            Err(_) => println!("An error occured while value was sending."),
+        }
+    }));
 
-    println!("Number of threads is {}", threads.len());
+    threads.push(thread::spawn(move || {
+        thread::sleep(Duration::from_secs(1));
+        let value: Result<u64, RecvError> = rx.recv();
+        thread::sleep(Duration::from_secs(1));
+        match value {
+            Ok(v) => println!("Received value '{}'.", v),
+            Err(_) => println!("Got an error."),
+        }
+    }));
 
-    for thread in threads {
-        thread.join();
-    }
+    threads.into_iter().for_each(|t| t.join().unwrap());
 }
 ```
 
