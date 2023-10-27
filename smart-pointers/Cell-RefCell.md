@@ -192,6 +192,32 @@ string: abc!
 
 <br>
 
+# Example: wrong code
+The following code will **panic**:
+```Rust
+use std::cell::RefCell;
+
+fn main() {
+    let rc = RefCell::new(10);
+    let mut prt1 = rc.borrow_mut();
+    println!("{:?}", prt1);
+    let mut prt2 = rc.borrow_mut();
+
+    *prt1 += 10;
+    *prt2 += 10;
+}
+```
+
+<br>
+
+**Error**:
+```bash
+thread 'main' panicked at 'already borrowed: BorrowMutError', src/main.rs:7:23
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+```
+
+<br>
+
 # Rc<RefCell<T>>
 For example, `Rc<RefCell<T>>` is a composition of `Rc` and `RefCell`.<br>
 `Rc` itself **can’t** be dereferenced **mutably**, so we put `RefCell` inside to get **shared mutability**.<br>
