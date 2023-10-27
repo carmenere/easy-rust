@@ -1,13 +1,32 @@
-# Mutex type
+# Mutex<T>
 The only way is to get data inside `Mutex` is to call `.lock()` on `Mutex`:
 - `.lock()` returns `Result<MutexGuard<T>>`;
 - `.unwrap()` returns `MutexGuard<T>`.
 
 <br>
 
-Due to **deref coercions** we can call `T`’s methods on the wrapping `MutexGuard` instance.<br>
-When `MutexGuard` instance is **dropped** – the **lock** is **released**.<br>
-To **drop** `MutexGuard` explicitly as soon as possible there is `drop()` function: `drop(vsafe);`.
+# MutexGuard<T>
+The `.lock()` method called on the `Mutex<T>` **blocks** current thread until the lock will be acquired.<br>
+The `.lock()` method returns `Result<MutexGuard<T>, ...>` type because there are can be another thread that had acquired the lock to that data and that thread **has panicked**.<br>
+The `MutexGuard<T>` **smart pointer** holds the data.<br>
+Due to **deref coercions** we can call `T`’s methods on the `MutexGuard<T>` instance.<br>
+Its `deref()` method returns pointer to internal value.<br>
+When `MutexGuard<T>` **goes out of scope** it **releases lock** to the data.<br>
+But it can be released as soon as possible by `drop()` function.<br>
+`MutexGuard<T>` allow us manipulate underlying data by using the **deref operator**.
+
+<br>
+
+```Rust
+use std::sync::{Arc, Mutex, MutexGuard};
+
+fn main() {
+    let m: Mutex<u64> = Mutex::new(10u64);
+    let mut l: MutexGuard<'_, u64> = m.lock().unwrap();
+    *l += 10;
+    println!("new value {}", l);
+}
+```
 
 <br>
 
