@@ -14,12 +14,3 @@ Rust, with its concept of ownership and borrowing, has an additional difference 
 |`Ref<T>`|[std::cell::Ref](https://doc.rust-lang.org/std/cell/struct.Ref.html)|It's for enforcing the *borrowing rules* **at runtime** instead of compile time.|
 |`RefCell<T>`|[std::cell::RefCell](https://doc.rust-lang.org/std/cell/struct.RefCell.html)|It's for **interior mutability** for `non-Copy` types.|
 |`RefMut<T>`|[std::cell::RefMut](https://doc.rust-lang.org/std/cell/struct.RefMut.html)|It's for enforcing the *borrowing rules* **at runtime** instead of compile time.|
-
-<br>
-
-# Raw pointrs
-- `*const T`
-- `*mut T`
-
-These are **raw pointers** with **no lifetime** or **ownership** attached to them.<br>
-They just point to some location in memory with no other restrictions. 
