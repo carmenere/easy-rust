@@ -1,6 +1,14 @@
 # Prelude
 A **prelude** is a collection of names that are automatically brought into scope of every module in a crate by compiler. It means that compiler **implicitly** injects ``use std::prelude::*`` **in every module** in a crate.
 
+<br>
+
+Full list of items that are included in prelude:
+- https://doc.rust-lang.org/core/prelude/index.html
+- https://doc.rust-lang.org/core/prelude/v1/index.html
+
+<br>
+
 There are several different preludes:
 - **standard library** prelude
 - **extern** prelude
