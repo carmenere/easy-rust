@@ -26,9 +26,3 @@ fn main() {
     println!("{}", x.to_string());
 }
 ```
-
-<br>
-
-# ToString
-`ToString` trait provides method `.to_string()` to convert **value** to a `String`.<br>
-`ToString` trait is **automatically implemented** for any type that implements `Display`.

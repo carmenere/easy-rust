@@ -1,7 +1,7 @@
 # Version resolution
 Example of **dependency tree**:
-- ``Foo`` -> ``Bar`` -> ``Baz (v1.4)``;
-- ``Foo`` -> ``Baz (0.9)``.
+- `Foo` -> `Bar` -> `Baz (v1.4)`;
+- `Foo` -> `Baz (0.9)`.
 
 This **dependency tree** is **not** **coherent**.
 
@@ -9,7 +9,7 @@ This **dependency tree** is **not** **coherent**.
 
 Notes:
 - In Rust your **dependency tree** can have **multiple versions** of the **same crate**.
-- Types in different versions of a crate are considered **distinct types**, e.g., ``baz_v1.4::ABC`` != ``baz_0.9::ABC``.
+- Types in different versions of a crate are considered **distinct types**, e.g., `baz_v1.4::ABC` != `baz_0.9::ABC`.
 
 <br>
 
@@ -49,16 +49,16 @@ This 2 modules will calculate **different** values for **the same key**!<br>
 In Rust, **trait coherence** is the property that there is **at most** **one implementation** of a trait for **any given type**.
 
 Rust enforces **trait coherence** through **2 rules**:
-- The **overlap rule** forbids you have two ``impl`` of **the same trait** for **the same type**.<br>
-- The **orphan rule**, very roughly speaking, forbids you have an ``impl`` where both **the trait** **and** **the type** are defined in a **different crate**.
+- The **overlap rule** forbids you have two `impl` of **the same trait** for **the same type**.<br>
+- The **orphan rule**, very roughly speaking, forbids you have an `impl` where both **the trait** **and** **the type** are defined in a **different crate**.
 
-For example, ``impl<T: Debug>`` trait for ``T`` overlaps with ``impl<T: Display>`` trait for ``T`` because some types might implement both ``Debug`` and ``Display``, so you can't write both.
+For example, `impl<T: Debug>` trait for `T` overlaps with `impl<T: Display>` trait for `T` because some types might implement both `Debug` and `Display`, so you can't write both.
 
 <br>
 
 ## Orphan rule
-**Rule**: ``impl SomeTrait for SomeType`` is valid if:
-- ``SomeTrait`` is from current crate **OR** ``SomeType`` is from current crate;
+**Rule**: `impl SomeTrait for SomeType` is valid if:
+- `SomeTrait` is from current crate **OR** `SomeType` is from current crate;
 - Few edge cases (see **RFC 1023**).
 
 <br>

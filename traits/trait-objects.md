@@ -1,37 +1,37 @@
 # Trait Object
 **Trait object** is **DST**.<br>
-**Trait object** is a **reference** to ``dyn SomeTrait``.<br>
+**Trait object** is a **reference** to `dyn SomeTrait`.<br>
 
 <br>
 
-``dyn SomeTrait`` **reference** contains **2 pointers**: 
-- a pointer to an **instance** **of** a **type** ``T`` that implements ``SomeTrait``; 
-- a pointer to an ``T``'s **vtable**. 
+`dyn SomeTrait` **reference** contains **2 pointers**: 
+- a pointer to an **instance** **of** a **type** `T` that implements `SomeTrait`; 
+- a pointer to an `T`'s **vtable**. 
 
 <br>
 
 **Trait object** *declaration* examples:
-- ``&dyn SomeTrait``
-- ``Box<dyn SomeTrait>``
+- `&dyn SomeTrait`
+- `Box<dyn SomeTrait>`
 
 <br>
 
 Calling a method on a **trait object** uses **dynamic dispatch**.<br>
 In dynamic dispatch cases, the compiler emits code that at runtime will figure out which method to call.<br>
 
-**vtable** (**virtual method table**) **contains** for each method of ``SomeTrait`` **pointer to T's implementation** (i.e. a function pointer).
+**vtable** (**virtual method table**) **contains** for each method of `SomeTrait` **pointer to T's implementation** (i.e. a function pointer).
 
 <br>
 
 ## Trait Object Lifetime Bounds
 Since a **trait object** can contain references, the **lifetimes** of those references need to be expressed as part of the trait object.<br>
-This **lifetime** is written as ``Trait + 'a``.
+This **lifetime** is written as `Trait + 'a`.
 
 <br>
 
 # Generics vs. Trait objects
 **Generics** have restriction – **monomorphized version** (**specialized versions**) of a polymorphic entity can use **only particular type**.<br>
-For example, monomorphized version of ``Vec<T>`` can store elements of only particular type, e.g., ``i32`` or ``String``.<br>
+For example, monomorphized version of `Vec<T>` can store elements of only particular type, e.g., `i32` or `String`.<br>
 
 There are 2 approaches to eliminate this restriction:
 - use **enum variants** for different types;
