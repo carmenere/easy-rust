@@ -17,9 +17,22 @@
 <br>
 
 Calling a method on a **trait object** uses **dynamic dispatch**.<br>
-In dynamic dispatch cases, the compiler emits code that at runtime will figure out which method to call.<br>
 
-**vtable** (**virtual method table**) **contains** for each method of `SomeTrait` **pointer to T's implementation** (i.e. a function pointer).
+**Dispatch** is the act of sending something somewhere.<br>
+
+**Dynamic dispatch** means selecting which **implementation** of a **polymorphic** *function* or *method* to use.<br>
+
+In **dynamic dispatch** (aka **late-binding**) cases, the compiler emits code that figures out which method to call at runtime. In Rust, and most other languages, this is done with a `vtable`.<br>
+A `vtable` is a mapping of trait objects to pointers ot their methods.<br>
+
+**vtable** (**virtual method table**) **contains** for each method of `SomeTrait` **pointer to T's implementation** (i.e. a **function pointer**).<br>
+
+The compiler **cannot inline a method call**, because it doesn't know which **concrete type** will be here at runtime!<br>
+Syntax `<dyn SomeTrait>` means any type `T` that implements trait `SomeTrait`.<br>
+So, there can be **different types** `T1` and `T2` that implements `SomeTrait` and both have different pointers to the same metohds of `SomeTrait`.<br>
+
+There is a **runtime cost** when this lookup happens that **doesn’t occur with static dispatch**.
+Dynamic dispatch also prevents the compiler from choosing to inline a method’s code, which in turn prevents some optimizations.<br>
 
 <br>
 
