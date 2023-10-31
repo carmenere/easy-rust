@@ -334,3 +334,38 @@ fn main() {
             |n: i32| { n * 2 }); // evaluates to 94
 }
 ```
+
+<br>
+
+# Returning closures
+```Rust
+fn return_closure(a: i32) -> impl Fn(u32) -> u32 {
+    if a > 0 {
+        |i| i+i
+    }
+    else {
+        |i| i*i
+    }
+}
+
+fn return_boxed_closure(a: i32) -> Box<dyn Fn(u32) -> u32> {
+    if a > 0 {
+        Box::new(|i| i+i)
+    }
+    else {
+        Box::new(|i| i*i)
+    }
+}
+
+fn main () {
+    let a = return_closure(-1);
+    let b = return_closure(1);
+    dbg!(a(4));
+    dbg!(b(4));
+    
+    let a = return_boxed_closure(-1);
+    let b = return_boxed_closure(1);
+    dbg!(a(4));
+    dbg!(b(4));
+}
+```
