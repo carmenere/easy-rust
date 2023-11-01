@@ -79,7 +79,7 @@ There are **3 types** of **procedural macros**:
 <br>
 
 Every type of macro must be annotated with appropriate attribute:
-1. Function for **derive macros** with `hello_macro_derive`.
+1. Function for **derive macros** with `proc_macro_derive`.
 2. Function for **attribute-like macros** with `proc_macro_attribute`:
 ```Rust
 #[proc_macro_attribute]
