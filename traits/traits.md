@@ -70,9 +70,9 @@ fn main() {
 ## Returning traits
 Rust **cannot** return trait, i.e. return type cannot have an unboxed trait object. Reason for that is the Rust memory guaranties. Rust needs to know the size of the returned value at compile time.<br>
 
-Solution is to return 
-- `Box<dyn SomeTrait>` for **dynamic dispatch**.
-- `impl SomeTrait` or `T: SomeTrait` for **static dispatch**; `impl SomeTrait` is more generic than `T: SomeTrait`, because it means any type that implement `SomeTrait`.
+**Ways to return trait**:
+- `Box<dyn SomeTrait>` or `&Trait` for **dynamic dispatch**;
+- `impl SomeTrait` or `T: SomeTrait` for **static dispatch**; `impl SomeTrait` is more generic than `T: SomeTrait`, because it means **any type** that implement `SomeTrait`, i.e., the compiler replaces every `impl Trait` with a **concrete type** *at compile time*.
 
 <br>
 
