@@ -9,19 +9,21 @@ There 3 types of tests:
 <br>
 
 ## Fail conditions
-the test is considered **failed** if:
+The test is considered **failed** if:
 - code inside test **panics**;
 - test function returns `Result<(), String>` type and **test returns** `Err(String::from("Some error message here."))`;
 
 <br>
 
-To run tests there are command `cargo test`:
-- all **unit tests** are placed in **one separate section**;
-- all **integration tests** from **every file** in tests are placed in **separate section**;
-- all **doc tests** are placed in one separate section;
+To run tests there is `cargo test` command.<br>
+Organization of **output** of `cargo test`:
+- all **unit tests** are grouped in **one separate section**;
+- all **integration tests** are grouped **per .rs file** `src/tests` directory in **separate section**;
+- all **doc tests** are grouped in **one separate section**;
 
 <br>
 
+**Output** of `cargo test`:
 ```bash
      Running unittests src/lib.rs
 
@@ -226,6 +228,13 @@ mod tests {
 ```
 4. `example.rs`
 ```Rust
+/// Function `add` take two u64 integers and add them and return result of u64.
+/// 
+/// # Examples
+/// ```
+/// use my::{self, example::multiply};
+/// assert_eq!(2, multiply(1,2))
+/// ```
 pub fn multiply(x:u64, y:u64) -> u64 {
     x * y
 }
