@@ -1,4 +1,4 @@
-# ``Arc<T>``
+# `Arc<T>`
 `Arc` stands for **Atomic Reference Counter**.<br>
 It's **threadsafe** version of `Rc`.<br>
 But, **Rc** is **faster** than **Arc**.
@@ -53,8 +53,6 @@ fn main() {
     println!("count after c goes out of scope = {}", Rc::strong_count(&a));
 }
 ```
-
-
 
 <br>
 

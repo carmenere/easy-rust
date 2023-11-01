@@ -52,7 +52,7 @@ fn main() {
 {x: 10; y:20}                                                                                                                                                               
 ```
 
-If call ``.rc_print()`` on ``Point`` there is **error**:
+If call `.rc_print()` on `Point` there is **error**:
 ```Rust
 let p = Point::new(Some(10), Some(20));
 p.rc_print();

@@ -75,22 +75,22 @@ pub trait DerefMut: Deref {
 }
 ```
 
-When we type ``*y`` in our code, behind the scenes Rust actually converts it to: ``*(y.deref_mut())``.<br>
+When we type `*y` in our code, behind the scenes Rust actually converts it to: `*(y.deref_mut())`.<br>
 
 <br>
 
 # Deref coercion
 **Deref coercion** converts a *reference* to a **dereferenceable type** into a *reference* to **another type**.
 
-To see **deref coercion** in action, consider function ``hello`` that has the parameter ``name`` of type ``&str``:
+To see **deref coercion** in action, consider function `hello` that has the parameter `name` of type `&str`:
 ```Rust
 fn hello(name: &str) {
     println!("Hello, {name}!");
 }
 ```
 
-This ``hello`` function receives a **string slice** as an **argument**, such as ``hello("Rust");``.<br>
-**Deref coercion** makes it possible to call ``hello`` with a **reference** to a value of type ``MyBox<String>``:
+This `hello` function receives a **string slice** as an **argument**, such as `hello("Rust");`.<br>
+**Deref coercion** makes it possible to call `hello` with a **reference** to a value of type `MyBox<String>`:
 
 ```Rust
 fn main() {

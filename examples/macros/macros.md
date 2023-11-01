@@ -90,37 +90,7 @@ extend_struct! (
 
 <br>
 
-# Example 3: import macros as any other item
-### File: ``m.rs``
-```Rust
-macro_rules! empty_macros {
-    () => {println!("Empty macros")}
-}
-
-pub(crate) use empty_macros;
-```
-
-<br>
-
-### File: ``main.rs``
-```Rust
-#![allow(dead_code)]
-#![allow(unused_variables)]
-#![allow(unused_mut)]
-#![allow(non_camel_case_types)]
-
-mod m;
-
-use m::{empty_macros};
-
-fn main() {
-    empty_macros!();
-}
-```
-
-<br>
-
-# Example 4
+# Example 3
 ```Rust
 macro_rules! gen_enum {
   (
@@ -173,7 +143,7 @@ gen_enum! {
 
 <br>
 
-# Example 5
+# Example 4
 ```Rust
 macro_rules! gen_structs {
   (

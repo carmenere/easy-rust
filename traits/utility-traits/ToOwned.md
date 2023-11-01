@@ -2,7 +2,7 @@
 Some types make it possible to go from **borrowed** to **owned**, usually by implementing the `Clone` trait.<br>
 But `Clone` works only for going from `&T` to `T`.<br>
 The `ToOwned` trait is a **generalized** way to **convert** a **borrowed type** to an **owned type**.<br>
-Method ``to_owned`` called on *reference* (*borrowed type*) returns **owned type**.
+Method `to_owned` called on *reference* (*borrowed type*) returns **owned type**.
 
 <br>
 
