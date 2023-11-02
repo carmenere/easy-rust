@@ -58,7 +58,8 @@ These types are **thread-safe**, but they **cannot be moved** to another thread:
 <br>
 
 `MutexGuard<T: Sync>` uses **OS kernel API** (`POSIX Threads`, aka `pthread`) in particular **syscalls**: `pthread_mutex_lock()` and `pthread_mutex_unlock()`.<br>
-The `pthread_mutex_unlock()` **must** be called in **the same thread** where `pthread_mutex_lock()` was called.
+The `pthread_mutex_unlock()` **must** be called in **the same thread** where `pthread_mutex_lock()` was called.<br>
+More details (here)[https://whenderson.dev/blog/rust-mutexes/].
 
 <br>
 
