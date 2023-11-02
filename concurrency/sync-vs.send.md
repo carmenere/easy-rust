@@ -23,8 +23,7 @@ In other words:
 <br>
 
 # !Send and !Sync
-- `!Send` types can only ever be **owned** by a **single thread**, since they **cannot** be moved or copied to other threads, i.e., **type is bound to the current thread**:
-  - for example: `MutexGuard`, because of the `unlock` syscall which must occur in the same thread where `lock` was.
+- `!Send` types can only ever be **owned** by a **single thread**, since they **cannot** be moved or copied to other threads, i.e., **type is bound to the current thread**.
 - `!Sync` types can only be **used** by a **single thread** at any **different** time, since their **references cannot** be moved or copied to other threads. But **instances** of `!Sync` types **can** still be **moved** between threads if they implement `Send`.
 
 <br>
