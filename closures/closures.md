@@ -370,7 +370,8 @@ struct Closure<'a> {
     foo: &'a String
 }
 
-impl Fn for Closure<'_> {
+impl<'a> Fn<()> for Closure<'a> {
+    type Output = ();
     fn call(&self) {
         println!("foo = {self.foo}");
     }
