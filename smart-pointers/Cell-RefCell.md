@@ -1,8 +1,8 @@
 # Interior mutability
 **Interior mutability** is **property of type** that allows to **wrap** something that’s **mutable** in a structure that is **immutable**.<br>
-In other words, **interior mutability** allow us to bypass Rust's borrow rules.<br>
+In other words, **interior mutability** allow us to **bypass Rust's borrow rules**.<br>
 
-There are 2 types that allow implement **interior mutability**: `Cell<T>` and `RefCell<T>`.<br>
+There are 2 types that implement **interior mutability**: `Cell<T>` and `RefCell<T>`.<br>
 `Cell` and `RefCell` data types allow us to change their values, even if they are **not** stored in a **mutable** variable.
 
 `Cell<T>` is a type that provides **zero-cost interior mutability**, but only for `Copy` types.<br>
