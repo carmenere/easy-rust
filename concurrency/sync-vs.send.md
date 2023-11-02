@@ -1,7 +1,6 @@
 # Send and Sync
 From compiler point of view **thread** is a **scope** `{}`.<br>
-`rustc` determines is it **safe** or **not** to **move** or **share** by immutable reference some **value** to **another thread** (**scope**).<br>
-`Sync` and `Send` are **marker traits**:
+`rustc` uses `Sync` and `Send` **marker traits** to determine is it **safe** or **not** to **move** or **share** by immutable reference some **value** to **another thread** (**scope**):
 - `Sync` means that **sharing** (by immutable reference) *between threads* is **safe**.
 - `Send` means that **passing** (by value) to *another thread* is **safe** and it can be **created** in **one** thread (scope) and **dropped** in **another** thread (scope).
 
