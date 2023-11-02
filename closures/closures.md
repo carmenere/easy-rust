@@ -1,4 +1,4 @@
-# Ordinary closure
+# Closures
 **Closure** aka **anonymous function** or **lambda**.<br>
 
 We create a **closure** using the `|...| {...}` syntax, and then we create a `let` **binding** so we can use it later.<br>
@@ -125,10 +125,12 @@ What trait is implemented is decided by **what the closure does with the capture
 <br>
 
 # Closure type
-The concrete type of a closure can't be written:
+The concrete type of a closure **can't** be written **explicitly**:
 ```Rust
 let closure /*:No way to write the type of closure here*/ = || {};
 ```
+
+<br>
 
 **Each closure** has an **unique anonymous type** assigned to it by the compiler.<br>
 **No two closures**, even if **identical**, have the **same type**:
@@ -139,6 +141,8 @@ fn main() {
     closure1 = closure2; // ERROR mismatched types
 }
 ```
+
+<br>
 
 But is is possible to refer to **closure type** in finction signature trough `Fn()`/`FnMut()`/`FnOnce()` traits:
 ```Rust
@@ -282,7 +286,7 @@ fn main() {
 
 <br>
 
-The `move` keyword **doesn't** necessarily mean that the closure will implement the `FnOnce` trait.<br>
+The `move` keyword **doesn't mean** that the closure will implement the `FnOnce` trait.<br>
 **Which trait is implemented** is **decided** by **what the closure does with** the *captured variable*, **not how it is captured**.<br>
 `move` **only forces** the *captured variable* **to be moved** into the closure **while** `FnOnce` is implemented if the **closure moves** the *captured variable* **out**.<br>
 `move` keyword made no difference to which trait was implemented.

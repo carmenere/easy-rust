@@ -66,5 +66,8 @@ fn main() {
 }
 ```
 
-So when should you use a **function pointer** and when a **closure**? Your **first choice should be a closure** because it gives the caller more freedom in what to pass.<br>
+<br>
+
+When should you use a **function pointer** and when a **closure**?<br>
+Your **first choice should be a closure** because it gives the caller more freedom in what to pass.<br>
 There are times when using a function pointer makes sense. For example, when you are calling **C code** through **FFI** it's ok to use function pointers because **C doesn't understand Rust closures**.
