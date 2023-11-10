@@ -167,3 +167,43 @@ impl SomeTrait<f64> for Mytype {
 </td>
     </tr>
 </table>
+
+<br>
+
+# Generics vs. impl Trait
+```rust
+trait MyTrait {}
+impl MyTrait for u32 {}
+
+
+fn foo() -> impl MyTrait
+{
+    100u32 // We can create specific type if we return impl MyTrait.
+}
+
+fn bar<R>() -> R
+where
+    R: MyTrait
+{
+    100u32 // ERROR here! We cannot create specific type if we return generic.
+}
+
+fn baz<T,R>(v: T) -> R
+where
+    T: Into<R>,
+    R: MyTrait
+{
+    v.into()
+}
+
+fn sink (v: u32) {
+
+}
+
+fn main() {
+    let a = foo();
+    // let b: u32 = bar();
+    let z = baz(100u32);
+    sink(z);
+}
+```
