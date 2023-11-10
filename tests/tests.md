@@ -68,25 +68,20 @@ Here `use super::*` brings all of the test module’s parent’s items into scop
 <br>
 
 # Integration Tests
-In Rust, **integration tests** are **external** to your **library carate**.<br>
+In Rust, **integration tests** are **separated** from your **library code** and live in a `tests` directory in your **project root** (aka **package root)**.<br>
 They can only call functions that are part of your library’s **public API**.<br>
 Their purpose is to test whether many parts of your library **work together correctly**.<br>
 
-If our project is a **binary crate** that only contains a `src/main.rs` file and doesn’t have a `src/lib.rs` file, we **can’t create integration tests** in the `tests` directory and bring functions defined in the `src/main.rs` file into scope with a use statement.<br>
-This is one of the reasons Rust projects that provide a binary have a straightforward `src/main.rs` file that calls logic that lives in the `src/lib.rs` file.<br>
-Using that structure, integration tests can test the **library crate** with use to make the important functionality available.<br>
-
-**Integration tests** are placed in `src/tests` directory. Cargo knows to look for *integration test* files in this directory.<br>
-
+Cargo knows to look for `tests/*.rs` files in **package root** directory.<br>
 **Each file** in the `tests` directory is a **separate crate**, so we need to bring our library into each test crate’s scope.<br>
 
-We can still run a particular integration test function by specifying the test function’s name as an argument to cargo test.
+We can still run a **particular integration test function** by specifying the **test function’s name** as an argument to `cargo test`.<br>
 
-To run all the tests in a particular integration test file, use the --test argument of cargo test followed by the name of the file:
+To run all the tests in a **particular integration test file**, use the `--test` argument of `cargo test` followed by the name of the file:
 ```bash
-cargo test --test integration_test
+cargo test --test person
 ```
-here `integration_test` is a `integration_test.rs` file inside `src/tests`.
+here `person` is a `tests/person.rs` file.
 
 <br>
 
