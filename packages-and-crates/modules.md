@@ -29,7 +29,7 @@ The **module tree** *must be built manually*. It means **every** `.rs` file in *
 <br>
 
 Lookup rules:
-- If you write `mod bar;` inside `foo.rs` file, then compiler will search for `bar.rs` and then (if it doesn’t exists) for `bar/mod.rs` (in both cases compiler will search file `bar.rs` or dir `bar/` inside the directory where `mod.rs` is).
+- If you write `mod bar;` inside `foo.rs` file, then compiler will search for `bar.rs` and then (if it doesn’t exists) for `bar/mod.rs` (in both cases compiler will search file `bar.rs` or dir `bar/` inside the directory where `foo.rs` is).
 - If you write `mod bar;` inside `mod.rs` file, then compiler will search for `bar.rs` inside the directory where `mod.rs` is.
 - If you write `mod bar;` inside `main.rs` or `lib.rs` files, then compiler will search for `bar.rs` inside `src` directory.
 
