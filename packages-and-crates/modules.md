@@ -29,8 +29,9 @@ The **module tree** *must be built manually*. It means **every** `.rs` file in *
 <br>
 
 Lookup rules:
-- if you write `mod bar;` in `foo.rs` file, then compiler will search for `bar.rs` and then (if it doesn’t exists) for `bar/mod.rs` (inside the directory where `foo.rs` is).
-- if you write `mod bar;` in `mod.rs` file, then compiler will search for `bar.rs` (inside the directory where `foo.rs` is).
+- If you write `mod bar;` inside `foo.rs` file, then compiler will search for `bar.rs` and then (if it doesn’t exists) for `bar/mod.rs` (in both cases compiler will search file `bar.rs` or dir `bar/` inside the directory where `mod.rs` is).
+- If you write `mod bar;` inside `mod.rs` file, then compiler will search for `bar.rs` inside the directory where `mod.rs` is.
+- If you write `mod bar;` inside `main.rs` or `lib.rs` files, then compiler will search for `bar.rs` inside `src` directory.
 
 <br>
 
@@ -39,36 +40,36 @@ Consider hieararchy:
 ```bash
 src
 |- lib.rs
-|- tall.rs
-|- tall
+|- venti.rs
+|- venti
     |- grande.rs
 ```
 
 Content of files:
 - `lib.rs`:
 ```rust
-    pub mod tall;
+    pub mod venti;
 ```
-- `tall.rs`:
+- `venti.rs`:
 ```rust
     pub mod grande;
 ```
-- `tall/grande.rs`:
+- `venti/grande.rs`:
 ```rust
-    pub mod venti {
-        pub fn lib_fn () {
-            
-        }
+    pub mod tall {
+        pub fn coffee () { }
     }
 ```
 
 <br>
 
-In `lib.rs` we define **module** `tall`.<br>
-In `tall.rs` we define **child module** `grande`.<br>
+In `lib.rs` we define **module** `venti`.<br>
+In `venti.rs` we define **child module** `grande`.<br>
+
+<br>
 
 > **Note**:<br>
-> The correspondig **file** (`grande.rs`) of **child module** (`grande`) must be placed into **directory** with the same name as its **parent module** (`tall`).
+> The correspondig **file** (`grande.rs`) of **child module** (`grande`) must be placed into **directory** with the same name as its **parent module** (`venti`).
 
 <br>
 
@@ -76,12 +77,10 @@ In `tall.rs` we define **child module** `grande`.<br>
 It is also equalent to
 - `lib.rs`:
 ```rust
-    mod tall {
+    mod venti {
         mod grande {
-            mod venti {
-                fn lib_fn () {
-                    
-                }
+            mod tall {
+                fn coffee () { }
             }
         }
     }
