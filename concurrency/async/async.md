@@ -17,8 +17,6 @@ Rust **only** provides:
 
 <br>
 
-<br>
-
 There are several popular crates that implement **async runtime** for Rust:
 - `tokio`
 - `async-std`
@@ -28,7 +26,7 @@ There are several popular crates that implement **async runtime** for Rust:
 
 ## Enum `Poll`
 Future’s `poll()` method returns **enum** `Poll`, whose variants are
-- `Ready<T>`  if `Future` is ready to return value;
+- `Ready<T>`  if `Future` is **ready** to return value, once `Future` has returned variant `Ready(T)` it will **never** be polled again.
 - `Pending` if `Future` is **not** ready yet;
 
 <br>
@@ -52,15 +50,12 @@ pub trait Future {
 }
 ```
 
-The signature of the `poll()` requires a `Context`.<br>
+<br>
+
 `Output` is associate type of Future’s result.<br>
 Future’s `poll()` method always returns **immediately** one of `Poll` variant:
 - `Poll::Ready(T)`
 - `Poll::Pending`
-
-<br>
-
-Once `Future` has returned variant `Ready(T)` it will **never** be polled again.
 
 <br>
 
@@ -85,7 +80,7 @@ async fn async_function() -> String {
     "ABCDEF".to_string()
 }
 ```
-- **async blocks**:
+- **async block**:
 ```rust
 async {
     "ABCDEF".to_string()
@@ -96,8 +91,31 @@ async move {
 }
 ```
 
+This code:
+```rust
+async fn async_function() -> String {
+    "ABCDEF".to_string()
+}
+```
+
+is equal to:
+```rust
+use std::future::Future;
+
+fn async_function() -> impl Future<Output = String> {
+    async {
+        "ABCDEF".to_string()
+    }
+}
+
+#[tokio::main]
+async fn main() {
+    let result = async_function().await;
+    println!("{}", result);
+}
+```
+
 `async` keyword transforms block of code into **state machine** that implement `trait Future`.<br>
-A `Future` represents deffered computations.<br>
 
 This code:
 ```rust
@@ -141,41 +159,14 @@ async fn main() {
 }
 ```
 
-So, Rust implicitly treats `async fn f(…) {…} -> T` as function that returns `Future` type: `impl Future<Output = T>`.<br>
+So, Rust implicitly treats `async fn f() { } -> T` as function that returns `Future` type: `impl Future<Output = T>`.<br>
 The future’s specific type `impl Future<Output = T>` is generated **automatically** by the compiler, based on the function’s body and arguments.<br>
 
 <br>
 
-This code:
-```rust
-async fn async_function() -> String {
-    "ABCDEF".to_string()
-}
-```
-
-is equal to:
-```rust
-use std::future::Future;
-
-fn async_function() -> impl Future<Output = String> {
-    async {
-        "ABCDEF".to_string()
-    }
-}
-
-#[tokio::main]
-async fn main() {
-    let result = async_function().await;
-    println!("{}", result);
-}
-```
-
-<br>
-
 ## `.await` keyword
-`.await` is special syntax built into language called **await expression**.<br>
-*Await expression* **polls** `Future`.<br>
-Switching from one async task to another happens only at *await expression* when awaited `Future` returns `Pending`.<br>
+`.await` is special syntax called **await expression**. `.await` **polls** `Future`.<br>
+Switching from one async task to another happens only at `.await` when awaited `Future` returns `Pending`.<br>
 Pending `Future` **yields control** back, allowing other `Futures` to make progress.<br>
 
 `.await` is added to every `async` function call:
@@ -195,13 +186,14 @@ async fn main() {
 
 # Executor/Reactor pattern
 At the **top** of the program is the **Executor**. The **Executor** is just a **scheduling algorithm** that executes the `Futures` by calling `poll()` on them.<br>
-- **Executer** provides special API called **spawner**, spawner produces new tasks and puts them into **Task queue**;
-- **Executor** provides the runtime that iterates over **Task queue** and calls `poll()` on `Futures` until `Futures` return the `Ready` state;
+- **Executer** provides special API called **spawner**: spawner produces new tasks and puts them into *Executor's* **task queue**;
+- **Executor** provides the runtime that iterates over its **task queue** and calls `poll()` on `Futures` until `Futures` return the `Ready` state;
 
 <br>
 
 At the **bottom** of the program is **Reactor** (aka **source of system IO events**).<br>
-The **Reactor** notifies the **Executor** which task is ready to continue executing. **Reactor** is a **layer** between **Executor** and **OS**.<br>
+The **Reactor** notifies the **Executor** which task is ready to continue executing.<br>
+**Reactor** is an **interface** between **Executor** and **OS**.<br>
 
 **Reactor** provides **subscription API** for **external events**:
 - IO events;
@@ -230,24 +222,20 @@ Every `Future` transits through different phases during its life cycle.<br>
 **Top-level** `Future` contains `.await` calls to **nested** `Futures` and such **nested** `.await` calls form **chain** of `Futures`.<br>
 The **last** `Future` in this chain (aka **leaf** `Future`) is the `Future` that acts like **subscriber** on some system **IO operation**.<br>
 
-<br>
-
 ### Polling
 **Executor** fetches `Future` from its **task queue** and call `poll(cx)` method on it where `cx` is `Context`.<br>
 `Context` is **wrapper** for `Waker` and just contains a reference to a `Waker`.<br>
 The result of the `poll(cx)` method represents the the state of the `Future`.<br>
-
-<br>
 
 ### Waiting
 When the **Executor** calls `poll()` on a `Future`, that `Future` will return either `Ready` or `Pending`:
 - If `Future` returns `Ready(T)` then the `.await` will return `T` and the **Executor** removes it from the **task queue**.
 - If `Future` returns `Pending` then the **Executor** removes it from the **task queue**, but **Reactor** will notify **Executor** when particular `Future` will become ready to be polled again. This is where the **Waker API** comes in.
 
-<br>
+### Waking
+When event happens, **Reactor** calls `wake()` method on `Waker`, which puts `Future` that is bound to this event into *Executor's* **task queue**.<br>
 
-# Waking
-When event happens, **Reactor** calls `wake()` method on `Waker`, which, in turn, put `Future` that is bound to this event into *Executor's* **task queue**.<br>
+<br>
 
 # Waker API
 The **Waker API** connects *Executor* and *Reactor*.<br>
@@ -277,8 +265,6 @@ In this approach the `Waker` is **Task id** and the *Executor’s* **task queue*
 Also Executor stores set of Tasks as `HashMap<Task_id, Task>`.<br>
 When event occurs, **Reactor** calls `wake()` and it appends **Task** id to *Executor’s* **task queue**.<br>
 
-<br>
-
 ### Using reference counter
 In this approach the `Waker` is `Arc<Task>` and the *Executor’s* **task queue** is `Vec<Arc<Task>>`.<br>
 When event occurs, **Reactor** calls `wake()` and it push `Arc<Task>` to *Executor’s* **task queue**.<br>
@@ -303,23 +289,6 @@ pub struct Pin<P> {
 
 <br>
 
-There are several ways to **make reference pinned**:
-1.	`pin!` macro from futures-lite crate: `pin!(ref)`.
-2.	standard library’s `Box::pin(value: T)`: constructor: takes ownership of value of type `T` and returns `Pin<Box<T>>`.
-3.	`Pin<Box<T>>` implements `From<Box<T>>`, so `Pin::from(value: T)` takes ownership of value of type `T` and returns `Pin<Box<T>>`.
+There is `Box::pin(value: T)` constructor to **make reference pinned**: it takes ownership of value of type `T` and returns `Pin<Box<T>>`.<br>
+`Pin<Box<T>>` implements `From<Box<T>>`, so `Pin::from(value: T)` takes ownership of value of type `T` and returns `Pin<Box<T>>`.
 
-<br>
-
-Example:
-```rust
-let mut fut = MyFuture { i: 10 };
-
-let mut cx = ... // we'll talk about this later
-
-let p = Pin::from(fut);
-
-match p.poll(&mut cx) {
-    Poll::Ready(x) => println!("got int: {}", x),
-    Poll::Pending => println!("future not ready"),
-}
-```
