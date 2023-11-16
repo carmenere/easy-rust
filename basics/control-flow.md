@@ -1,5 +1,5 @@
 # Control flow
-``if/else`` expression allows to **branch code** depending on conditions.
+`if/else` expression allows to **branch code** depending on conditions.
 
 ## Notation
 ```Rust

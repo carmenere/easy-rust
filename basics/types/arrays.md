@@ -11,13 +11,13 @@ Arrays are **allocated** on the **stack**.
 let arr = [0, 1, 2];
 ```
 
-- **Repeat expression**: \[``V``; ``N``\], where the **value** ``V`` is **repeated** ``N``times:
+- **Repeat expression**: \[`V`; `N`\], where the **value** `V` is **repeated** `N`times:
 ```Rust
 let arr = [100; 5];
 ```
 
 ### Syntax options for *empty* arrays:
-- **Repeat expression** where ``N`` = 0:
+- **Repeat expression** where `N` = 0:
 ```Rust
 let a = [100; 0];
 println!("len of 'a' is {}.", a.len());
@@ -29,7 +29,7 @@ len of a is 0.
 <br>
 
 ## *Type declaration* syntax
-- **Repeat expression**: \[``T``; ``N``\], where the value of a **type** ``T`` is **repeated** ``N`` times:
+- **Repeat expression**: \[`T`; `N`\], where the value of a **type** `T` is **repeated** `N` times:
 ```Rust
 let arr1: [u64; 3] = [0, 1, 2];
 

@@ -1,12 +1,12 @@
 # Closures
 ## Notation
-``|| -> { ... }``
+`|| -> { ... }`
 
-``||`` defines **arguments**, **mandatory**.
+`||` defines **arguments**, **mandatory**.
 
-``->`` defines **returning type**, **optional**.
+`->` defines **returning type**, **optional**.
 
-``{}`` defines **body**, **optional**
+`{}` defines **body**, **optional**
 
 <br>
 

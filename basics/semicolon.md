@@ -1,13 +1,13 @@
-# Semicolon ``;``
+# Semicolon `;`
 Rust is an **expression-oriented language**. This means that **most things are expressions**.
 
 <br>
 
-**Semicolon** ``;`` is used to **turn** an *expression* **into** *statement*.
+**Semicolon** `;` is used to **turn** an *expression* **into** *statement*.
 
 <br>
 
-*Semicolon* **drops** *left part* and **returns** *right part*. If there is **nothing** *on the right* *semicolon* ``;`` returns [**unit type**](../types/unit.md).
+*Semicolon* **drops** *left part* and **returns** *right part*. If there is **nothing** *on the right* *semicolon* `;` returns [**unit type**](../types/unit.md).
 
 <br>
 
@@ -15,7 +15,7 @@ Rust is an **expression-oriented language**. This means that **most things are e
 
 <br>
 
-Examples, when ``;`` is **necessary**:
+Examples, when `;` is **necessary**:
 - After **loop**, **control** and **match** blocks to drop their results:
 ```Rust
 for { … };
@@ -37,7 +37,7 @@ a = 10;
 
 <br>
 
-Examples, when ``;`` can be **omitted**:
+Examples, when `;` can be **omitted**:
 ```Rust
 struct Foo {}
 ```

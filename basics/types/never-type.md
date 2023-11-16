@@ -35,7 +35,7 @@ fn main () {
 }
 ```
 
-In the above example, variable `v` inside `while {}` is of `i32` type, because ` Some(v) => v` arm of `match` returns value `10`.
+In the above example, variable `v` inside `while {}` is of `i32` type, because `Some(v) => v` arm of `match` returns value `10`.
 
 <br>
 
