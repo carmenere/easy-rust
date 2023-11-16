@@ -8,7 +8,7 @@ There are 4 loop types in Rust:
 <br>
 
 ## Iterator loops
-There is ``for`` loop in Rust when *number of iterations* in **known**.
+There is `for` loop in Rust when *number of iterations* in **known**.
 
 ### Syntax
 ```Rust
@@ -16,10 +16,10 @@ for var_name in expression {
     ...
 }
 ```
-where ``expression`` is an ``iterator``.
+where `expression` is an `iterator`.
 
 Notes:
-- The ``iterator`` allows to navigate through **collection**. 
+- The `iterator` allows to navigate through **collection**. 
 - **Each element** of *collection* is **one** **iteration** of the loop. 
 - **Each element** of *collection* is bound to the identifier **var_name**, which is **only valid inside** the loop.
 
@@ -44,7 +44,7 @@ for i in 1..6 {
 
 <br>
 
-## Iterator loops with ``enumeration``
+## Iterator loops with `enumeration`
 ### Examples 
 - Iterate over range with enumeration:
 ```Rust
@@ -63,7 +63,7 @@ Output:
 <br>
 
 ## Predicate loops
-There is ``while`` loop in Rust when *number of iterations* in **unknown**.
+There is `while` loop in Rust when *number of iterations* in **unknown**.
 
 <br>
 
@@ -73,7 +73,8 @@ while expression {
     ...
 }
 ```
-where ``expression`` is ``predicate``, i.e., returns ``bool`` type.
+
+where `expression` is `predicate`, i.e., returns `bool` type.
 
 ### Example
 ```Rust
@@ -94,7 +95,8 @@ loop {
     ...
 }
 ```
-It is similar to ```while true { ... }```. But from compiler point of view it is different cases and compiler uses **additional optimizations** for ``loop {}`` variant.
+
+It is similar to `while true { ... }`. But from compiler point of view it is different cases and compiler uses **additional optimizations** for `loop {}` variant.
 
 ### Example
 ```Rust
@@ -106,8 +108,8 @@ loop {
 <br>
 
 # Loop labels
-By default, statements ``break`` and ``continue`` **refer** to the **current** *loop*.<br>
-**Labels** allow to **apply** statements ``break`` and ``continue`` to the **corresponding** *outer loop*.
+By default, statements `break` and `continue` **refer** to the **current** *loop*.<br>
+**Labels** allow to **apply** statements `break` and `continue` to the **corresponding** *outer loop*.
 
 ## Example
 ```Rust

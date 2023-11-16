@@ -1,7 +1,7 @@
 # Assertions
 An **assertion** is a statement that enables you to test your assumptions about your program.
 
-If assertion is ``false``, the program **crashes**.
+If assertion is `false`, the program **crashes**.
 
 <table>
     <tr>

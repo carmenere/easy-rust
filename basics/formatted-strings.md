@@ -1,5 +1,5 @@
-# ``format!``
-Write **formatted text** to ``String`` and returns ``String`` type.
+# `format!`
+Write **formatted text** to `String` and returns `String` type.
 
 <br>
 

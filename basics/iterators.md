@@ -6,13 +6,13 @@ for item in collection {
 }
 ```
 
-In this example, after ``for`` loop *collection* ``collection`` is become **invalid**.<br>
+In this example, after `for` loop *collection* `collection` is become **invalid**.<br>
 
-Access to **collections** in loops uses ``move semantics`` by default.
+Access to **collections** in loops uses `move semantics` by default.
 
 <br>
 
-To make the ``collection`` **reusable after loop** use ``immutable reference`` to access to the ``collection``:
+To make the `collection` **reusable after loop** use `immutable reference` to access to the `collection`:
 ```Rust
 for item in &collection {
     ...
@@ -21,7 +21,7 @@ for item in &collection {
 
 <br>
 
-To **modify item** *during* the loop use ``mutable reference`` to access to the ``collection``:
+To **modify item** *during* the loop use `mutable reference` to access to the `collection`:
 ```Rust
 for item in &mut collection {
     ...

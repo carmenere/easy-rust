@@ -1,15 +1,15 @@
 # Formatted print
-There are series of macros defined in ``std::fmt`` for printing:
+There are series of macros defined in `std::fmt` for printing:
 |Macros|Description|
 |:-----|:----------|
-|``print!``|Writes text to the **standard output**: ``io::stdout``.|
-|``println!``|Same as ``print!`` but **appends newline** ``\n``.|
-|``eprint!``|Writes text to the **standard error**: ``io::stderr``.|
-|``eprintln!``|Same as ``eprint!`` but **appends newline** ``\n``.|
+|`print!`|Writes text to the **standard output**: `io::stdout`.|
+|`println!`|Same as `print!` but **appends newline** `\n`.|
+|`eprint!`|Writes text to the **standard error**: `io::stderr`.|
+|`eprintln!`|Same as `eprint!` but **appends newline** `\n`.|
 
 <br>
 
-# Variants to pass arguments to ``println!``
+# Variants to pass arguments to `println!`
 <table>
 <tr>
 <td> <b>Variant</b> </td> <td> <b>Example</b> </td>
