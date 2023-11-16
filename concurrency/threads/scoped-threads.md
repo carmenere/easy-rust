@@ -81,8 +81,8 @@ fn main() {
 <br>
 
 
-## std::thread::scope
-Signature of `std::thread::scope`:
+## `scope` function
+Signature of `std::thread::scope` function:
 ```rust
 pub fn scope<'env, F, T>(f: F) -> T
 where
@@ -105,7 +105,7 @@ pub struct Scope<'scope, 'env: 'scope> {
 
 <br>
 
-## Scoped threads lifetimes
+### Scoped threads lifetimes
 Scoped threads involve two lifetimes: `'scope` and `'env`:
 - the `'scope` lifetime represents the **lifetime of the scoped threads**, once this **lifetime ends**, all **scoped threads are joined**;
 - the `'env` lifetime represents the **lifetime of whatever is borrowed** by the scoped threads;
