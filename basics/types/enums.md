@@ -30,7 +30,7 @@ enum MyEnum {
 <br>
 
 ### *Initialization* syntax
-Variable of ``enum`` type can **only** be initialized with **specific** value of type ``SomeType_i``:
+Variable of `enum` type can **only** be initialized with **specific** value of type `SomeType_i`:
 ```Rust
 let x: SomeType_i = SomeType_i::new(...);
 let v: <Name> = <Name>::Variant_i(x);
@@ -38,8 +38,8 @@ let v: <Name> = <Name>::Variant_i(x);
 
 <br>
 
-## Access to ``enum`` variant
-To access to **specific** ``variant`` of variable of ``enum`` type **pattern matching** is used.
+## Access to `enum` variant
+To access to **specific** `variant` of variable of `enum` type **pattern matching** is used.
 
 #### Example
 ```Rust

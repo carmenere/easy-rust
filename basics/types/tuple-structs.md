@@ -1,6 +1,6 @@
 # Tuple structs
-``tuple struct`` is a hybrid between a ``tuple`` and a ``struct``.<br>
-Unlike the ``struct`` type, the fields in the ``tuple struct`` don't have names.
+`tuple struct` is a hybrid between a `tuple` and a `struct`.<br>
+Unlike the `struct` type, the fields in the `tuple struct` don't have names.
 
 <br>
 
@@ -9,7 +9,7 @@ Unlike the ``struct`` type, the fields in the ``tuple struct`` don't have names.
 ```Rust
 struct <Name> (T1, ... );
 ```
-where ``Ti`` is of some type.
+where `Ti` is of some type.
 
 #### Examples
 ```Rust
@@ -23,7 +23,7 @@ struct Bar(i32, i32, i32);
 ```Rust
 let v = <Name>(val_1, ... );
 ```
-where ``val_i`` - value of some type ``Ti``.
+where `val_i` - value of some type `Ti`.
 
 #### Examples
 ```Rust

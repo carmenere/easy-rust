@@ -1,5 +1,5 @@
 # Newtype pattern
-The ``newtype pattern`` allows to create a **new type** that is **distinct** from its contained value and also has its own semantic.
+The `newtype pattern` allows to create a **new type** that is **distinct** from its contained value and also has its own semantic.
 
 <br>
 
@@ -7,7 +7,7 @@ The ``newtype pattern`` allows to create a **new type** that is **distinct** fro
 ```Rust
 struct <MyNewTypeName>(T);
 ```
-where ``T`` is of some type.
+where `T` is of some type.
 
 #### Example
 ```Rust
@@ -22,7 +22,7 @@ fn main() {
 <br>
 
 ## Destructuring let
-To **extract** the **inner value** ``destructuring let`` is used.
+To **extract** the **inner value** `destructuring let` is used.
 
 #### Example
 ```Rust

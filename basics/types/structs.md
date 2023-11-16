@@ -1,5 +1,5 @@
 # Structs
-``Struct`` type is container for values of different types.
+`Struct` type is container for values of different types.
 
 <br>
 
@@ -12,7 +12,7 @@ struct <Name> {
     ...
 }
 ```
-where: ``fi`` - name of the ``field`` in the ``struct`` of type ``Ti``.
+where: `fi` - name of the `field` in the `struct` of type `Ti`.
 
 #### Example
 ```Rust
@@ -25,7 +25,7 @@ struct Foo {
 <br>
 
 ### *Initialization* syntax
-#### ``Struct`` constructor 
+#### `Struct` constructor 
 ```Rust
 let v: <Name> = <Name> {
     f1: val_1,
@@ -49,15 +49,15 @@ fn main() {
 
 <br>
 
-#### Method ``new()``
+#### Method `new()`
 ```Rust
 let v: <Name> = <Name>::new(a=val_1, b=val_2, ... );
 ```
 
 <br>
 
-## ``..`` operator
-A ``struct`` **constructor** can include ``..`` operator to **copy** some values from another variable of **the same** ``struct`` type. 
+## `..` operator
+A `struct` **constructor** can include `..` operator to **copy** some values from another variable of **the same** `struct` type. 
 
 #### Example
 ```Rust
