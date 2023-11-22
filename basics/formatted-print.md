@@ -126,22 +126,22 @@ This means that any type of argument which implements the `fmt::Binary` trait ca
 <br>
 
 # Related macros
-There are a number of related macros in the `std::fmt` module.<br>
-```rust
-format!      // The format! macro is intended to be familiar to those coming from C’s printf
-write!       // first argument is either a &mut io::Write or a &mut fmt::Write, the destination
-writeln!     // same as write! but appends a newline
-print!       // the format string is printed to the standard output
-println!     // same as print! but appends a newline
-eprint!      // the format string is printed to the standard error
-eprintln!    // same as eprint! but appends a newline
-format_args! // 
-```
+There are a number of **related macros** in the `std` **module**.<br>
+|Macros|Description|
+|:-----|:----------|
+|`format!`|Writes **formatted text** to `String`.|
+|`print!`|Same as `format!` but the text is printed to `io::stdout`.|
+|`println!`|Same as `print!` but appends a **newline**.|
+|`eprint!`|Same as `print!` but the text is printed to `io::stderr`.|
+|`eprintln!`|Same as `eprint!` but appends a **newline**.|
+|`write!`|First argument is the **destination** and it can be either a `&mut io::Write` or a `&mut fmt::Write`.|
+|`writeln!`|Same as `write!` but appends a **newline**.|
+|`format_args!`|**Compiler built-in macros**. `format_args!`, unlike its derived macros, **avoids heap allocations**.|
 
 <br>
 
 ## `format!`
-`format!` takes **string literal** and zero or more arguemnts and then returns result `String`:
+`format!` takes **string literal** and zero or more arguemnts and writes **formatted text** to `String`:
 ```rust
 let s: String = format!("Hello, {}!", "world");
 ```
@@ -233,8 +233,9 @@ Similarly to the `write!` macro, the goal of these macros is to **avoid intermed
 <br>
 
 ## `format_args!`
+**Compiler built-in macros**. `format_args!`, unlike its derived macros, **avoids heap allocations**.<br>
 The result of the `format_args!` macro is a value of type `fmt::Arguments`.<br>
-A value of type `fmt::Arguments` can be passed to the `std::fmt::format` and `std::fmt::write` functions in order to process the format string. 
+A value of type `fmt::Arguments` can be passed to the `std::fmt::format` and `std::fmt::write` functions in order to process the **format string**. 
 
 <br>
 
@@ -289,3 +290,76 @@ assert_eq!(s, "Hello, world!");
 let s = format!("Hello, {}!", "world");
 assert_eq!(s, "Hello, world!");
 ```
+
+<br>
+
+# Implementations in `std`
+## `impl Write for &mut [u8]`
+`std::io::Write` is implemented for `&mut [u8]` by copying **into** the slice, overwriting its data.<br>
+Note that **writing updates the slice**: the slice will be **empty** when it has been completely overwritten.<br>
+
+If the number of bytes to be written **exceeds** the size of the slice:
+- `write` returns `Ok(0)`;
+- `write_all` returns an error of kind `ErrorKind::WriteZero`;
+
+<br>
+
+### Methods
+- `fn write(&mut self, data: &[u8]) -> Result<usize>`<br>
+Write a **buffer** `data` into **this writer**, returning how many bytes were written.
+
+<br>
+
+- `fn write_all(&mut self, data: &[u8]) -> Result<()>`<br>
+Attempts to write an entire buffer `data` into **this writer**.
+
+<br>
+
+- `fn write_fmt(&mut self, fmt: Arguments<'_>) -> Result<()>`<br>
+Writes a **formatted string** `fmt` into **this writer**, returning any error encountered.
+
+<br>
+
+- `fn flush(&mut self) -> Result<()>`<br>
+Flush this output stream, ensuring that all intermediately buffered contents reach their destination.
+
+<br>
+
+## `impl<A: Allocator> Write for Vec<u8, A>`
+`std::io::Write` is implemented for `Vec<u8>` by appending to the vector. The vector will grow as needed.
+
+<br>
+
+### Methods
+
+- `fn write(&mut self, buf: &[u8]) -> Result<usize>`<br>
+Write a buffer `buf` into this writer, returning how many bytes were written.
+
+- `fn write_all(&mut self, buf: &[u8]) -> Result<()>`<br>
+Attempts to write an entire buffer `buf` into this writer.
+
+- `fn write_fmt(&mut self, fmt: Arguments<'_>) -> Result<()>`<br>
+Writes a **formatted string** `fmt` into this writer, returning any error encountered.
+
+<br>
+
+- `fn flush(&mut self) -> Result<()>`<br>
+Flush this output stream, ensuring that all intermediately buffered contents reach their destination.
+
+<br>
+
+## `impl Write for String`
+`std::fmt::Write` is implemented for `String`.
+
+- `fn write_str(&mut self, s: &str) -> Result<(), Error>`<br>
+Writes a **string slice** `s` **into** this writer, returning whether the write succeeded. 
+
+<br>
+
+- `fn write_char(&mut self, c: char) -> Result<(), Error>`<br>
+Writes a **char** `c` **into** this writer, returning whether the write succeeded.
+
+<br>
+
+- `fn write_fmt(&mut self, args: Arguments<'_>) -> Result<(), Error>`<br>
+Glue for usage of the `write!` macro with implementors of this trait.
