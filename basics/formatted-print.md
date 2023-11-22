@@ -239,7 +239,8 @@ A value of type `fmt::Arguments` can be passed to the `std::fmt::format` and `st
 <br>
 
 ### std::fmt::write
-The `std::fmt::write` function takes an output stream, and an `Arguments` struct that can be **precompiled** with the `format_args!` macro.<br>
+The `std::fmt::write` function takes an **output stream** and an `Arguments` struct.<br>
+The `Arguments` struct that can be **precompiled** with the `format_args!` macro.<br>
 
 > **Note**:<br>
 > Using `write!` might be **preferable**.<br>
@@ -263,4 +264,28 @@ let mut output = String::new();
 write!(&mut output, "Hello {}!", "world")
     .expect("Error occurred while trying to write in String");
 assert_eq!(output, "Hello world!");
+```
+
+<br>
+
+### std::fmt::format
+The `std::fmt::format` function takes an `Arguments` struct and **returns the resulting formatted string**.<br>
+The `Arguments` struct that can be **precompiled** with the `format_args!` macro.<br>
+
+> **Note**:<br>
+> Using `format!` might be **preferable**.<br>
+
+<br>
+
+#### Examples
+```rust
+use std::fmt;
+
+let s = fmt::format(format_args!("Hello, {}!", "world"));
+assert_eq!(s, "Hello, world!");
+```
+
+```rust
+let s = format!("Hello, {}!", "world");
+assert_eq!(s, "Hello, world!");
 ```
