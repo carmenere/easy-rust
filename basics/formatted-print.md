@@ -331,7 +331,6 @@ Flush this output stream, ensuring that all intermediately buffered contents rea
 <br>
 
 ### Methods
-
 - `fn write(&mut self, buf: &[u8]) -> Result<usize>`<br>
 Write a buffer `buf` into this writer, returning how many bytes were written.
 
@@ -350,6 +349,10 @@ Flush this output stream, ensuring that all intermediately buffered contents rea
 
 ## `impl Write for String`
 `std::fmt::Write` is implemented for `String`.
+
+<br>
+
+### Methods
 
 - `fn write_str(&mut self, s: &str) -> Result<(), Error>`<br>
 Writes a **string slice** `s` **into** this writer, returning whether the write succeeded. 
