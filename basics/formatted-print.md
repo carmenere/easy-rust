@@ -140,6 +140,40 @@ There are a number of **related macros** in the `std` **module**.<br>
 
 <br>
 
+## Example
+```rust
+use std::{io::{Write as _}, fmt::Write as _};
+
+fn main() {
+    let mut v: Vec<u8> = Vec::new();
+    write!(&mut v, "Hello {}!", "world");      // expand to (&mut buf[..]).write_fmt(format_args!("Hello {0}!", "world"));
+    println!("v = {:?}", v);                   // Vec<u8> doesn't implement std::fmt::Display
+
+    let mut buf:[u8; 16] = [0; 16];
+    write!(&mut buf[..], "Hello {}!", "world"); // expand to (&mut buf[..]).write_fmt(format_args!("Hello {0}!", "world"));
+    println!("buf= {:?}", buf);                 // [u8; 16] doesn't implement std::fmt::Display
+
+    let mut s: String = String::with_capacity(16);
+    write!(&mut s, "Hello {}!", "string");
+    println!("String = {}", s);
+
+    std::fmt::write(&mut s, format_args!("{}", std::str::from_utf8(&buf[..12]).unwrap()));
+    println!("String = {}", s);
+}
+```
+
+<br>
+
+**Output**:
+```bash
+v = [72, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 33]
+buf= [72, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100, 33, 0, 0, 0, 0]
+String = Hello string!
+String = Hello string!Hello world!
+```
+
+<br>
+
 ## `format!`
 `format!` takes **string literal** and zero or more arguemnts and writes **formatted text** to `String`:
 ```rust
@@ -334,8 +368,12 @@ Flush this output stream, ensuring that all intermediately buffered contents rea
 - `fn write(&mut self, buf: &[u8]) -> Result<usize>`<br>
 Write a buffer `buf` into this writer, returning how many bytes were written.
 
+<br>
+
 - `fn write_all(&mut self, buf: &[u8]) -> Result<()>`<br>
 Attempts to write an entire buffer `buf` into this writer.
+
+<br>
 
 - `fn write_fmt(&mut self, fmt: Arguments<'_>) -> Result<()>`<br>
 Writes a **formatted string** `fmt` into this writer, returning any error encountered.
