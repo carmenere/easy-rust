@@ -23,7 +23,7 @@ There are 2 types of attributes:
 
 <br>
 
-To attach attribute **to whole crate** include **inner atribute** to the **root module**: ``main.rs`` or ``lib.rs``.
+To attach attribute **to whole crate** include **inner atribute** to the **root module**: `main.rs` or `lib.rs`.
 
 <br>
 
@@ -37,7 +37,7 @@ mod Bar {
 }
 ```
 
-Here, the ``#![bar]`` attribute applies **to all items** inside module ``Bar``.
+Here, the `#![bar]` attribute applies **to all items** inside module `Bar`.
 
 <br>
 
@@ -49,7 +49,7 @@ Here, the ``#![bar]`` attribute applies **to all items** inside module ``Bar``.
 #[foo]
 struct Foo;
 ```
-Here, the ``#[foo]`` attribute applies **only to the next item** ``Foo``.
+Here, the `#[foo]` attribute applies **only to the next item** `Foo`.
 
 <br>
 
@@ -94,41 +94,41 @@ type int8_t = i8;
 # Built-in attributes
 **Built-in attributes** per categories:
 - Conditional compilation
-    - ``cfg``
+    - `cfg`
 - Testing
-    - ``test``
+    - `test`
 - Derive
-    - ``derive``
+    - `derive`
 - Macros
-    - ``proc_macro``
+    - `proc_macro`
 - Lint
-    - ``allow``
-    - ``warn``
-    - ``deny``
-    - ``forbid``
-    - ``deprecated``
-    - ``must_use``
+    - `allow`
+    - `warn`
+    - `deny`
+    - `forbid`
+    - `deprecated`
+    - `must_use`
 - Code generation
-    - ``inline``
+    - `inline`
 - Documentation
-    - ``doc``
+    - `doc`
 - Preludes
-    - ``no_std``
+    - `no_std`
 - Modules
-    - ``path``
+    - `path`
 - Limits
-    - ``recursion_limit``
-    - ``type_length_limit``
+    - `recursion_limit`
+    - `type_length_limit`
 - Runtime
-    - ``panic_handler``
-    - ``global_allocator``
+    - `panic_handler`
+    - `global_allocator`
 - ABI, linking, symbols, and FFI
 
 <br>
 
 ## Examples
-### ``derive``
-The ``derive`` attribute allows *certain* **traits** to be **automatically implemented** for data structures.
+### `derive`
+The `derive` attribute allows *certain* **traits** to be **automatically implemented** for data structures.
 ```Rust
 #[derive(PartialEq, Clone)]
 struct Foo<T> {
@@ -139,11 +139,11 @@ struct Foo<T> {
 
 <br>
 
-### ``path``
-The ``path`` attribute specifies the filename for a module.
+### `path`
+The `path` attribute specifies the filename for a module.
 ```Rust
 #[path = "foo.rs"]
 mod c;
 ```
 
-It means file ``foo.rs`` will be included into module tree as ``c`` module.
+It means file `foo.rs` will be included into module tree as `c` module.

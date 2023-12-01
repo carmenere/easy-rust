@@ -1,6 +1,6 @@
 # Features
 **Features** provide a **mechanism** for **conditional compilation**.<br>
-**Features** are defined in the ``[features]`` section of ``Cargo.toml`` file.<br>
+**Features** are defined in the `[features]` section of `Cargo.toml` file.<br>
 **Each feature** can either be **enabled** or **disabled**.
 
 
@@ -19,7 +19,7 @@ ico = ["bmp", "png"]
 foo = []
 ```
 
-Then feature ``foo`` can be used to conditionally include **any item** in code, for instance, module ``bar``:
+Then feature `foo` can be used to conditionally include **any item** in code, for instance, module `bar`:
 ```Rust
 #[cfg(feature = "foo")]
 pub mod bar;
@@ -30,21 +30,21 @@ pub mod bar;
 ## Ways to manage features
 - *Features* of **package being built** are managed by **command-line flags**.
 - *Features* of **dependencies** are managed in the **dependency declaration**;
-- *Features* of **dependencies** are also managed in the ``[features]`` table,  the syntax is ``feature_name = ["package-name/feature-name"]``.
+- *Features* of **dependencies** are also managed in the `[features]` table,  the syntax is `feature_name = ["package-name/feature-name"]`.
 
 ### Command-line flags to mange features
 |CLI flag|Description|
 |:---|:----------|
-|``--features FEATURES``|Here ``FEATURES`` is a **space** or **comma** separated **list of features** to activate.<br>Example:`` --features "foo bar"``|
-|``--no-default-features``|**Disables default feature**|
-|``--all-features``|Activates all available features of all packages|
+|`--features FEATURES`|Here `FEATURES` is a **space** or **comma** separated **list of features** to activate.<br>Example:` --features "foo bar"`|
+|`--no-default-features`|**Disables default feature**|
+|`--all-features`|Activates all available features of all packages|
 
 ### Dependency declaration attributes to mange features
 |Attribute|Description|
 |:--------|:----------|
-|``features=["foo", "bar"]``|Comma separated **list of features** to activate.|
-|``default-features=true/false``|**Enables** or **disables** **default feature** of dependency.|
-|``optional=true``|``optional=true`` makes dependency **optional**. It means that such dependency **will not be compiled by default**.|
+|`features=["foo", "bar"]`|Comma separated **list of features** to activate.|
+|`default-features=true/false`|**Enables** or **disables** **default feature** of dependency.|
+|`optional=true`|`optional=true` makes dependency **optional**. It means that such dependency **will not be compiled by default**.|
 
 #### Example
 ```toml
@@ -54,10 +54,10 @@ foo2 = { version = "0.2", features=["baz2"], default-features = false }
 foo3 = { version = "0.3", optional = true }
 ```
 
-### ``package-name/feature-name`` in the ``[features]`` table
+### `package-name/feature-name` in the `[features]` table
 
-*Features* of **dependencies** can also be enabled in the ``[features]`` table.<br>
-The syntax is ``feature_name = ["package-name/feature-name"]``.
+*Features* of **dependencies** can also be enabled in the `[features]` table.<br>
+The syntax is `feature_name = ["package-name/feature-name"]`.
 
 #### Example
 ```toml
@@ -85,8 +85,8 @@ webp = []
 ```
 
 #### Ways to disable **default feature** 
-- The ``--no-default-features`` *command-line flag* **disables** the **default feature** of **the package**.
-- The ``default-features = false`` *attribute* of a dependency declaration **disables** the **default feature** of **the dependency**.
+- The `--no-default-features` *command-line flag* **disables** the **default feature** of **the package**.
+- The `default-features = false` *attribute* of a dependency declaration **disables** the **default feature** of **the dependency**.
 
 <br>
 
@@ -97,18 +97,18 @@ webp = []
 foo = { version = "0.11.1", optional = true }
 ```
 
-By default, above **optional dependency** ``foo`` **implicitly defines a feature** ``foo`` that looks like this:
+By default, above **optional dependency** `foo` **implicitly defines a feature** `foo` that looks like this:
 ```toml
 [features]
 foo = ["dep:foo"]
 ```
 
-This means that **dependency** ``foo`` will only be included if the ``foo`` **feature** is **enabled**.<br>
-The same ``cfg(feature = "foo")`` syntax can be used in the code, and the dependency can be enabled by ``--features foo``.
+This means that **dependency** `foo` will only be included if the `foo` **feature** is **enabled**.<br>
+The same `cfg(feature = "foo")` syntax can be used in the code, and the dependency can be enabled by `--features foo`.
 
 In some cases, you may not want to expose a feature that has the same name as the optional dependency.<br>
 For example, perhaps the optional dependency is an internal detail, or you want to group multiple optional dependencies together, or you just want to use a better name.<br>
-If you specify the **optional dependency** with the ``dep:`` prefix **anywhere in the** ``[features]`` **table**, this **disables** the **implicit feature**.<br>
+If you specify the **optional dependency** with the `dep:` prefix **anywhere in the** `[features]` **table**, this **disables** the **implicit feature**.<br>
 
 **Note**: The ``dep:`` syntax is only available starting with `Rust 1.60`.<br>
 

@@ -9,7 +9,7 @@ The Rust compiler has **builtin linter** that **runs lints** at compile time.<br
 <br>
 
 ## Lint levels
-In ``rustc``, all lints are divided into **5 levels**:
+In `rustc`, all lints are divided into **5 levels**:
 - **allow**
 - **warn**
 - **force-warn**
@@ -17,7 +17,7 @@ In ``rustc``, all lints are divided into **5 levels**:
 - **forbid**
 
 **Each lint** has a **default level**. The **level** of any lint **can be changed**.<br>
-The command ``rustc -W help`` will print **all lints** and its **default levels** and **all lint groups**.<br>
+The command `rustc -W help` will print **all lints** and its **default levels** and **all lint groups**.<br>
 
 When **linter** finds **lint violation** it produces a **message of particular type** depending on **lint level**.<br>
 
@@ -55,8 +55,8 @@ The level of any lint or whole lint group can be changed:
 <br>
 
 > **Note**:<br>
-> If ``cargo`` is used, then **env** ``RUSTFLAGS`` must be used to pass **lint flags**.<br>
-> Example: ``RUSTFLAGS="-D unused" cargo run``.
+> If `cargo` is used, then **env** `RUSTFLAGS` must be used to pass **lint flags**.<br>
+> Example: `RUSTFLAGS="-D unused" cargo run`.
 
 <br>
 
@@ -116,11 +116,11 @@ Priorities:<br>
 ### Via lint flags
 |Flag|Lint level|
 |:---|:---------|
-|``-A <lint> \| <lint-group>``|Sets lint ``<lint>`` or lint-group ``<lint-group>`` into **allow** level.|
-|``-W <lint> \| <lint-group>``|Sets lint ``<lint>`` or lint-group ``<lint-group>`` into **warn** level.|
-|``--force-warn <lint> \| <lint-group>``|Sets lint ``<lint>`` or lint-group ``<lint-group>`` into **force-warn** level.|
-|``-D <lint> \| <lint-group>``|Sets lint ``<lint>`` or lint-group ``<lint-group>`` into **deny** level.|
-|``-F <lint> \| <lint-group>``|Sets lint ``<lint>`` or lint-group ``<lint-group>`` into **forbid** level.|
+|`-A <lint> \| <lint-group>`|Sets lint `<lint>` or lint-group `<lint-group>` into **allow** level.|
+|`-W <lint> \| <lint-group>`|Sets lint `<lint>` or lint-group `<lint-group>` into **warn** level.|
+|`--force-warn <lint> \| <lint-group>`|Sets lint `<lint>` or lint-group `<lint-group>` into **force-warn** level.|
+|`-D <lint> \| <lint-group>`|Sets lint `<lint>` or lint-group `<lint-group>` into **deny** level.|
+|`-F <lint> \| <lint-group>`|Sets lint `<lint>` or lint-group `<lint-group>` into **forbid** level.|
 
 <br>
 
@@ -129,19 +129,19 @@ Notes:
 - the **order** of **lint flags** is **taken into account**: **last wins**.
 
 #### Example
-The following commands **allows** the ``unused-variables`` lint, because it is the last:
-- ``rustc lib.rs --crate-type=lib -D unused -A unused-variables``
-- ``rustc lib.rs --crate-type=lib -D unused-variables -A unused-variables``, here `-A` wins.
+The following commands **allows** the `unused-variables` lint, because it is the last:
+- `rustc lib.rs --crate-type=lib -D unused -A unused-variables`
+- `rustc lib.rs --crate-type=lib -D unused-variables -A unused-variables`, here `-A` wins.
 
 <br>
 
 ### Via attribute in the source code
 |Attribute|Lint level|
 |:--------|:---------|
-|``#![allow(<lint>)]``|Sets lint ``<lint>`` into **allowed** level.|
-|``#![warn(<lint>)]``|Sets lint ``<lint>`` into **warn** level.|
-|``#![deny(<lint>)]``|Sets lint ``<lint>`` into **deny** level.|
-|``#![forbid(<lint>)]``|Sets lint ``<lint>`` into **forbid** level.|
+|`#![allow(<lint>)]`|Sets lint `<lint>` into **allowed** level.|
+|`#![warn(<lint>)]`|Sets lint `<lint>` into **warn** level.|
+|`#![deny(<lint>)]`|Sets lint `<lint>` into **deny** level.|
+|`#![forbid(<lint>)]`|Sets lint `<lint>` into **forbid** level.|
 
 <br>
 
@@ -151,13 +151,13 @@ The following commands **allows** the ``unused-variables`` lint, because it is t
 <br>
 
 ## Capping lints
-``rustc`` supports a flag ``--cap-lints LEVEL`` that sets the **lint cap level**.
+`rustc` supports a flag `--cap-lints LEVEL` that sets the **lint cap level**.
 
 The **lint cap level** *sets* **global level** for all lints.
 
 Examples:
-1.	Set all lints to **warn** level: ``rustc lib.rs --cap-lints warn``;
-2.	Set all lints to **allow** level: ``rustc lib.rs --cap-lints allow``.
+1.	Set all lints to **warn** level: `rustc lib.rs --cap-lints warn`;
+2.	Set all lints to **allow** level: `rustc lib.rs --cap-lints allow`.
 
 <br>
 
@@ -167,10 +167,10 @@ Examples:
 
 # Some useful warnings
 Some usefull warnings:
-- ``unused_variables``
-- ``unused_assignments``
-- ``unused_macros``
-- ``non_snake_case``
-- ``dead_code``
-- ``unused_mut``
-- ``non_camel_case_types``
+- `unused_variables`
+- `unused_assignments`
+- `unused_macros`
+- `non_snake_case`
+- `dead_code`
+- `unused_mut`
+- `non_camel_case_types`
