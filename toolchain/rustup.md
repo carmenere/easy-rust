@@ -45,10 +45,11 @@ The profiles available now:
 # `rustup` subcommands
 |Subcommand|Explanation|
 |:---------|:----------|
-|rustup **show**|Print **default** *target triple* and other information.|
-|rustup **toolchain list**|Lists all installed toolchains.|
+|rustup **show**|Prints **default** *target triple* and other information.|
+|rustup **toolchain list**|Lists all **installed** toolchains.|
 |rustup **toolchain install** `toolchain`|Installs last toolchain for release channel `toolchain` for current date.|
 |rustup **default** `toolchain`|Sets the **default toolchain** to `toolchain`.|
+|rustup **target list**|Lists **installed** and **all available** targets.|
 |rustup **target add** `toolchain`|Enables **cross compilation** for `toolchain` for **current toolchain**.|
 |rustup **update**|Updates **toolchains** that begin with `stable`-`*`.|
 |rustup **component list**|Lists all **available** and **installed** components.|
