@@ -1,4 +1,4 @@
-# Lifetime
+# Lifetimes
 A **lifetime** is the **scope** within which a **reference** is **valid**.<br>
 
 The notation `'a` is **lifetime** `a`.<br>
@@ -60,8 +60,9 @@ For more information about this error, try `rustc --explain E0597`.
 
 <br>
 
-We get error because compiler assigns the **lifetime** of the `result` variable to the **smallest** lifetime of passed arguments' lifetimes.<br>
-In general `s1` and `s2` both can have **different** lifetimes. So compiler assigns the **lifetime** of the **returned value** to the **smallest lifetime** of passed parameters.<br>
+We get error because compiler assigns the **lifetime** of the `result` variable to the **smallest lifetime** of passed arguments.<br>
+In general `s1` and `s2` both can have **different** lifetimes and compiler choose the smallest one.<br>
+Then compiler assigns the **lifetime** of the **returned value** to the **smallest lifetime** of passed parameters.<br>
 It means that the **lifetime** of varibale `result` can last until the end of scope where argument with **smallest lifetime** goes **out of scope**.
 
 <br>
@@ -89,7 +90,8 @@ Declaration `fn foo<'a>(a: &'a i32, b: &'a i32) -> Foo<'a> { ... }` means that *
 
 <br>
 
-## Lifetimes in Structs
+## Examples
+### Lifetimes in Structs
 ```Rust
 struct Foo<'a> {
     x: &'a i64,
@@ -104,7 +106,7 @@ fn main() {
 
 <br>
 
-## Lifetimes in impl blocks
+### Lifetimes in impl blocks
 ```Rust
 struct Foo<'a> {
     x: &'a i32,
@@ -123,7 +125,7 @@ fn main() {
 
 <br>
 
-## 'static
+### 'static
 The lifetime named `'static` is a special lifetime. It signals that something has the **lifetime of the entire program**.<br>
 **String literal** has the type `&str`, but under the hood, `&str` is `&'static str` because the **reference** is **always alive**: it's **hardcoded into the data segment of the final binary**.
 
@@ -177,3 +179,69 @@ Notations of **lifetime subtyping**:<br>
 <br>
 
 Notation `'left: 'right` means `'left` **outlives** `'right`, and `'left` is a **subtype** of `'right`, i.e., `'right` <= `'left`.
+
+<br>
+
+## Example
+```rust
+#[derive(Debug)]
+struct Movie<'a> {
+    title: &'a str,
+    rating: u8,
+}
+
+#[derive(Debug)]
+struct Reviewer<'a, 'b: 'a> {
+    movie: &'a Movie<'b>,
+    name: &'a str,
+}
+
+impl<'a, 'b> Reviewer<'a, 'b> {
+    fn new(name: &'a str, movie: &'b Movie) -> Self {
+        Reviewer { movie: movie, name: name }
+    }
+}
+
+fn main() {
+    let movie = Movie {
+        title: "Foo",
+        rating: 10,
+    };
+
+    println!("{:?}", Reviewer::new("Bar", &movie));
+}
+```
+
+Here `'b` specifies that lifetimes of the `Movie` struct **must live as long** or **longer** than the `Reviewer` struct.
+
+<br>
+
+## Lifetimes in trait bounds
+Consider following example:
+```rust
+use std::fmt::Display;
+
+#[derive(Debug)]
+struct Movie<'a, T> {
+    title: &'a str,
+    rating: T,
+}
+
+impl<'a, T: 'a + Display + PartialOrd> Movie<'a, T> {
+    fn new(title: &'a str, rating: T) -> Self {
+        Movie {
+            title,
+            rating,
+        }
+    }
+}
+
+fn main() {
+    let movie = Movie::new("Foo", 100);
+    println!("{:#?}", movie);
+}
+```
+
+<br>
+
+This means that type `T` must live long enogh.
