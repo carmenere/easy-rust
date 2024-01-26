@@ -1,17 +1,17 @@
-# Macros try! and ? operator
-The ``?`` operator is equivalent to ``try!``.<br>
+# Macros `try!` and `?` operator
+The `?` operator is equivalent to `try!`.<br>
 
-``try!`` is **deprecated**.<br>
+`try!` is **deprecated**.<br>
 
-Syntax for ``try!``: ``let a = try!(expr);``.<br>
+Syntax for `try!`: `let a = try!(expr);`.<br>
 
-Syntax for ``?``: ``let a = expr?;``.
+Syntax for `?`: `let a = expr?;`.
 
-Both ``try!`` and ``?`` **unwrap** ``Result`` OR perform **prematurely** /premətʃʊəʳli/ **return** from function.<br>
+Both `try!` and `?` **unwrap** `Result` OR perform **prematurely** /premətʃʊəʳli/ **return** from function.<br>
 
-To use ``?``, **calling** and **called** functions must use ``Result`` as return type.
+To use `?`, **calling** and **called** functions must use `Result` as return type.
 
-Definition of ``try!`` in **std**:
+Definition of `try!` in **std**:
 ```Rust
 macro_rules! try {
     ($e:expr) => (match $e {
