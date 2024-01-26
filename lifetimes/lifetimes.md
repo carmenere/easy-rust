@@ -212,7 +212,7 @@ fn main() {
 }
 ```
 
-Here `'b` specifies that lifetimes of the `Movie` struct possess **must live as long** or **longer** than the `Reviewer` struct.
+Here `'b` specifies that lifetimes of the `Movie` struct **must live as long** or **longer** than the `Reviewer` struct.
 
 <br>
 
@@ -227,7 +227,7 @@ struct Movie<'a, T> {
     rating: T,
 }
 
-impl<'a, T: Display + PartialOrd> Movie<'a, T> {
+impl<'a, T: 'a + Display + PartialOrd> Movie<'a, T> {
     fn new(title: &'a str, rating: T) -> Self {
         Movie {
             title,
