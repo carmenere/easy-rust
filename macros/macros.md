@@ -12,9 +12,12 @@ Rust supports following types of macros:
 <br>
 
 Each **declarative macros** have a **name**, and *one* or *more* **rules**.<br>
-Each **rule** has **two parts**:
-- a **matcher** describes the syntax that it matches;
-- a **transcriber** describes the syntax that will **replace** a successfully matched invocation;
+Each **rule** has **two parts**: a **matcher** and **transcriber**.<br>
+
+<br>
+
+- A **matcher** describes the syntax that it matches.
+- A **transcriber** describes the syntax that will **replace** a successfully matched invocation.
 
 <br>
 
