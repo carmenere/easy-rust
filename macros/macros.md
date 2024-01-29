@@ -5,6 +5,8 @@ Rust supports following types of macros:
 
 <br>
 
+
+
 ## Import macros as any other item
 ### File: `m.rs`
 ```Rust
@@ -36,20 +38,39 @@ fn main() {
 <br>
 
 ## Declarative macros
-**Declarative macros** are declared using `macro_rules!`.<br>
-**Declarative macros** are a bit less powerful but provide an easy to use interface for creating macros to remove duplicate code.<br>
-**Declarative macros** also support taking a **nonfixed** number of arguments.<br>
+**Declarative macros** are those defined using the `macro_rules!` syntax.<br>
+**Declarative macros** are used to eliminate boilerplate code.
 
-The operators are very similar to the regular expression.<br>
-`*` is used for *zero* or *more* **token types**.<br>
-`+` is used for *zero* or *one* **argument**.<br>
-Syntax `$<parameter_name>:<token_type>` is used to capture parameters is used.<br>
-Syntax `$($<parameter_name>:<token_type> ),*` is used to capture nonfixed number of arguments.<br>
-Syntax `$(<statement>;)*` is used to repeat code for every captured parameter inside `{ ... }`.
+<br>
+
+Each **declarative macros** have a **name**, and *one* or *more* **rules**.<br>
+Each **rule** has **two parts**:
+- a **matcher** describes the syntax that it matches;
+- a **transcriber** describes the syntax that will **replace** a successfully matched invocation;
+
+<br>
+
+```rust
+macro_rules! <NAME> {
+    ( <MATCHER_1> ) => { <TRANSCRIBER_1> };
+    ...
+    ( <MATCHER_N> ) => { <TRANSCRIBER_N> };
+}
+```
+
+<br>
+
+Every **matcher** has following format: `$name` `:` `token type`.<br>
+
+When a **declarative macro** is invoked by its name, then *macro engine* tries **each matcher** and **transcribes the first successful match**.<br>
+In other words, once compiler has matched a declarative macro matcher it **generates code** using associated with this matcher **transcriber**.<br>
+The variables defined inside matcher are called **metavariables** and compiler substitute any occurence of each **metavariable** in the transcriber with the appropriate captured input value.<br>
 
 <br>
 
 ### Token types
+*Token type* also known as *fragment type* or *fragment specifier*.<br>
+
 |**Token type**|**Description**|
 |:-------------|:--------------|
 |`item`|Any **item** in Rust, e.g., *function*, *struct*, *module*, etc.|
@@ -63,6 +84,117 @@ Syntax `$(<statement>;)*` is used to repeat code for every captured parameter in
 |`meta`|A meta item, i.e., the **things** that go **inside** `#[...]` and `#![...]` **attributes**.|
 |`tt`|A **single token tree**.|
 |`vis`|Possibly an empty **Visibility qualifier**.|
+
+<br>
+
+### Nested declarative macros
+It is possible to use **nested** *declarative macros* but with **restriction**: **nested** *declarative macros* **can't** use **literal tokens** in the **matcher**, only `ident`, `lifetime`, and `tt` **token types** can be used.<br>
+
+<br>
+
+### Repetitions
+In both the **matcher** and **transcriber**, **repetitions** are indicated by placing the tokens to be repeated inside `$( )`, followed by a **repetition operator**, optionally with a **separator token** between.<br>
+
+The **repetition operators** are:
+- `*` indicates **0 or more** repetitions;
+- `+` indicates **1 or more** or **at least one**;
+- `?` indicates an **optional fragment** with **0** or **1** occurrence; since `?` represents **at most one occurrence**, it **cannot** be used with a **separator**;
+
+<br>
+
+Examples:
+- `$( $i:ident),*` represents **any number** of identifiers separated by commas, here comma `,` is **out of** parentheses, because it **isn't** a **part** of *captured value*;
+- `$($field_name:ident : $field_type:ty,)*` represents **any number** of fields separated by commas, here comma `,` is **inside** parentheses, because it **is** a **part** of *captured value*;
+
+If there is **repetition** in *matcher* then it can be used in *transcriber* and **it will be repeated once for each match in the input**.<br>
+A **metavariable** must appear in **exactly** the **same number** of repetitions in the **transcriber** as it did in the **matcher**.<br>
+
+<br>
+
+### Textual scope
+**Declarative macros** use **two** forms of scopes: **textual scope** and **path-based scope**.<br>
+**Textual scope** means that **declarative macros** exist in the source code only **after** they are declared.<br>
+When *declarative macro* is invoked by an **unqualified identifier** it is **first** looked up in **textual scoping** and **then** in **path-based scoping**.<br>
+When *declarative macro* is invoked by a **qualified identifier** it will **skip** the textual scoping lookup and instead **only** do a look up in the **path-based scoping**.<br>
+
+<br>
+
+```rust
+mod a {
+    // X!(); // UNdefined
+}
+
+mod b {
+    // X!(); // UNdefined
+    macro_rules! X { () => {}; }
+    X!();    // Defined
+}
+
+mod c {
+    // X!(); // UNdefined
+}
+```
+
+<br>
+
+If it has the `#[macro_export]` attribute, then it is declared in the crate root scope and can be referred to similar to how you refer to any other item.<br>
+
+<br>
+
+### Hygiene
+**Hygiene** works by attaching an invisible syntax context value to all identifiers.<br>
+When two identifiers are compared, both the identifiers' textual names and syntax contexts must be identical for the two to be considered equal.<br>
+
+Tokens that were passed to macros **retain** their **original syntax context**.<br>
+
+Consider macros:
+```rust
+macro_rules! using_a {
+    ($e:expr) => {
+        {
+            let a = 42;
+            $e
+        }
+    }
+}
+
+let four = using_a!(a / 10);
+```
+
+<br>
+
+It expands to:<br>
+```rust
+let four = {
+    let a = 42;
+    a / 10
+};
+```
+
+Here `let a = 42;` and `a / 10` are 2 **different** identifiers `a`.<br>
+
+The solution is to modify the macro as follows:
+```rust
+macro_rules! using_a {
+    ($a:ident, $e:expr) => {
+        {
+            let $a = 42;
+            $e
+        }
+    }
+}
+
+let four = using_a!(a, a / 10);
+```
+
+Because tokens **retain** their **original syntax context**, here `$a` will be expanded to `a` and `$e` will be expanded to `a / 10` and in both variants `a` is **the same** identifier.
+
+<br>
+
+### `$crate`
+For the macro to be truly reusable you cann't assume anything about what items are in scope at the caller. Maybe the caller has its own type `Option`.<br>
+To write safe macros use fulli qualified paths for items, e.g., `::core::option::Option`.<br>
+If you want to refer to something in the crate that defines the macro, use special **metavariable** `$crate`.<br>
 
 <br>
 
