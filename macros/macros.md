@@ -5,38 +5,6 @@ Rust supports following types of macros:
 
 <br>
 
-
-
-## Import macros as any other item
-### File: `m.rs`
-```Rust
-macro_rules! empty_macros {
-    () => {println!("Empty macros")}
-}
-
-pub(crate) use empty_macros;
-```
-
-<br>
-
-### File: `main.rs`
-```Rust
-#![allow(dead_code)]
-#![allow(unused_variables)]
-#![allow(unused_mut)]
-#![allow(non_camel_case_types)]
-
-mod m;
-
-use m::{empty_macros};
-
-fn main() {
-    empty_macros!();
-}
-```
-
-<br>
-
 ## Declarative macros
 **Declarative macros** are those defined using the `macro_rules!` syntax.<br>
 **Declarative macros** are used to eliminate boilerplate code.
@@ -111,11 +79,14 @@ A **metavariable** must appear in **exactly** the **same number** of repetitions
 
 <br>
 
-### Textual scope
-**Declarative macros** use **two** forms of scopes: **textual scope** and **path-based scope**.<br>
-**Textual scope** means that **declarative macros** exist in the source code only **after** they are declared.<br>
-When *declarative macro* is invoked by an **unqualified identifier** it is **first** looked up in **textual scoping** and **then** in **path-based scoping**.<br>
-When *declarative macro* is invoked by a **qualified identifier** it will **skip** the textual scoping lookup and instead **only** do a look up in the **path-based scoping**.<br>
+### Scope
+**Declarative macros** use **two** forms of scopes: **textual scope** and **path-based scope**.
+
+<br>
+
+#### Textual scope
+**Textual scope** means that **declarative macros** exist in the source code only **after** they are defined.<br>
+When *declarative macro* is invoked by an **unqualified identifier** the compiler **first** looks up in **textual scoping** and **then** in **path-based scoping**.<br>
 
 <br>
 
@@ -137,13 +108,45 @@ mod c {
 
 <br>
 
-If it has the `#[macro_export]` attribute, then it is declared in the crate root scope and can be referred to similar to how you refer to any other item.<br>
+#### Path-based scope
+When *declarative macro* is invoked by a **qualified identifier** the compiler **skips** look up **textual scoping** look up and **only** do a look up in the **path-based scoping**.<br>
+The `#[macro_export]` attribute is used to , then it is declared in the crate root scope and can be referred to similar to how you refer to any other item.<br>
+
+<br>
+
+#### Import macros as any other item
+##### File: `m.rs`
+```Rust
+macro_rules! empty_macros {
+    () => {println!("Empty macros")}
+}
+
+pub(crate) use empty_macros;
+```
+
+<br>
+
+##### File: `main.rs`
+```Rust
+#![allow(dead_code)]
+#![allow(unused_variables)]
+#![allow(unused_mut)]
+#![allow(non_camel_case_types)]
+
+mod m;
+
+use m::{empty_macros};
+
+fn main() {
+    empty_macros!();
+}
+```
 
 <br>
 
 ### Hygiene
-**Hygiene** works by attaching an invisible syntax context value to all identifiers.<br>
-When two identifiers are compared, both the identifiers' textual names and syntax contexts must be identical for the two to be considered equal.<br>
+**Hygiene** works by attaching an invisible **syntax context** value to all identifiers.<br>
+When two identifiers are compared, both the identifiers' textual names and **syntax context**s must be identical for the two to be considered equal.<br>
 
 Tokens that were passed to macros **retain** their **original syntax context**.<br>
 
@@ -192,8 +195,8 @@ Because tokens **retain** their **original syntax context**, here `$a` will be e
 <br>
 
 ### `$crate`
-For the macro to be truly reusable you cann't assume anything about what items are in scope at the caller. Maybe the caller has its own type `Option`.<br>
-To write safe macros use fulli qualified paths for items, e.g., `::core::option::Option`.<br>
+For the macro to be truly **reusable** you cann't assume anything about what items are in scope of the caller. Maybe the caller has its own type `Option`.<br>
+To write safe macros use **fully qualified** paths for items, e.g., `::core::option::Option`.<br>
 If you want to refer to something in the crate that defines the macro, use special **metavariable** `$crate`.<br>
 
 <br>
