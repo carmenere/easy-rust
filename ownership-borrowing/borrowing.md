@@ -20,9 +20,16 @@ There are **2 kinds of references** in Rust:
 
 <br>
 
-**Borrowing** is the action of **creating a reference**.<br>
+- **Owned type** means **non-reference type**, e.g. `i32`, `String`, `Vec`, etc.
+- **Borrowed type** means **any reference type** *regardless of mutability*, e.g. `&i32`, `&mut i32`, etc.
+
+<br>
+
+**Borrowing** is the action of **creating a reference** to some value, called **lender**.<br>
 **Borrower** is an **identifier** (**variable**) which **owns** some **reference**.<br>
 Both, **immutable** and **mutable** **borrowers** can contain **mutable** or **immutable** **references**.<br>
+
+<br>
 
 So, there are **2 kinds of borrowers** in Rust:
 1. **Immutable borrower** ``b``:
@@ -30,7 +37,7 @@ So, there are **2 kinds of borrowers** in Rust:
 let b: &T;
 let b: &mut T;
 ```
-2. **Mutable borrower** ``b``:
+1. **Mutable borrower** ``b``:
 ```Rust
 let mut b: &T;
 let mut b: &mut T;
