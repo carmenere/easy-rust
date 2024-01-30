@@ -216,7 +216,22 @@ Because the standard library has this **blanket implementations**, we can call t
 
 <br>
 
-# Calling methods with the same names
+## `T`, `&T` and `&mut T`
+Types `&T` and `&mut T` are **disjoint sets**. Type `T` is a **superset** of both `&T` and `&mut T`.<br>
+So, the compiler **doesn't allow** us to define an implementation of `MyTrait` for `&T` and `&mut T` since it would conflict with the implementation of `MyTrait` for `T` which **already includes** all of `&T` and `&mut T`:
+```rust
+trait MyTrait {}
+
+impl<T> MyTrait for T {}
+
+impl<T> MyTrait for &T {} // ❌
+
+impl<T> MyTrait for &mut T {} // ❌
+```
+
+<br>
+
+# Trait casting
 Rust allows to implement **multiple traits** with the **same** methods **names** on **one type**.<br>
 To resolve such methods with the same names there is **fully qualified syntax**: `<SomeType as SomeTrait>::some_method(arg1, arg2, ... )`.<br>
 These means we want to call `some_method` of trait `SomeTrait` as implemented for `SomeType`.<br>
