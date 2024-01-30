@@ -20,6 +20,7 @@ There are **2 kinds of references** in Rust:
 
 <br>
 
+There are **2 kinds of types** in Rust:
 - **Owned type** means **non-reference type**, e.g. `i32`, `String`, `Vec`, etc.
 - **Borrowed type** means **any reference type** *regardless of mutability*, e.g. `&i32`, `&mut i32`, etc.
 
