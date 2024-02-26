@@ -1,22 +1,84 @@
-# Registry index
-The `cargo` tool needs some efficient method of querying<br>
-- what **packages** are available on a registry;
-- what **versions** are available;
-- what the **dependencies** for each version is;
+# Registry and index
+The **default registry** is `crates.io`.<br>
+
+`cargo` fetches **packages** from a **registry**.<br>
+
+Cargo supports two protocols for remote registry: `git` and `sparse`:
+- `cargo` uses the `git` protocol by default;
+- `cargo` uses the `sparse` protocol if the registry **index URL** **explicitly** starts with `sparse+`;
 
 <br>
 
-The purpose of the **index** was to provide an efficient method to resolve the **dependency graph** for a package.<br>
-After resolution has been performed, however we need to download the contents of packages so we can read the full manifest and build the source code.<br>
+A **registry** consists of **3 components**:
+- (*required*) **index**;
+- (*required*) **download endpoint** at the location defined in `config.json` which is used used by `cargo` to donwload `.crate` files created by `cargo package`:
+  - `GET $dl/$crate_name/$version/download` must return `.crate` file for appropriate crate;
+  - the **sha256sum** of the `.crate` file needs to match the the checksum in the index file for that version of the crate.
+- (*optional*) **web API** at the location defined in `config.json` to support actions listed below:
+  - **publish**:
+    - `PUT $api/api/v1/crates/new`
+  - **yank**:
+    - `DELETE $api/api/v1/crates/$crate_name/$version/yank`
+  - **unyank**:
+    - `PUT $api/api/v1/crates/$crate_name/$version/unyank`
+  - **search**:
+    - `GET $api/api/v1/crates`
+  - **login** (solely for the `cargo login`);
 
 <br>
 
-- each **file** in the **index** refers to particular crate and describes its history over time;
-- each **entry** (line) in the file corresponds to one version of a crate and stored in JSON format (`cargo::sources::registry::RegistryPackage`).
+# Index
+The **default index** is `https://github.com/rust-lang/crates.io-index`.<br>
+
+Each **cargo registry** provides an **index**, which is a **git repository** following a **particular format**.<br>
+The purpose of the **index** is to provide an efficient method to **resolve the dependency graph** for a package, i.e. `cargo` uses **index** to figure out which packages it must to download to build crate.<br>
+The index contains **exactly one** file for each crate in the registry.<br>
+After resolution has been performed, `cargo`uses **download endpoint** to download packeges: `GET $dl/$crate_name/$version/download` returns `.crate` file for appropriate crate.
 
 <br>
 
-Example of **file**:
+## The Format of The Index
+```
+.
+|
+...
+├── 3
+│   └── u
+│       └── url
+├── bz
+│   └── ip
+│       └── bzip2
+...
+├── en
+│   └── co
+│       └── encoding
+├── li
+    ├── bg
+    │   └── libgit2
+    └── nk
+        └── link-config
+...
+└── config.json
+```
+
+There are three **special directories**: `1`, `2` and `3` for crates with names 1, 2, and 3 characters in length.<br>
+The directories `1` and `2` simply have the crate files underneath them, while the directory `3` is sharded by the first letter of the crate name.<br>
+
+There is a `config.json` file in the **root** of the **index** which contains some information used by `cargo` for accessing the **registry**.<br>
+
+```json
+{
+    "dl": "https://crates.io/api/v1/crates",
+    "api": "https://crates.io"
+}
+```
+where:
+- `dl` is the **download endpoint**, i.e. it is the URL for downloading crates listed in the index;
+- `api` is the URL of web API for the registry;
+
+<br>
+
+Example of **file** in **index**:
 `https://github.com/rust-lang/crates.io-index/blob/master/ac/ti/actix-multipart`<br>
 
 <br>
@@ -56,42 +118,11 @@ Example of **entry**:<br>
 }
 ```
 
-
-## config.json
-The `cargo` tool communicates with registry through a **git repository** aka **index** of a registry.<br>
-The **root of the index** contains a `config.json` file with a few entries corresponding to the registry.<br>
-
-```json
-{
-    "dl": "https://crates.io/api/v1/crates",
-    "api": "https://crates.io"
-}
-```
-
-- `dl`: this is the URL for downloading crates listed in the index. The value may have the markers which will be replaced with their corresponding value. If **none** of the markers are present, then the value `/{crate}/{version}/download` is appended to the `dl` value. Avaliable markers are:
-  - `{crate}`: the **name of crate**.
-  - `{version}`: the **crate version**.
-  - `{prefix}`: a **directory prefix** computed from the crate name, for example, a crate named `cargo` has a prefix of `ca/rg`.
-  - `{lowerprefix}`: lowercase variant of `{prefix}`.
-  -` {sha256-checksum}`: the **crate’s sha256 checksum**.
-- `api`: API endpoint for the registry. This key is optional, but if it is not specified, commands such as cargo **publish** will not work.
-
 <br>
 
-## Registry source
-A **registry** consists of at least:
-- a **git repository** that contains an **index** (aka **registry source**);
-- **server** that contains the compressed `.crate` files created by `cargo package`;
-
-<br>
-
-The `crates.io` is the default **registry source**.<br>
-
-**Sources** are described in `.cargo/config.toml` file in `[source]` section.
-
-<br>
-
-So, `https://github.com/rust-lang/crates.io-index` is a **default source** (**index**) of **default registry** `crates-io`.
+# Source
+**Sources** are described in `.cargo/config.toml` file in `[source]` section.<br>
+**Source** can contain **more than 1 registry**.
 
 <br>
 
@@ -117,7 +148,39 @@ directory = "path/to/vendor"
 
 <br>
 
-### Merge rules
+# Alternate registries
+To use **alternate registry**, the **name** of **registry** and its **index URL** must be added to a `.cargo/config.toml` file.<br>
+Example:<br>
+```toml
+[registries.my-registry]
+index = "https://gitlab.com/my-organization/my-registry"
+```
+
+Then specify **name** of **registry** for package in `Cargo.toml`:
+```toml
+[dependencies]
+foobar = {version = "1.4.0", registry = "my-registry"}
+```
+
+<br>
+
+# cargo yank
+The `cargo yank` command does not delete any data, and the crate will still be available for download via the registry’s download link.<br>
+The `cargo yank` command **prevents new projects** from depending on a **yanked version** but it will **still be available** to projects that have a `Cargo.lock`.<br>
+
+<br>
+
+# cargo publish
+The `cargo publish` command performs the following steps:
+1. Perform some verification checks on your package.
+2. Compress your source code into a `.crate` file.
+3. Extract the `.crate` file into a temporary directory and verify that it compiles.
+4. Upload the `.crate` file to `crates.io`.
+5. The registry will perform some additional checks on the uploaded package before adding it.
+
+<br>
+
+### Merge rules for `.cargo/config.toml` files
 If, for example, `cargo` was invoked in `/projects/foo/bar/baz`, then it will read and merge `.cargo/config.toml` files in following order:<br>
 ```sh
 /projects/foo/bar/baz/.cargo/config.toml
@@ -133,31 +196,3 @@ $HOME/.cargo/config.toml
 If a **key** is specified in **multiple** `config.toml` files, the values will get **merged** together.<br>
 - `numbers`, `strings`, and `booleans` will use the value in the **deeper** config directory taking **precedence over ancestor directories**, where the **home directory** is the **lowest priority**;
 - `arrays` will be **joined together**;
-
-<br>
-
-When being invoked from a workspace, Cargo does not read config files from crates within the workspace.
-
-<br>
-
-## Internals
-The hardcoded constants:
-```rust
-pub const CRATES_IO_INDEX: &str = "https://github.com/rust-lang/crates.io-index";
-pub const CRATES_IO_HTTP_INDEX: &str = "sparse+https://index.crates.io/";
-pub const CRATES_IO_REGISTRY: &str = "crates-io";
-pub const CRATES_IO_DOMAIN: &str = "crates.io";
-```
-
-<br>
-
-- the `SourceConfigMap` data structure represents the entire `[source]` table in `.cargo/config.toml`.
-- the `SourceConfig` data structure represents the configuration for a **particular source** in `.cargo/config.toml`, e.g., `[source.crates-io]`.
-
-<br>
-
-## Alternate registries
-To use a registry other than **crates.io**, the **name** and **index URL** of the registry must be added to a `.cargo/config.toml` file.<br>
-The `[registries]` table has a key for each registry.
-
-<br>
