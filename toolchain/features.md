@@ -1,3 +1,29 @@
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [Features](#features)
+      - [Example](#example)
+  - [Ways to manage features](#ways-to-manage-features)
+    - [Command-line flags to mange features](#command-line-flags-to-mange-features)
+    - [Dependency declaration attributes to mange features](#dependency-declaration-attributes-to-mange-features)
+      - [Example](#example-1)
+    - [`package-name/feature-name` in the `[features]` table](#package-namefeature-name-in-the-features-table)
+      - [Example](#example-2)
+  - [Default feature](#default-feature)
+      - [Example](#example-3)
+      - [Ways to disable **default feature**](#ways-to-disable-default-feature)
+  - [Optional dependencies](#optional-dependencies)
+      - [Example](#example-4)
+- [More examples](#more-examples)
+  - [1. Reference example](#1-reference-example)
+  - [2. Enabling certain features of particular package inside ``[features]`` section and assigning aliases for them](#2-enabling-certain-features-of-particular-package-inside-features-section-and-assigning-aliases-for-them)
+  - [3. Disabling ``default-features`` of certain package inside dependency declaration](#3-disabling-default-features-of-certain-package-inside-dependency-declaration)
+  - [4. Optional dependency (``optional = true``)](#4-optional-dependency-optional--true)
+      - [4.1 Disabling certain package](#41-disabling-certain-package)
+      - [4.2 Enabling certain package by assigning alias to this package, e.g., ``<abc>``, and passing it to cli argument ``--features`` of ``cargo``](#42-enabling-certain-package-by-assigning-alias-to-this-package-eg-abc-and-passing-it-to-cli-argument---features-of-cargo)
+      - [4.3 Enabling certain package, e.g., ``futures``, by passing its name to cli argument ``--features`` of ``cargo``](#43-enabling-certain-package-eg-futures-by-passing-its-name-to-cli-argument---features-of-cargo)
+
+<br>
+
 # Features
 **Features** provide a **mechanism** for **conditional compilation**.<br>
 **Features** are defined in the `[features]` section of `Cargo.toml` file.<br>

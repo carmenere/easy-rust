@@ -1,3 +1,22 @@
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [Test organization](#test-organization)
+  - [Fail conditions](#fail-conditions)
+- [Unit Tests](#unit-tests)
+- [Integration Tests](#integration-tests)
+- [Test Attributes](#test-attributes)
+- [Doc Tests](#doc-tests)
+- [Ways to run tests](#ways-to-run-tests)
+  - [Running tests in parallel or consecutively](#running-tests-in-parallel-or-consecutively)
+  - [Showing function outputit](#showing-function-outputit)
+  - [Run one specific test by exact name](#run-one-specific-test-by-exact-name)
+  - [Run tests by pattern](#run-tests-by-pattern)
+  - [Run only the ignored tests](#run-only-the-ignored-tests)
+  - [Run all tests whether they’re ignored or not](#run-all-tests-whether-theyre-ignored-or-not)
+- [Example project](#example-project)
+
+<br>
+
 # Test organization
 A test in Rust is a **function** that’s **annotated** with the `#[test]` **attribute**.<br>
 

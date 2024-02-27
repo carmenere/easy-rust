@@ -1,6 +1,16 @@
-# Trait ``FromIterator``
-Trait ``FromIterator`` is used for conversion **from** an ``Iterator`` **to** **collection**.<br>
-Path in **std**: ``std::iter::FromIterator``.<br>
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [Trait `FromIterator`](#trait-fromiterator)
+- [Method `Iterator::collect()`](#method-iteratorcollect)
+      - [Using `Iterator::collect()` to implicitly use `FromIterator`:](#using-iteratorcollect-to-implicitly-use-fromiterator)
+- [`Turbofish`](#turbofish)
+    - [Example](#example)
+
+<br>
+
+# Trait `FromIterator`
+Trait `FromIterator` is used for conversion **from** an `Iterator` **to** **collection**.<br>
+Path in **std**: `std::iter::FromIterator`.<br>
 **Defenition**:
 ```Rust
 pub trait FromIterator<A> {
@@ -10,14 +20,14 @@ pub trait FromIterator<A> {
 }
 ```
 
-By implementing ``FromIterator`` for a **collection** type, you define how it will be created **from** an **iterator**.<br>
-``FromIterator::from_iter()`` is rarely called explicitly, and ``FromIterator::from_iter()`` is usually used through ``Iterator::collect()`` method.
+By implementing `FromIterator` for a **collection** type, you define how it will be created **from** an **iterator**.<br>
+`FromIterator::from_iter()` is rarely called explicitly, and `FromIterator::from_iter()` is usually used through `Iterator::collect()` method.
 
 <br>
 
-# Method ``Iterator::collect()``
-``collect()`` transforms an **iterator** into a **collection**.<br>
-``collect()`` can also create instances of types that are not typical collections, e.g., ``collect()`` can return ``Result<SomeCollection<T>, E>``.
+# Method `Iterator::collect()`
+`collect()` transforms an **iterator** into a **collection**.<br>
+`collect()` can also create instances of types that are not typical collections, e.g., `collect()` can return `Result<SomeCollection<T>, E>`.
 
 <br>
 
@@ -33,7 +43,7 @@ where
 
 <br>
 
-#### Using ``Iterator::collect()`` to implicitly use ``FromIterator``:
+#### Using `Iterator::collect()` to implicitly use `FromIterator`:
 ```Rust
 let five_fives = std::iter::repeat(5).take(5);
 
@@ -44,12 +54,12 @@ assert_eq!(v, vec![5, 5, 5, 5, 5]);
 
 <br>
 
-# ``Turbofish``
-Because ``collect()`` is so general, it can cause **problems** with **type inference**.<br>
-Internally, ``collect()`` just uses ``FromIterator``, but it also **infers** the **type** of the **output**.<br>
+# `Turbofish`
+Because `collect()` is so general, it can cause **problems** with **type inference**.<br>
+Internally, `collect()` just uses `FromIterator`, but it also **infers** the **type** of the **output**.<br>
 Sometimes there **isn't enough** information to infer the type, so you may need to **explicitly** specify the type you want.<br>
-There is *special syntax* in Rust called **turbofish**: ``::<SomeType>``.<br>
-Example: ``let all_scores = score_table.values().cloned().collect::<Vec<Score>>();``.<br>
+There is *special syntax* in Rust called **turbofish**: `::<SomeType>`.<br>
+Example: `let all_scores = score_table.values().cloned().collect::<Vec<Score>>();`.<br>
 **Turbofish** helps the **inference** algorithm to understand type of item of **resulting collection**.<br>
 
 ### Example
@@ -87,7 +97,7 @@ error: could not compile `playrs` due to previous error
 This is because the compiler **doesn’t know** what type you’re trying to collect your **iterator** into.<br>
 
 This can be fixed in two different ways:
-- by **declaring** the **type** of variable in ``let`` **binding**: 
+- by **declaring** the **type** of variable in `let` **binding**: 
 ```Rust
 let even_numbers: Vec<i32> = ...
 ```
@@ -99,9 +109,9 @@ let even_numbers = numbers
     .collect::<Vec<i32>>();
 ```
 
-The ``::<Vec<i32>>`` part is the **turbofish** and means collect this **iterator** into a ``Vec<i32>``.<br>
+The `::<Vec<i32>>` part is the **turbofish** and means collect this **iterator** into a `Vec<i32>`.<br>
 
-You can actually replace ``i32`` with ``_`` in **turbofish** and let the compiler infer it because it knows the **iterator** yields ``i32``:
+You can actually replace `i32` with `_` in **turbofish** and let the compiler infer it because it knows the **iterator** yields `i32`:
 ```Rust
 let even_numbers = numbers
     .into_iter()

@@ -1,3 +1,11 @@
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [Combinators on `Option`/`Result`](#combinators-on-optionresult)
+  - [`match` example](#match-example)
+  - [`if let` example](#if-let-example)
+
+<br>
+
 # Combinators on `Option`/`Result`
 The only way to safely interact with `Option` and `Result` **inner values** is either through **pattern matching** or **if let**.<br>
 This paradigm of using **matching** is a very common operation and, as such, it becomes very tedious having to write them every time.<br>

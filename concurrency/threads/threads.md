@@ -1,3 +1,22 @@
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [Threads](#threads)
+  - [`Thread` type](#thread-type)
+  - [`JoinHandle` type](#joinhandle-type)
+  - [thread::spawn](#threadspawn)
+  - [thread::Builder](#threadbuilder)
+  - [Examples](#examples)
+  - [Constraints](#constraints)
+      - [`'static` constraint](#static-constraint)
+      - [`Send` constraint](#send-constraint)
+- [`park` and `unpark`](#park-and-unpark)
+- [Examples](#examples-1)
+  - [Just one thread](#just-one-thread)
+  - [Multiple threads](#multiple-threads)
+- [Sharing immutable data across threads](#sharing-immutable-data-across-threads)
+
+<br>
+
 # Threads
 An executing Rust program consists of a collection of **native OS threads**, each with their **own stack** and **local state**.<br>
 When the **main thread** *terminates*, the **whole process** is *terminated*, even if other threads are *still running*.<br>

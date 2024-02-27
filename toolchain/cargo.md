@@ -1,3 +1,14 @@
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [Description](#description)
+- [`cargo` subcommands](#cargo-subcommands)
+- [Examples](#examples)
+		- [cargo tree](#cargo-tree)
+		- [cargo build](#cargo-build)
+		- [cargo test](#cargo-test)
+
+<br>
+
 # Description
 `cargo` is both the **package manager** and the **build system** for Rust.
 

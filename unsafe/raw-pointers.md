@@ -1,3 +1,12 @@
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [Raw pointers](#raw-pointers)
+- [Example](#example)
+  - [Declare raw pointers](#declare-raw-pointers)
+  - [Raw pointer to arbitrary memory](#raw-pointer-to-arbitrary-memory)
+
+<br>
+
 # Raw pointers
 - `*const T` **immutable raw pointer**, `&T` can be casted to `*const T`;
 - `*mut T` **mutable raw pointer**, `&mut T` can be casted to `*mut T`;

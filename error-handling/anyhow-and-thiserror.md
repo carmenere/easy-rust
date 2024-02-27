@@ -1,3 +1,10 @@
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [Thiserror and Anyhow](#thiserror-and-anyhow)
+- [Anyhow](#anyhow)
+
+<br>
+
 # Thiserror and Anyhow
 There are 2 useful crates to handle errors in Rust:
 - **Anyhow**

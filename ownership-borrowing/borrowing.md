@@ -1,10 +1,37 @@
-# What is reference
-What if we want to let a function use a value **without transferring ownership**? Rust has feature for this concept, called **borrowing**.<br>
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [Owned types. Borrowed types](#owned-types-borrowed-types)
+- [References](#references)
+    - [Example 1](#example-1)
+    - [Example 2.](#example-2)
+- [Operators](#operators)
+- [NLL vs. LL](#nll-vs-ll)
+  - [NLL and iterator invalidation](#nll-and-iterator-invalidation)
+- [Lifetimes](#lifetimes)
+- [Borrowing rules](#borrowing-rules)
+    - [Examples](#examples)
+      - [Lend the value inside scope of shared reference](#lend-the-value-inside-scope-of-shared-reference)
+      - [Move by mutable reference](#move-by-mutable-reference)
+      - [Move by shared reference](#move-by-shared-reference)
+      - [Copy value](#copy-value)
+      - [More complex example](#more-complex-example)
+- [Reborrowing](#reborrowing)
+- [Semantics for references](#semantics-for-references)
+- [Dangling references](#dangling-references)
 
 <br>
 
+# Owned types. Borrowed types
+There are **2 kinds of types** in Rust:
+- **Owned type** means **non-reference type**, e.g. `i32`, `String`, `Vec`, etc.
+- **Borrowed type** means **any reference type** *regardless of mutability*, e.g. `&i32`, `&mut i32`, etc.
+
+<br>
+
+# References
 A **reference** is the **address** of **some value**.<br>
 **Reference doesn’t own value it points to**, i.e., when *reference* **goes out of scope**, the **borrow ends**, and the **value** *reference* points to **isn't destroyed**.<br>
+**References** allow to pass values to functions **without transferring ownership**.<br>
 
 There are **2 kinds of references** in Rust:
 1. **Shared reference** (aka **immutable reference**):
@@ -12,17 +39,11 @@ There are **2 kinds of references** in Rust:
 &T
 &'a T   // with lifetime
 ```
-2. **Mutable reference**:
+1. **Mutable reference**:
 ```Rust
 &mut T
 &'a mut T   // with lifetime
 ```
-
-<br>
-
-There are **2 kinds of types** in Rust:
-- **Owned type** means **non-reference type**, e.g. `i32`, `String`, `Vec`, etc.
-- **Borrowed type** means **any reference type** *regardless of mutability*, e.g. `&i32`, `&mut i32`, etc.
 
 <br>
 
@@ -33,12 +54,12 @@ Both, **immutable** and **mutable** **borrowers** can contain **mutable** or **i
 <br>
 
 So, there are **2 kinds of borrowers** in Rust:
-1. **Immutable borrower** ``b``:
+1. **Immutable borrower** `b`:
 ```Rust
 let b: &T;
 let b: &mut T;
 ```
-1. **Mutable borrower** ``b``:
+1. **Mutable borrower** `b`:
 ```Rust
 let mut b: &T;
 let mut b: &mut T;
@@ -48,7 +69,7 @@ If an **identifier** (**variable**) declared as **immutable**, it **isn’t poss
 
 <br>
 
-#### Example 1
+### Example 1
 ```Rust
 fn main() {
     let mut val = 100;
@@ -60,17 +81,17 @@ fn main() {
 ```
 
 Here:
-- ``val`` mutable value
-- ``&val``  shared reference
-- ``&mut val``	mutable reference
-- ``b1`` immutable borrower
-- ``b2`` immutable borrower
-- ``b3`` mutable borrower
-- ``b4`` mutable borrower
+- `val` mutable value
+- `&val`  shared reference
+- `&mut val`	mutable reference
+- `b1` immutable borrower
+- `b2` immutable borrower
+- `b3` mutable borrower
+- `b4` mutable borrower
 
 <br>
 
-#### Example 2.
+### Example 2.
 ```Rust
 fn main() {
     let t = String::from("hello");
@@ -80,21 +101,95 @@ fn main() {
 ```
 
 Here: 
-``s`` – borrower and it owns reference ``&t`` to ``t``.
+`s` – borrower and it owns reference `&t` to `t`.
 
 <br>
 
-#### Operators
+# Operators
 |**Operator**|**Name**|**Description**|
 |:-------|:---|:----------|
-|``&``|**Reference operator**|To **borrow value**, i.e., take a reference.|
-|``*``|**Dereference operator**|To **use a borrowed value**.|
+|`&`|**Reference operator**|To **borrow value**, i.e., take a reference.|
+|`*`|**Dereference operator**|To **use a borrowed value**.|
 
 <br>
 
-# Restrictions of references
-Since references do not own the value, **references cannot move the value**.<br>
-But **references can copy value**.<br>
+# NLL vs. LL
+**NLL** (**non-lexical lifetime**) vs. **LL** (**lexical lifetime**):
+- **LL** means that **scope** of **identifier** starts **from** the point at which it was declared by `let` keyword **until** the **end of the block** (until `{`).
+- **NLL** means that **scope** of **identifier** starts **from** the point at which it was declared by `let` keyword **until** the **last time it is used**.
+
+Here **lifetime** is a synonym for **scope**.
+
+<br>
+
+## NLL and iterator invalidation
+**NLL** prevents a common error called **iterator invalidation**, where the program modifies a collection while iterating over it.<br>
+
+Rust rejects following code, because it borrows ``v`` both **immutably** and **mutably**:
+```Rust
+let mut v = vec![1, 2];
+
+// Borrows `v` immutably
+for i in &v {
+    // Error: borrows `v` mutably, but `v` was already borrowed.
+    v.push(*i);
+}
+```
+
+<br>
+
+# Lifetimes
+Every **variable** in Rust has **LL** which **begins** when it is **created** by `let` keyword and **ends** when it is **destroyed** (closing curly bracket `}).
+Every **reference** in Rust has **NLL** which **begins** when it is **created** by `let` keyword and **ends** when it is **used last time**.<br>
+
+But, the **reference** must be **valid** until the **lender** is **destroyed**. So, **lifetimes** and **scopes** (**NLL** and **LL**) are **not** the same.<br>
+
+A **lifetime** is the **scope** within which a **reference** must be **valid**.<br>
+
+*Lifetimes* are **denoted** with an **apostrophe**: `'a`, `'b`.<br>
+
+<br>
+
+# Borrowing rules
+Borrowing rules:<br>
+1. Scope of **mutable reference** `&mut T` **can’t** *intersect* with scope of any other reference to type `T`.
+2. Scope of **shared reference** `&T` **can** *intersect* with scope of any other **shared reference** to type `T`.
+3. Reference **can’t outlive value it points to**, i.e. the **borrow** must be **valid** **until** the **lender** is **destroyed**.
+   - For example, function **cannot** return reference to value it owns.
+4. Since reference **doesn't own** the value it points to, **reference cannot move the value**. But **reference can copy value**.
+
+<br>
+
+In other words, rules 1 and 2 are means: **at any given time** there can be:<br>
+a. **only 1** *mutable reference* `&mut T`;<br>
+**OR**<br>
+b. **any number** of *shared references* `&T`.<br>
+
+Rules 1 and 2 **prevent data races** at compile time.<br>
+Rule 3 **prevents from dangling references**.<br>
+
+**Owner restrictions** during borrowing:
+1. During a **shared borrow**, the **owner can’t**:
+   - **mutate** the *value*;
+   - **mutably lend** the *value* (but still can **immutably lend** the *value*);
+   - **move** the *value*.
+
+2. During a **mutable borrow**, the **owner can’t**:
+   - have **any access** (**read** or **mutate**) to the *value*;
+   - **lend** (**mutably** or **immutably**) the *value*.
+
+<br>
+
+### Examples
+#### Lend the value inside scope of shared reference
+```Rust
+fn main() {
+    let mut owner = 5;
+    let ro_ref = &owner;
+    let rw = &mut owner;   // attempt to mutably lend the value inside scope of shared reference, error!
+    println!("ro_ref: {}", ro_ref);
+}
+```
 
 <br>
 
@@ -204,9 +299,9 @@ fn main() {
 <br>
 
 # Reborrowing
-Consider ``b`` is **borrower**:
-- if ``b`` contains *shared reference*, it is possible to **reborrow** *shared reference*: ``let b1 = &*b``.
-- if ``b`` contains *mutable reference*, it is possible to **reborrow** *mutable reference*: ``let b1 = &mut *b``.
+Consider `b` is **borrower**:
+- if `b` contains *shared reference*, it is possible to **reborrow** *shared reference*: `let b1 = &*b`.
+- if `b` contains *mutable reference*, it is possible to **reborrow** *mutable reference*: `let b1 = &mut *b`.
 
 <br>
 
@@ -225,7 +320,7 @@ fn main() {
 }
 ```
 
-To fix this code it is needed to use **reborrow**: ``&mut *``.<br>
+To fix this code it is needed to use **reborrow**: `&mut *`.<br>
 
 Following code **works**:
 ```Rust
@@ -306,8 +401,8 @@ fn dangle() -> &String { // dangle returns a reference to a String
 } // Here, s goes out of scope, and is dropped.
 ```
 
-Because ``s`` is created inside ``dangle``, when the code of ``dangle`` is finished, ``s`` will be **deallocated**. <br>
-But we tried to return a reference to it. That means this reference would be pointing to an dealocated ``String``. **Danger**!<br>
+Because `s` is created inside `dangle`, when the code of `dangle` is finished, `s` will be **deallocated**. <br>
+But we tried to return a reference to it. That means this reference would be pointing to an dealocated `String`. **Danger**!<br>
 
 Solutions:
 1. Use **lifetime** for reference.

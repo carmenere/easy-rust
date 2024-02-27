@@ -1,3 +1,30 @@
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [Ownership](#ownership)
+  - [Basic terms](#basic-terms)
+  - [Variable scope](#variable-scope)
+  - [Ownership rules](#ownership-rules)
+  - [Blittable and Non-blittable types](#blittable-and-non-blittable-types)
+  - [Copy and move semantics](#copy-and-move-semantics)
+  - [Examples of copy and move semantics](#examples-of-copy-and-move-semantics)
+    - [Move semantics in assignment](#move-semantics-in-assignment)
+    - [Copy semantics in assignment](#copy-semantics-in-assignment)
+    - [Semantics when passing values to function](#semantics-when-passing-values-to-function)
+    - [Semantics when returning values from function:](#semantics-when-returning-values-from-function)
+  - [Clone trait](#clone-trait)
+  - [Copy trait](#copy-trait)
+  - [Deriving Copy and Clone traits](#deriving-copy-and-clone-traits)
+  - [Why does Copy require Clone?](#why-does-copy-require-clone)
+  - [Drop trait](#drop-trait)
+    - [Double free problem](#double-free-problem)
+    - [Drop flags](#drop-flags)
+  - [Primitive and Non-primitive types](#primitive-and-non-primitive-types)
+    - [Atomic primitive types](#atomic-primitive-types)
+    - [Composite primitive types](#composite-primitive-types)
+    - [Complex types](#complex-types)
+
+<br>
+
 # Ownership
 ## Basic terms
 |Term|Meaning|
@@ -15,8 +42,9 @@
 
 ## Variable scope
 **Scope** (or **variable scope**) is the **range** within a program for which a variable is **valid**.<br>
-In Rust scope has **explicit boundaries**: **opening** curly bracket ``{`` and **closing** curly bracket ``}``.<br>
-In Rust variable is valid from the point at which it was declared by ``let`` keyword until the **end of scope**: closing curly bracket ``}``.<br>
+**Lexical scope** has **explicit boundaries**: **opening** curly bracket `{` and **closing** curly bracket `}`.<br>
+In Rust variables have **lexical scope**.<br>
+In Rust variable is valid from the point at which it was declared by `let` keyword until the **end of scope**: closing curly bracket `}`.<br>
 **Variable** or **variable’s identifier** or **identifier** are the synonyms.<br>
 
 ```Rust
@@ -45,7 +73,7 @@ In C++ this **pattern of deallocating resources at the end of variable lifetime*
 **Completely independent copy** of object is such copy that can be safely used separately to the origin one.<br>
 
 Types of copying:
-- **Bitwise copy** (aka **shallow copy**/**bit block transfer**) is **type-independed logic** to duplicate values, in other words, **bitwise copy** copies contiguous block of memory bit-by-bit (byte-by-byte) to another location. **Bitwise copy** is implemented in syscall ``memcpy()``.
+- **Bitwise copy** (aka **shallow copy**/**bit block transfer**) is **type-independed logic** to duplicate values, in other words, **bitwise copy** copies contiguous block of memory bit-by-bit (byte-by-byte) to another location. **Bitwise copy** is implemented in syscall `memcpy()`.
 - **Semantic copy** (aka **deep copy**) requires **type-specific logic** to duplicate values safely.
 
 **bitblt**/**bit blit**/**blit** are contractions for **bit block transfer**.
@@ -73,7 +101,7 @@ Following operations in Rust **assignment**/**passing a value to function**/**re
 - *Copy types* have **copy semantics**.
 - *Move types* have **move semantics**.
 
-In Rust language: **copy semantics** and a **move semantics** are **mechanically the same** – they **both** implicitly **use bitwise copy**, e.g., ``memcpy()``.<br>
+In Rust language: **copy semantics** and a **move semantics** are **mechanically the same** – they **both** implicitly **use bitwise copy**, e.g., `memcpy()`.<br>
 
 **Copy semantics** and a **move semantics** are differ in ownership:
 |**Type’s semantics**|**Ownership**|**Original (source) identifier**|
@@ -141,8 +169,8 @@ fn returns_ownership() -> String { 	// gives_ownership will move its return valu
 <br>
 
 ## Clone trait
-**Clone trait** is used to implement **deep copy** in ``clone()`` method.
-**Deep copy** in Rust **is always explicit action**: ``x.clone()``.<br>
+**Clone trait** is used to implement **deep copy** in `clone()` method.
+**Deep copy** in Rust **is always explicit action**: `x.clone()`.<br>
 Rust **will never automatically** create deep copies of your data.<br>
 
 <br>
@@ -164,7 +192,7 @@ impl Copy for MyStruct {}
 
 <br>
 
-``Clone::clone`` implementation for **Copy type** should just be a ``memcpy()`` and it is enough to return ``*self``, example:
+`Clone::clone` implementation for **Copy type** should just be a `memcpy()` and it is enough to return `*self`, example:
 ```Rust
 struct MyStruct;
 impl Copy for MyStruct {}
@@ -190,7 +218,7 @@ struct Foo;
 
 ## Why does Copy require Clone?
 **Clone trait** is a **supertrait** of **Copy trait**, if type is the **Copy type** it also must implement **Clone trait**.<br>
-But *copy semantics* **will never call** ``Clone::clone``. So, why does **Copy require Clone**? **Convention**?
+But *copy semantics* **will never call** `Clone::clone`. So, why does **Copy require Clone**? **Convention**?
 
 ```Rust
 struct CopyableTime {
@@ -293,8 +321,8 @@ In Rust language:
 So, in Rust language **Copy type** is **primitive type**.
 
 Examples:
-- ``&str`` **type** (**string literal**), e.g., ``let s: &str = "ABC"``, has **known size** *at compile time*. So the text is **hardcoded directly into the executable**.  
-- ``String`` **type**, e.g., ``String::from("ABC")``, has **unknown size** *at compile time*. It is growable piece of text. Memory for ``String`` is **requested** and **dynamically changed** *at run time*.
+- `&str` **type** (**string literal**), e.g., `let s: &str = "ABC"`, has **known size** *at compile time*. So the text is **hardcoded directly into the executable**.  
+- `String` **type**, e.g., `String::from("ABC")`, has **unknown size** *at compile time*. It is growable piece of text. Memory for `String` is **requested** and **dynamically changed** *at run time*.
 
 <br>
 
@@ -303,26 +331,26 @@ Examples:
 
 |**Type**|**Description**|
 |:-------|:--------------|
-|**Bool**|The ``bool`` type has two values: ``true`` and ``false``.|
-|**Machine-independent integer**|**Signed** integers:``i8``, ``i16``, ``i32``, ``i64``.<br>**Unsigned** integers: ``u8``, ``u16``, ``u32``, ``u64``.|
-|**Machine-dependent integer**|**Signed** integers: ``isize``.<br>**Unsigned** integers: ``usize``.|
-|**Floating point**|32-bit floating point: ``f32``. <br>64-bit floating point: ``f64``|
-|Textual types|``char``: contains a Unicode scalar value in 4 bytes.<br>``&str``: **string literal**, contains a Unicode string (a sequence of Unicode scalar values).|
+|**Bool**|The `bool` type has two values: `true` and `false`.|
+|**Machine-independent integer**|**Signed** integers:`i8`, `i16`, `i32`, `i64`.<br>**Unsigned** integers: `u8`, `u16`, `u32`, `u64`.|
+|**Machine-dependent integer**|**Signed** integers: `isize`.<br>**Unsigned** integers: `usize`.|
+|**Floating point**|32-bit floating point: `f32`. <br>64-bit floating point: `f64`|
+|Textual types|`char`: contains a Unicode scalar value in 4 bytes.<br>`&str`: **string literal**, contains a Unicode string (a sequence of Unicode scalar values).|
 
 <br>
 
 ### Composite primitive types
 |**Type**|**Description**|
 |:-------|:--------------|
-|**Arrays** and **slices**|Array ``[T; N]`` contains ``N`` elements of the type ``T``.|
-|**Tuples**|The tuple type ``(T1, T2, ..., Tn)`` contains a sequence of elements where each element may be of a different type.|
+|**Arrays** and **slices**|Array `[T; N]` contains `N` elements of the type `T`.|
+|**Tuples**|The tuple type `(T1, T2, ..., Tn)` contains a sequence of elements where each element may be of a different type.|
 
 Composite primitive types automatically implement the **Copy trait** if all their constituent types implement the **Copy trait**.
 
 <br>
 
 ### Complex types
-- ``Vec<T>``
-- ``String``
-- ``Map<T>``
-- ``Set<T>``
+- `Vec<T>`
+- `String`
+- `Map<T>`
+- `Set<T>`

@@ -1,3 +1,24 @@
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [Lints](#lints)
+  - [Lint levels](#lint-levels)
+  - [Lint groups](#lint-groups)
+  - [Configuring lint levels](#configuring-lint-levels)
+    - [Example: ways to disable some compiler warnings](#example-ways-to-disable-some-compiler-warnings)
+      - [Using *outer* **allow attribute** above item](#using-outer-allow-attribute-above-item)
+      - [Using *inner* **allow attribute** inside block](#using-inner-allow-attribute-inside-block)
+      - [Using ``rustc`` **lint flags**](#using-rustc-lint-flags)
+      - [Via ``cargo`` ``RUSTFLAGS`` env](#via-cargo-rustflags-env)
+  - [Priorities](#priorities)
+    - [Examples](#examples)
+    - [Via lint flags](#via-lint-flags)
+      - [Example](#example)
+    - [Via attribute in the source code](#via-attribute-in-the-source-code)
+  - [Capping lints](#capping-lints)
+- [Some useful warnings](#some-useful-warnings)
+
+<br>
+
 # Lints
 **Linter**, is a static code *analysis tool* used to flag programming **errors**, **bugs**, **stylistic errors** and **suspicious constructs**.<br>
 The term originates from a Unix utility that examined C language source code.

@@ -1,3 +1,21 @@
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [Attributes](#attributes)
+  - [Inner attributes](#inner-attributes)
+      - [Example](#example)
+  - [Outer attributes](#outer-attributes)
+      - [Example](#example-1)
+  - [Attributes arguments](#attributes-arguments)
+      - [Attributes without arguments](#attributes-without-arguments)
+      - [Attributes with arguments](#attributes-with-arguments)
+  - [Kinds of attributes](#kinds-of-attributes)
+- [Built-in attributes](#built-in-attributes)
+  - [Examples](#examples)
+    - [`derive`](#derive)
+    - [`path`](#path)
+
+<br>
+
 # Attributes
 Declaration of **any item** in a Rust can be decorated (annotated) with one or more **attribute**. <br>
 Each **attribute** contains **instructions for compiler**.<br>

@@ -1,3 +1,24 @@
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [Traits](#traits)
+  - [`impl ... for ...`](#impl--for-)
+      - [Example](#example)
+  - [Returning traits](#returning-traits)
+    - [Example](#example-1)
+      - [Incorrect code](#incorrect-code)
+      - [Working version](#working-version)
+- [Associated Types](#associated-types)
+- [Default type parameters](#default-type-parameters)
+  - [Operator Overloading](#operator-overloading)
+- [Generics vs. Associated types](#generics-vs-associated-types)
+- [Blanket implementations](#blanket-implementations)
+  - [`T`, `&T` and `&mut T`](#t-t-and-mut-t)
+- [Trait casting](#trait-casting)
+      - [Example](#example-2)
+- [Supertraits](#supertraits)
+
+<br>
+
 # Traits
 **Trait** is **functionality** that you can call **on** particular **structure**.<br>
 

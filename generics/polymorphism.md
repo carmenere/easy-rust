@@ -1,3 +1,20 @@
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [Polymorphism](#polymorphism)
+  - [Ad hoc polymorphism](#ad-hoc-polymorphism)
+      - [Example](#example)
+  - [Parametric polymorphism](#parametric-polymorphism)
+      - [Example of **generic function**:](#example-of-generic-function)
+  - [Subtyping polymorphism](#subtyping-polymorphism)
+    - [Terminology](#terminology)
+      - [Virtual method](#virtual-method)
+      - [Abstract method](#abstract-method)
+      - [Abstract type](#abstract-type)
+      - [Concrete type](#concrete-type)
+      - [Interface](#interface)
+
+<br>
+
 # Polymorphism
 **Polymorphism** (aka **generic programming**) is an approach that allows you to use the same function name with different data types.<br>
 

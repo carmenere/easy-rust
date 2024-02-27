@@ -1,3 +1,23 @@
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [Closures](#closures)
+      - [Example](#example)
+- [Closure traits and closure capture modes](#closure-traits-and-closure-capture-modes)
+- [Closure type](#closure-type)
+  - [impl Fn()](#impl-fn)
+  - [impl FnMut()](#impl-fnmut)
+  - [impl FnOnce()](#impl-fnonce)
+- [Returning closures](#returning-closures)
+- [`move` keyword](#move-keyword)
+    - [Example](#example-1)
+    - [Example](#example-2)
+- [How the compiler implements closures](#how-the-compiler-implements-closures)
+- [Another examples](#another-examples)
+    - [Function that accepts one closures](#function-that-accepts-one-closures)
+    - [Function that accepts two closures](#function-that-accepts-two-closures)
+
+<br>
+
 # Closures
 **Closure** aka **anonymous function** or **lambda**.<br>
 

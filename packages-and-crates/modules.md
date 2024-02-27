@@ -1,3 +1,22 @@
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [Modules](#modules)
+  - [Crate’s module tree](#crates-module-tree)
+  - [`mod` *keyword*:](#mod-keyword)
+    - [Rust 2018 changes](#rust-2018-changes)
+    - [Equavelent](#equavelent)
+- [Items paths](#items-paths)
+- [Types of items paths](#types-of-items-paths)
+- [``use`` keyword](#use-keyword)
+    - [Notations](#notations)
+    - [``as`` keyword](#as-keyword)
+    - [Globally available crates](#globally-available-crates)
+- [Items visibility](#items-visibility)
+    - [Example](#example)
+      - [Output](#output)
+
+<br>
+
 # Modules
 ## Crate’s module tree
 A **crate** consists of a **hierarchy of modules**, called **crate’s module tree**.

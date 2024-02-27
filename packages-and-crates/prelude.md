@@ -1,3 +1,12 @@
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [Prelude](#prelude)
+  - [Standard library prelude](#standard-library-prelude)
+  - [Extern prelude](#extern-prelude)
+  - [Language prelude](#language-prelude)
+
+<br>
+
 # Prelude
 A **prelude** is a collection of names that are automatically brought into scope of every module in a crate by compiler. It means that compiler **implicitly** injects `use std::prelude::*` **in every module** in a crate.
 

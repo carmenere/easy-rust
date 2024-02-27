@@ -1,3 +1,11 @@
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [Generics](#generics)
+  - [Generic kinds](#generic-kinds)
+- [Generics vs. impl Trait](#generics-vs-impl-trait)
+
+<br>
+
 # Generics
 **Generic** is a **declaration**/**definition** of **type** (**function**/**struct**/**enum**/**trait**) that contains **type variable** (aka **type parameter**).<br>
 **Type var** is often defined in **angle brackets**, e.g. ``<T>`` or ``<E>``. There can be **multiple** *type vars* in **generic**.<br>

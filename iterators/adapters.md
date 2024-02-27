@@ -1,15 +1,45 @@
-# Iterator Adapters
-``Iterator`` trait provides **adapter methods**, or simply **adapters**.<br>
-
-Calling **adapter** on an **iterator** returns a **new iterator** that **yields its own items** from the first iterator.<br>
-
-Every **adapter** takes **iterator** **implicitly**, because of ``self`` argument.<br>
-
-In a **chain of adapters**, the only way to get a result is to call ``next()`` or ``collect()`` on the **final iterator**.<br>
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [Iterator Adapters](#iterator-adapters)
+  - [`map()`](#map)
+      - [Example](#example)
+  - [`rev()`](#rev)
+  - [`filter()`](#filter)
+  - [`flatten()`](#flatten)
+      - [Example](#example-1)
+  - [`filter_map()`](#filter_map)
+  - [`flat_map()`](#flat_map)
+      - [Example](#example-2)
+  - [`fuse()`](#fuse)
+  - [`chain()`](#chain)
+      - [Example](#example-3)
+  - [`enumerate()`](#enumerate)
+  - [`zip()`](#zip)
+      - [Example for `zip()`](#example-for-zip)
+      - [Example for `zip_longest()`:](#example-for-zip_longest)
+  - [`by_ref()`](#by_ref)
+  - [`cloned()`](#cloned)
+  - [`copied()`](#copied)
+  - [`take()`](#take)
+  - [`take_while()`](#take_while)
+  - [`skip()`](#skip)
+  - [`skip_while()`](#skip_while)
+  - [`fold()`](#fold)
 
 <br>
 
-## ``map()``
+# Iterator Adapters
+`Iterator` trait provides **adapter methods**, or simply **adapters**.<br>
+
+Calling **adapter** on an **iterator** returns a **new iterator** that **yields its own items** from the first iterator.<br>
+
+Every **adapter** takes **iterator** **implicitly**, because of `self` argument.<br>
+
+In a **chain of adapters**, the only way to get a result is to call `next()` or `collect()` on the **final iterator**.<br>
+
+<br>
+
+## `map()`
 ```Rust
 fn map<B, F>(self, f: F) -> Map<Self, F>
 where
@@ -20,14 +50,14 @@ where
 }
 ```
 
-The ``map()`` method takes **closure** ``f`` and returns an **iterator** ``Map``.<br>
+The `map()` method takes **closure** `f` and returns an **iterator** `Map`.<br>
 
-``f`` properties:
-- it takes an ``Self::Item`` and returns the type ``B``.
+`f` properties:
+- it takes an `Self::Item` and returns the type `B`.
 
-``Map`` properties:
-- it **yields** items of the type ``B``;
-- it also implements ``DoubleEndedIterator``, meaning that you can also **traverse** returned ``Map`` **backwards**.<br>
+`Map` properties:
+- it **yields** items of the type `B`;
+- it also implements `DoubleEndedIterator`, meaning that you can also **traverse** returned `Map` **backwards**.<br>
 
 <br>
 
@@ -45,7 +75,7 @@ assert_eq!(iter.next(), None);
 
 <br>
 
-## ``rev()``
+## `rev()`
 ```Rust
 fn rev(self) -> Rev<Self>
 where
@@ -55,15 +85,15 @@ where
 }
 ```
 
-The ``rev()`` method returns an **iterator** ``Rev``.<br>
+The `rev()` method returns an **iterator** `Rev`.<br>
 
-``Rev`` properties:
-- it **yields** items of the type ``Self::Item``, 
+`Rev` properties:
+- it **yields** items of the type `Self::Item`, 
 - it **reverses** an iterator’s direction. 
 
 <br>
 
-## ``filter()``
+## `filter()`
 ```Rust
 fn filter<P>(self, predicate: P) -> Filter<Self, P>
 where
@@ -74,17 +104,17 @@ where
 }
 ```
 
-The method ``filter()`` takes a closure ``predicate`` and returns **iterator** ``Filter``.<br>
+The method `filter()` takes a closure `predicate` and returns **iterator** `Filter`.<br>
 
-``predicate`` properties:
-- it takes an ``&Self::Item`` and returns a ``bool``.
+`predicate` properties:
+- it takes an `&Self::Item` and returns a `bool`.
 
-``Filter`` properties:
-- it **yields** only items of type ``Self::Item`` for which predicate predicate returns ``true``.
+`Filter` properties:
+- it **yields** only items of type `Self::Item` for which predicate predicate returns `true`.
 
 <br>
 
-## ``flatten()``
+## `flatten()`
 ```Rust
 fn flatten(self) -> Flatten<Self>
 where
@@ -95,12 +125,12 @@ where
 }
 ```
 
-The ``flatten()`` method requires ``Self::Item`` to be **iterable**.<br>
+The `flatten()` method requires `Self::Item` to be **iterable**.<br>
 
-The ``flatten()`` method concatenates **iterator of iterables** into a **single collection of elements** and returns an **iterator** ``Flatten`` **over** the concatenated single collection of elements.<br>
+The `flatten()` method concatenates **iterator of iterables** into a **single collection of elements** and returns an **iterator** `Flatten` **over** the concatenated single collection of elements.<br>
 
-``Flatten`` properties:
-- it yields ``Self::Item::Item``, where ``Self::Item`` is some collection of elements of type ``Item``.
+`Flatten` properties:
+- it yields `Self::Item::Item`, where `Self::Item` is some collection of elements of type `Item`.
 
 #### Example
 ```Rust
@@ -111,7 +141,7 @@ assert_eq!(flattened, &[1, 2, 3, 4, 5, 6]);
 
 <br>
 
-## ``filter_map()``
+## `filter_map()`
 ```Rust
 fn filter_map<B, F>(self, f: F) -> FilterMap<Self, F>
 where
@@ -122,19 +152,19 @@ where
 }
 ```
 
-Semantic of ``filter_map(f)`` is equivalent to: ``map(f).filter()``.<br>
+Semantic of `filter_map(f)` is equivalent to: `map(f).filter()`.<br>
 
-The ``filter_map()`` method takes a closure ``f`` and returns iterator ``FilterMap``.<br>
+The `filter_map()` method takes a closure `f` and returns iterator `FilterMap`.<br>
 
-``f`` properties:
-- it takes an ``Self::Item`` and returns a ``Option<B>``.
+`f` properties:
+- it takes an `Self::Item` and returns a `Option<B>`.
 
-``FilterMap`` properties:
-- it **yields** only items of type ``B`` for which closure ``f`` returns ``Some(B)``.
+`FilterMap` properties:
+- it **yields** only items of type `B` for which closure `f` returns `Some(B)`.
 
 <br>
 
-## ``flat_map()``
+## `flat_map()`
 ```Rust
 fn flat_map<U, F>(self, f: F) -> FlatMap<Self, U, F>
 where
@@ -146,16 +176,16 @@ where
 }
 ```
 
-Semantic of ``flat_map(f)`` is equivalent to: ``map(f).flatten()``.<br>
+Semantic of `flat_map(f)` is equivalent to: `map(f).flatten()`.<br>
 
-The ``flat_map()`` method takes a **closure** ``f`` and returns **iterator** ``FlatMap``.<br>
+The `flat_map()` method takes a **closure** `f` and returns **iterator** `FlatMap`.<br>
 
-``f`` properties:
-- it takes an ``Self::Item`` and returns a ``U``.
-- it requires ``U`` to be **iterable**.
+`f` properties:
+- it takes an `Self::Item` and returns a `U`.
+- it requires `U` to be **iterable**.
 
-``FlatMap`` properties:
-- it **yields** only items of type ``U::Item``.
+`FlatMap` properties:
+- it **yields** only items of type `U::Item`.
 
 <br>
 
@@ -173,11 +203,11 @@ assert_eq!(merged, "alphabetagamma");
 
 <br>
 
-## ``fuse()``
-Once an ``Iterator`` has returned ``None``, the **trait doesn’t specify** how it ought to behave if you call its ``next()`` method again.<br>
-Most **iterators** just return ``None`` **again**, but not all. If your code counts on that behavior, you may be in for a surprise.<br>
+## `fuse()`
+Once an `Iterator` has returned `None`, the **trait doesn’t specify** how it ought to behave if you call its `next()` method again.<br>
+Most **iterators** just return `None` **again**, but not all. If your code counts on that behavior, you may be in for a surprise.<br>
 
-The ``fuse()`` adapter takes any ``Iterator`` and produces new ``Iterator`` that will definitely continue to return ``None`` once it has done so the first time.<br>
+The `fuse()` adapter takes any `Iterator` and produces new `Iterator` that will definitely continue to return `None` once it has done so the first time.<br>
 
 ```Rust
 // an iterator which alternates between Some and None
@@ -223,7 +253,7 @@ assert_eq!(iter.next(), None);
 
 <br>
 
-## ``chain()``
+## `chain()`
 ```Rust
 fn chain<U>(self, other: U) -> Chain<Self, U::IntoIter>
 where
@@ -234,15 +264,15 @@ where
 }
 ```
 
-This adapter appends **iterable** (``other``) to **iterator** (``self``) and concatenates it to single **iterator** ``Self::Item``.<br>
+This adapter appends **iterable** (`other`) to **iterator** (`self`) and concatenates it to single **iterator** `Self::Item`.<br>
 
-The method ``chain()`` takes a **iterable** ``other`` and returns **iterator** ``Chain``.<br>
+The method `chain()` takes a **iterable** `other` and returns **iterator** `Chain`.<br>
 
-``other`` properties:
-- it must be **iterable**, i.e., it must implement ``IntoIterator<Item = Self::Item>``.
+`other` properties:
+- it must be **iterable**, i.e., it must implement `IntoIterator<Item = Self::Item>`.
 
-``Chain`` properties:
-- it **yields** items of type ``Self::Item``.
+`Chain` properties:
+- it **yields** items of type `Self::Item`.
 
 #### Example
 ```Rust
@@ -266,7 +296,7 @@ assert_eq!(iter.next(), None);
 
 <br>
 
-## ``enumerate()``
+## `enumerate()`
 ```Rust
 fn enumerate(self) -> Enumerate<Self>
 where
@@ -276,14 +306,14 @@ where
 }
 ```
 
-The method ``enumerate()`` returns **iterator** ``Enumerate``.<br>
+The method `enumerate()` returns **iterator** `Enumerate`.<br>
 
-``Enumerate`` properties:
-- it **yields** tuple ``(usize, Self::Item)``, where element of ``usize`` type contains the **index** of the **value** of ``Self::Item`` type.
+`Enumerate` properties:
+- it **yields** tuple `(usize, Self::Item)`, where element of `usize` type contains the **index** of the **value** of `Self::Item` type.
 
 <br>
 
-## ``zip()``
+## `zip()`
 ```Rust
 fn zip<U>(self, other: U) -> Zip<Self, U::IntoIter>
 where
@@ -294,15 +324,15 @@ where
 }
 ```
 
-The ``zip()`` method returns iterator ``Zip``.<br>
+The `zip()` method returns iterator `Zip`.<br>
 
-``Zip`` properties:
-- it yields tuple ``(Self::Item, other::Item)``.
+`Zip` properties:
+- it yields tuple `(Self::Item, other::Item)`.
 
-The ``zip()`` method uses **shortest semantics**: the **result** will have **length** of the **shortest iterable**.<br>
-For **longest semantics** use the ``zip_longest()`` in ``itertools`` crate.<br>
+The `zip()` method uses **shortest semantics**: the **result** will have **length** of the **shortest iterable**.<br>
+For **longest semantics** use the `zip_longest()` in `itertools` crate.<br>
 
-#### Example for ``zip()``
+#### Example for `zip()`
 ```Rust
 fn main() {
     let a1 = [1, 2, 3];
@@ -321,7 +351,7 @@ fn main() {
 
 <br>
 
-#### Example for ``zip_longest()``:
+#### Example for `zip_longest()`:
 ```Rust
 use itertools::{
     Itertools,
@@ -350,10 +380,10 @@ fn main() {
 
 <br>
 
-## ``by_ref()``
-Calling **adapter** on an **iterator** *transfer ownership* of the **underlying iterator** (because of ``self`` argument).<br>
+## `by_ref()`
+Calling **adapter** on an **iterator** *transfer ownership* of the **underlying iterator** (because of `self` argument).<br>
 
-The ``by_ref()`` adapter returns a **mutable reference** to the **iterator**:
+The `by_ref()` adapter returns a **mutable reference** to the **iterator**:
 ```Rust
 fn by_ref(&mut self) -> &mut Self
 where
@@ -385,24 +415,24 @@ It is just a **borrow** that ends when the adapter goes out of scope and **origi
 
 <br>
 
-## ``cloned()``
-The ``cloned()`` adapter takes an **iterator** that produces references and returns an **iterator** that produces values cloned from those references.<br>
+## `cloned()`
+The `cloned()` adapter takes an **iterator** that produces references and returns an **iterator** that produces values cloned from those references.<br>
 
-Semantic of ``some_iter.cloned()`` is equivalent to: ``some_iter.map(|item| item.clone())``.<br>
-
-<br>
-
-## ``copied()``
-The ``copied()`` adapter takes an iterator that produces references and returns an iterator that produces values copied from dereferenced values.<br>
-
-The ``copied()`` method requires that the referent type must be **Copy type**.<br>
-
-Semantic of ``some_iter.copied()`` is equivalent to: ``some_iter.map(|item| *item)``.<br>
+Semantic of `some_iter.cloned()` is equivalent to: `some_iter.map(|item| item.clone())`.<br>
 
 <br>
 
-## ``take()``
-Creates an **iterator** that **yields** the first ``n`` elements, or fewer if the underlying iterator ends sooner.<br>
+## `copied()`
+The `copied()` adapter takes an iterator that produces references and returns an iterator that produces values copied from dereferenced values.<br>
+
+The `copied()` method requires that the referent type must be **Copy type**.<br>
+
+Semantic of `some_iter.copied()` is equivalent to: `some_iter.map(|item| *item)`.<br>
+
+<br>
+
+## `take()`
+Creates an **iterator** that **yields** the first `n` elements, or fewer if the underlying iterator ends sooner.<br>
 
 ```Rust
 let a = [1, 2, 3];
@@ -416,10 +446,10 @@ assert_eq!(iter.next(), None);
 
 <br>
 
-## ``take_while()``
-The ``take_while()`` method takes a **closure** as an argument, and **calls** this **closure** **on each element** of the **iterator**, and **yields** elements while closure returns ``true``.<br>
+## `take_while()`
+The `take_while()` method takes a **closure** as an argument, and **calls** this **closure** **on each element** of the **iterator**, and **yields** elements while closure returns `true`.<br>
 
-After ``false`` is returned, ``take_while()``’s job is over, and the rest of the elements are **ignored**.<br>
+After `false` is returned, `take_while()`’s job is over, and the rest of the elements are **ignored**.<br>
 
 ```Rust
 let a = [-1, 0, 1];
@@ -432,8 +462,8 @@ assert_eq!(iter.next(), None);
 
 <br>
 
-## ``skip()``
-Creates an **iterator** that **skips** the first ``n`` elements.<br>
+## `skip()`
+Creates an **iterator** that **skips** the first `n` elements.<br>
 
 ```Rust
 let a = [1, 2, 3];
@@ -446,10 +476,10 @@ assert_eq!(iter.next(), None);
 
 <br>
 
-## ``skip_while()``
-The ``skip_while()`` method takes a **closure** as an argument, and calls this **closure on each element** of the **iterator**, and **skip** elements while closure returns ``true``.<br>
+## `skip_while()`
+The `skip_while()` method takes a **closure** as an argument, and calls this **closure on each element** of the **iterator**, and **skip** elements while closure returns `true`.<br>
 
-After first ``false`` is returned it **yields** elements even ``true`` will be return **further**.<br>
+After first `false` is returned it **yields** elements even `true` will be return **further**.<br>
 
 ```Rust
 fn main() {
@@ -467,7 +497,7 @@ Output:
 
 <br>
 
-## ``fold()``
+## `fold()`
 ```Rust
 fn fold<B, F>(mut self, init: B, mut f: F) -> B
 where
@@ -484,13 +514,13 @@ where
 
 This operation is sometimes called **reduce**.<br>
 
-The ``fold()`` method takes two arguments: an **initial value**, and a **closure** with **two arguments**: an **accumulator**, and an **element**.<br>
+The `fold()` method takes two arguments: an **initial value**, and a **closure** with **two arguments**: an **accumulator**, and an **element**.<br>
 
 The **closure** returns the **value** that the **accumulator** should have for the **next iteration**.<br>
 
 The **initial value** is the value the **accumulator** will have on the **first call**.<br>
 
-After applying this closure to every element of the iterator, ``fold()`` returns the **accumulator**.<br>
+After applying this closure to every element of the iterator, `fold()` returns the **accumulator**.<br>
 
 Basic usage:
 ```Rust

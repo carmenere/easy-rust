@@ -1,4 +1,11 @@
-# ``PhantomData``
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [`PhantomData`](#phantomdata)
+- [Example](#example)
+
+<br>
+
+# `PhantomData`
 ```Rust
 struct Tagged<T>(usize);
 ```
@@ -18,7 +25,7 @@ That’s right, we’re **not** allowed to have a **type parameter** that goes *
 
 <br>
 
-If we want to have an **unused type parameter** we **have to** add a ``PhantomData`` to it like so:
+If we want to have an **unused type parameter** we **have to** add a `PhantomData` to it like so:
 ```Rust
 use std::marker::PhantomData;
 struct Tagged<T>(usize, PhantomData<T>);
@@ -26,15 +33,15 @@ struct Tagged<T>(usize, PhantomData<T>);
 
 <br>
 
-Declaration of ``PhantomData`` in `core`:
+Declaration of `PhantomData` in `core`:
 ```Rust
 pub struct PhantomData<T: ?Sized>;
 ```
 
 <br>
 
-``PhantomData`` is **marker type**. It is **ZST**.<br>
-Adding a ``PhantomData<T>`` to your type tells the compiler that your type acts like it stores a value of type ``T``, even though it doesn’t really.<br>
+`PhantomData` is **marker type**. It is **ZST**.<br>
+Adding a `PhantomData<T>` to your type tells the compiler that your type acts like it stores a value of type `T`, even though it doesn’t really.<br>
 
 <br>
 

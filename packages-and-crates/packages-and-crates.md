@@ -1,3 +1,16 @@
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [Registry](#registry)
+- [Workspace, Packages and Crates](#workspace-packages-and-crates)
+- [Targets](#targets)
+- [Crate’s module tree](#crates-module-tree)
+- [Crate auto-discovery](#crate-auto-discovery)
+- [The `[package]` section settings](#the-package-section-settings)
+- [Targets settings](#targets-settings)
+    - [Example](#example)
+
+<br>
+
 # Registry
 A **registry** is a storage for **packages**, i.e., it is a central location that serves as permanent storage for versions of a crate over time.<br>
 The *crates.io* is the Rust community’s **package registry**.<br>

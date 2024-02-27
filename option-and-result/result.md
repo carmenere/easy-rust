@@ -1,3 +1,11 @@
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [Result](#result)
+- [Result alias](#result-alias)
+    - [Example](#example)
+
+<br>
+
 # Result
 `Result` express **ability** of **error** through `enum`.<br>
 `Result` is **more general** than `Option`. <br>

@@ -1,3 +1,18 @@
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [Combinators for `Option` type](#combinators-for-option-type)
+- [Methods for checking the contained value](#methods-for-checking-the-contained-value)
+- [Methods for working with references](#methods-for-working-with-references)
+- [Methods for extracting the contained value](#methods-for-extracting-the-contained-value)
+- [Methods for transforming the contained value](#methods-for-transforming-the-contained-value)
+  - [Transform `Option<>` to `Result<>`](#transform-option-to-result)
+  - [Transform `Option<>` to `Option<>`:](#transform-option-to-option)
+  - [Transform an `Option<T>` into a value of a **possibly** different type `U`:](#transform-an-optiont-into-a-value-of-a-possibly-different-type-u)
+- [Methods acting as `boolean` operators](#methods-acting-as-boolean-operators)
+    - [Declarations](#declarations)
+
+<br>
+
 # Combinators for `Option` type
 - https://doc.rust-lang.org/std/option/
 
