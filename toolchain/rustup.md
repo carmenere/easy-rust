@@ -1,3 +1,14 @@
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [Description](#description)
+- [Installation](#installation)
+    - [Latest toolchain](#latest-toolchain)
+    - [Customized toolchain](#customized-toolchain)
+- [Profiles](#profiles)
+- [`rustup` subcommands](#rustup-subcommands)
+
+<br>
+
 # Description
 `rustup` is a **toolchain multiplexer**. <br>
 `rustup` can **install** and **manage** *many* toolchains simultaneously. <br>

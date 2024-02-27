@@ -1,3 +1,10 @@
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [Function pointer](#function-pointer)
+- [Function pointer vs. Closures](#function-pointer-vs-closures)
+
+<br>
+
 # Function pointer
 **Function pointers** are used to pass function into another function.<br>
 

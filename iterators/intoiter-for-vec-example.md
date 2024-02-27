@@ -1,5 +1,5 @@
-# Struct ``std::vec::IntoIter``
-The ``into_iter()`` method on ``Vec`` returns **struct** ``std::vec::IntoIter``:
+# Struct `std::vec::IntoIter`
+The `into_iter()` method on `Vec` returns **struct** `std::vec::IntoIter`:
 ```Rust
 pub struct IntoIter<T, A = Global> where
     A: Allocator,  
@@ -16,7 +16,7 @@ let iter: std::vec::IntoIter<_> = v.into_iter();
 
 <br>
 
-**Struct** ``std::vec::IntoIter`` is **iterator** because it implements ``Iterator``:
+**Struct** `std::vec::IntoIter` is **iterator** because it implements `Iterator`:
 ```Rust
 impl<T, A> Iterator for IntoIter<T, A> where
     A: Allocator, 

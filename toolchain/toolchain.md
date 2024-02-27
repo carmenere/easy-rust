@@ -1,3 +1,10 @@
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [Rust toolchain](#rust-toolchain)
+- [Release channel](#release-channel)
+
+<br>
+
 # Rust toolchain 
 **Toolchain** is set of **components**. Some of components are **required** and some are **optional**.
 

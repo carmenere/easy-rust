@@ -1,3 +1,14 @@
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [Dispatch](#dispatch)
+  - [Monomorphization](#monomorphization)
+      - [Example](#example)
+  - [Dynamic dispatch](#dynamic-dispatch)
+    - [vtable](#vtable)
+      - [Example](#example-1)
+
+<br>
+
 # Dispatch
 **Dispatch** is the act of sending something somewhere, e.g.,
 - dispatch an event to a listener;

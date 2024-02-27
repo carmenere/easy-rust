@@ -1,3 +1,13 @@
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [Version resolution](#version-resolution)
+- [Coherence](#coherence)
+    - [Example: hash table problem](#example-hash-table-problem)
+  - [Orphan rule](#orphan-rule)
+  - [Overlapping rule](#overlapping-rule)
+
+<br>
+
 # Version resolution
 Example of **dependency tree**:
 - `Foo` -> `Bar` -> `Baz (v1.4)`;

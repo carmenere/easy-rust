@@ -1,3 +1,14 @@
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [Slice type](#slice-type)
+  - [Slice notation](#slice-notation)
+  - [Slice rules](#slice-rules)
+  - [String slice](#string-slice)
+  - [String slice as type of function parameter](#string-slice-as-type-of-function-parameter)
+  - [Get last element of dynamically growing collection](#get-last-element-of-dynamically-growing-collection)
+
+<br>
+
 # Slice type
 **Slices** are used to **reference** to **contiguous sequence of elements** *in collection*.<br>
 Internally, the **slice** is **fat pointer** that stores the **starting index** and the **length** of the *slice*.<br>
@@ -5,21 +16,20 @@ Internally, the **slice** is **fat pointer** that stores the **starting index** 
 <br>
 
 ## Slice notation
-Slice notation: ``& <collection>[starting_index..ending_index]``, where:
-- ``..`` is **range operator**;
-- ``<collection>`` name of some collection;
-- ``starting_index`` is the **index** of the **first element** in the slice;
-- ``ending_index`` is the **index** of the **last element** in the slice **+ 1**;
+Slice notation: `& <collection>[start..end]`, where:
+- `start..end` is **range operator**, by default it **excludes upper bound** and is equal to `[start, end)`;
+  - to **include** upper bound use `=`, example: `start..=end`;
+- `<collection>` name of some collection;
 
-Note that **length of the slice** =  ``ending_index`` – ``starting_index``.<br>
+Note that **length of the slice**: `length = end – start`.<br>
 
 Notes:
-- if *slice* **includes** the **first element**, you can omit the ``starting_index``:
+- if *slice* **includes** the **first element**, you can omit the `start`:
 ```Rust
 let slice = &s[..2];
 let slice = &s[0..2];
 ```
-- if *slice* **includes** the **last element**, you can omit ``ending_index``:
+- if *slice* **includes** the **last element**, you can omit `end`:
 ```Rust
 let slice = &s[3..];
 let len = s.len();
@@ -53,13 +63,13 @@ fn main() {
 ```
 
 This code compiles without any errors.<br>
-But, because ``word`` **isn’t connected** to the **state** of ``s`` at all, ``word`` still contains the value 5 after calling ``s.clear()``.<br>
-We could use that value 5 with the variable ``s`` to try to extract the first word out, but this would be a bug because the contents of ``s`` have changed since we saved 5 in ``word``.<br>
+But, because `word` **isn’t connected** to the **state** of `s` at all, `word` still contains the value 5 after calling `s.clear()`.<br>
+We could use that value 5 with the variable `s` to try to extract the first word out, but this would be a bug because the contents of `s` have changed since we saved 5 in `word`.<br>
 
 <br>
 
 ## String slice
-**String slice** is a reference to part of a ``String``.<br>
+**String slice** is a reference to part of a `String`.<br>
 
 Example:
 ```Rust
@@ -68,20 +78,20 @@ let hello = &s[0..5];
 let world = &s[6..11];
 ```
 
-Range indices for ``String`` slice must occur at valid UTF-8 character boundaries.<br>
-If you attempt to create a ``String`` slice in the middle of a multibyte character, your program will exit with an error.
+Range indices for `String` slice must occur at valid UTF-8 character boundaries.<br>
+If you attempt to create a `String` slice in the middle of a multibyte character, your program will exit with an error.
 
 ## String slice as type of function parameter
-Consider signature: ``fn f1(s: &String) -> &str { }``. This function can only receive ``&String`` type.<br>
-Let’s rewrite it to: ``fn f2(s: &str) -> &str { }``. This function can receive both ``&String`` and ``&str`` types.<br>
+Consider signature: `fn f1(s: &String) -> &str { }`. This function can only receive `&String` type.<br>
+Let’s rewrite it to: `fn f2(s: &str) -> &str { }`. This function can receive both `&String` and `&str` types.<br>
 
-Because **string literals** are **string slices** already, it is possible to pass value of ``&str`` (**string literal**) to ``f2`` directly.
+Because **string literals** are **string slices** already, it is possible to pass value of `&str` (**string literal**) to `f2` directly.
 
 <br>
 
 ## Get last element of dynamically growing collection
 There are 2 ways to access to the last lement of collection:
-1. Calling ``last`` on **slice**:
+1. Calling `last` on **slice**:
 ```Rust
 fn main() {
     let mut v = vec![1,2,3,4,5];
@@ -91,7 +101,7 @@ fn main() {
     println!("{:?}", &v[..].last());
 }
 ```
-2. Calling ``last`` or ``last_mut`` on ``Vec`` directly:
+2. Calling `last` or `last_mut` on `Vec` directly:
 ```Rust
 fn main() {
     let v = &mut vec![0, 1, 2];
@@ -106,5 +116,5 @@ fn main() {
 <br>
 
 Notes:
- - ``last_mut`` method returns a **mutable pointer** to the **last item** in the collection;
- - signature of ``last_mut`` method: ``pub fn last_mut(&mut self) -> Option<&mut T>``.
+ - `last_mut` method returns a **mutable pointer** to the **last item** in the collection;
+ - signature of `last_mut` method: `pub fn last_mut(&mut self) -> Option<&mut T>`.

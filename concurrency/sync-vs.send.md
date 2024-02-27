@@ -1,3 +1,14 @@
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [Send and Sync](#send-and-sync)
+- [!Send and !Sync](#send-and-sync-1)
+- [Send + Sync](#send--sync)
+- [Send + !Sync](#send--sync-1)
+- [!Send + Sync](#send--sync-2)
+- [!Send + !Sync](#send--sync-3)
+  
+<br>
+
 # Send and Sync
 From compiler point of view **thread** is a **scope** `{}`.<br>
 `rustc` uses `Sync` and `Send` **marker traits** to determine is it **safe** or **not** to **move** or **share** by immutable reference some **value** to **another thread** (**scope**):

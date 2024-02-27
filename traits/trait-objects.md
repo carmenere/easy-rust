@@ -1,3 +1,13 @@
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [Trait Object](#trait-object)
+  - [Trait Object Lifetime Bounds](#trait-object-lifetime-bounds)
+- [Generics vs. Trait objects](#generics-vs-trait-objects)
+  - [Generic approach](#generic-approach)
+  - [Trait object approach](#trait-object-approach)
+
+<br>
+
 # Trait Object
 **Trait object** is **DST**.<br>
 **Trait object** is a **reference** to `dyn SomeTrait`.<br>

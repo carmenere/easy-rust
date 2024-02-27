@@ -1,3 +1,14 @@
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [Non-scoped threads](#non-scoped-threads)
+    - [Example: borrow variables with the `'static` lifetime](#example-borrow-variables-with-the-static-lifetime)
+- [Scoped threads](#scoped-threads)
+    - [Scoped threads example](#scoped-threads-example)
+  - [`scope` function](#scope-function)
+    - [Scoped threads lifetimes](#scoped-threads-lifetimes)
+
+<br>
+
 # Non-scoped threads
 The code below **doesn’t work** because the borrow checker complains about **spawned thread may outlive borrowed value** `s`:
 ```Rust

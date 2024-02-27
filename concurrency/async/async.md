@@ -1,3 +1,25 @@
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [Support for `async` in Rust](#support-for-async-in-rust)
+  - [Enum `Poll`](#enum-poll)
+  - [Trait `Future`](#trait-future)
+  - [Struct `Context`](#struct-context)
+  - [`async` keyword](#async-keyword)
+  - [`.await` keyword](#await-keyword)
+- [Executor/Reactor pattern](#executorreactor-pattern)
+- [`Future` life cycle](#future-life-cycle)
+    - [Spawning](#spawning)
+    - [Polling](#polling)
+    - [Waiting](#waiting)
+    - [Waking](#waking)
+- [Waker API](#waker-api)
+  - [Ways to implement `wake()`](#ways-to-implement-wake)
+    - [Using task id](#using-task-id)
+    - [Using reference counter](#using-reference-counter)
+- [Pinning](#pinning)
+
+<br>
+
 # Support for `async` in Rust
 What **async runtime** does? **Async runtime**:
 - **execute** async code;

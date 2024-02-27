@@ -1,3 +1,16 @@
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [`unsafe` keyword](#unsafe-keyword)
+- [Dereference raw pointer](#dereference-raw-pointer)
+- [Call unsafe function or method](#call-unsafe-function-or-method)
+- [FFI](#ffi)
+- [Take 2 mut pointers to different parts of the same vector](#take-2-mut-pointers-to-different-parts-of-the-same-vector)
+  - [Example implementation of split\_at\_mut:](#example-implementation-of-split_at_mut)
+- [r/w access to static variables](#rw-access-to-static-variables)
+- [Implement an unsafe trait](#implement-an-unsafe-trait)
+
+<br>
+
 # `unsafe` keyword
 There is `unsafe` keyword in Rust.<br>
 `unsafe` keyword gives 5 abilities:

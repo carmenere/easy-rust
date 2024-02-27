@@ -1,3 +1,17 @@
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [Registry and index](#registry-and-index)
+- [Index](#index)
+  - [The Format of The Index](#the-format-of-the-index)
+- [Source](#source)
+    - [Example](#example)
+- [Alternate registries](#alternate-registries)
+- [cargo yank](#cargo-yank)
+- [cargo publish](#cargo-publish)
+    - [Merge rules for `.cargo/config.toml` files](#merge-rules-for-cargoconfigtoml-files)
+
+<br>
+
 # Registry and index
 The **default registry** is `crates.io`.<br>
 

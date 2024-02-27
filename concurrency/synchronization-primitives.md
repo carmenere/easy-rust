@@ -1,3 +1,14 @@
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [Mutex](#mutex)
+- [MutexGuard](#mutexguard)
+- [Atomics](#atomics)
+- [Read Write locks](#read-write-locks)
+- [Condvars](#condvars)
+- [Global variables](#global-variables)
+
+<br>
+
 # Mutex<T>
 The only way is to get data inside `Mutex` is to call `.lock()` on `Mutex`:
 - `.lock()` returns `Result<MutexGuard<T>>`;
