@@ -308,9 +308,7 @@ We are using the bound `T: 'static` to restrict `SomeType<'a>` to `SomeType<'sta
 <br>
 
 ### `std::thread::spawn`
-One common place this shows up is when you try to move values between threads with `std::thread::spawn`.<br>
-The moved values need to be of types that implement `Send`, indicating that they're safe to move between threads, but they also need to **not** contain any **dynamic references** (the `'static` lifetime bound).<br>
-This makes sense when you realize that a reference to something on the stack now raises the question: **which stack**? Each thread's stack is independent, and so lifetimes **can't** be tracked between them.<br>
+The move values between threads with `std::thread::spawn` thier types need to implement `Send`, but they also need to **not** contain any **dynamic references** (the `'static` lifetime bound).
 
 <br>
 
