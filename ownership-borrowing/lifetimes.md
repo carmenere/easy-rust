@@ -383,7 +383,7 @@ fn make_wrapper(string: &str) -> MyType<'_> {
 }
 ```
 
-They are both compiled. But second is clearer because it tells us that `MyType` **contains** a reference.
+They both compile without errors. But **second** is **clearer** because it tells us that `MyType` **contains** at least one **reference**.
 
 <br>
 
