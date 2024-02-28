@@ -19,6 +19,8 @@
 - [More examples](#more-examples)
 - [`unimplemented!` vs `todo!`](#unimplemented-vs-todo)
 
+<br>
+
 # Macros
 Rust supports following types of macros:
 1. **Declarative macros**.

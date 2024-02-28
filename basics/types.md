@@ -27,9 +27,9 @@
       - [Example](#example-3)
 - [Scalars](#scalars)
 - [Number separator](#number-separator)
-      - [Example](#example-4)
+  - [Example](#example-4)
 - [Overflow-checks](#overflow-checks)
-      - [Examples](#examples-2)
+  - [Examples](#examples-2)
 - [Strings](#strings)
   - [`&str`](#str)
     - [Examples](#examples-3)
@@ -367,7 +367,7 @@ Value of 'v': 10.
 # Number separator
 The `_` symbol is called **number separator** and is used in **literals**.
 
-#### Example
+## Example
 ```Rust
 let a = 1_000_000;
 let b = 1u64;
@@ -389,7 +389,7 @@ Rust behaves differently in **debug mode** and **release mode** on **integer ove
 
 <br>
 
-#### Examples
+## Examples
 ```Rust
 RUSTFLAGS="-C overflow-checks=yes|no" cargo run --release
 
