@@ -1,3 +1,37 @@
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [Formatted print](#formatted-print)
+  - [`fill`](#fill)
+  - [`align`](#align)
+  - [`sign`](#sign)
+  - [`#`](#)
+  - [`0`](#0)
+  - [`width`](#width)
+  - [`type`](#type)
+- [Formatting traits](#formatting-traits)
+- [Related macros](#related-macros)
+  - [Example](#example)
+  - [`format!`](#format)
+    - [Example](#example-1)
+  - [`write!` and `writeln!`](#write-and-writeln)
+    - [`std::fmt::Write`](#stdfmtwrite)
+    - [`std::io::Write`](#stdiowrite)
+  - [`print!` and `println!`](#print-and-println)
+  - [`format_args!`](#format_args)
+    - [std::fmt::write](#stdfmtwrite-1)
+      - [Examples](#examples)
+    - [std::fmt::format](#stdfmtformat)
+      - [Examples](#examples-1)
+- [Implementations in `std`](#implementations-in-std)
+  - [`impl Write for &mut [u8]`](#impl-write-for-mut-u8)
+    - [Methods](#methods)
+  - [`impl<A: Allocator> Write for Vec<u8, A>`](#impla-allocator-write-for-vecu8-a)
+    - [Methods](#methods-1)
+  - [`impl Write for String`](#impl-write-for-string)
+    - [Methods](#methods-2)
+
+<br>
+
 # Formatted print
 The actual grammar for the **formatting syntax** is:
 ```bash

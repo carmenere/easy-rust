@@ -1,3 +1,24 @@
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [Macros](#macros)
+  - [Declarative macros](#declarative-macros)
+    - [Token types](#token-types)
+    - [Nested declarative macros](#nested-declarative-macros)
+    - [Repetitions](#repetitions)
+    - [Scope](#scope)
+      - [Textual scope](#textual-scope)
+      - [Path-based scope](#path-based-scope)
+      - [Import macros as any other item](#import-macros-as-any-other-item)
+        - [File: `m.rs`](#file-mrs)
+        - [File: `main.rs`](#file-mainrs)
+    - [Hygiene](#hygiene)
+    - [`$crate`](#crate)
+- [Procedural macros](#procedural-macros)
+  - [Procedural macro crate](#procedural-macro-crate)
+- [Example: custom derive macros](#example-custom-derive-macros)
+- [More examples](#more-examples)
+- [`unimplemented!` vs `todo!`](#unimplemented-vs-todo)
+
 # Macros
 Rust supports following types of macros:
 1. **Declarative macros**.
@@ -307,3 +328,8 @@ The `stringify!` macro used here is built into Rust. It takes a Rust **expressio
 
 # More examples
 More examples [here](https://github.com/carmenere/easy-rust/blob/main/examples/macros/macros.md).
+
+<br>
+
+# `unimplemented!` vs `todo!`
+The difference between `unimplemented!` and `todo!` is that `todo!` conveys an intent of **implementing the functionality later**, while `unimplemented!` makes no such claims.

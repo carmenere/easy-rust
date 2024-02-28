@@ -1,3 +1,9 @@
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [Option](#option)
+
+<br>
+
 # Option
 `Option` express **optionality** through `enum`.<br>
 Path to `Option` in **std**: `std::option::Option`: https://doc.rust-lang.org/std/option/enum.Option.html<br>
