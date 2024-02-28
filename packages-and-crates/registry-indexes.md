@@ -83,12 +83,15 @@ There is a `config.json` file in the **root** of the **index** which contains so
 ```json
 {
     "dl": "https://crates.io/api/v1/crates",
-    "api": "https://crates.io"
+    "api": "https://crates.io",
+    "auth-required": false
 }
 ```
 where:
 - `dl` is the **download endpoint**, i.e. it is the URL for downloading crates listed in the index;
 - `api` is the URL of web API for the registry;
+- `auth-required` indicates whether this is a **private registry** that requires all operations to be authenticated (crate downloads, API requests and so on).
+  - If `auth-required` is set to `true`, then `cargo` must pass **auth token** in the `Authorization` header in all **download** requests and all requests to the **web API**.
 
 <br>
 
