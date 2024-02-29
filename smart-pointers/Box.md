@@ -1,4 +1,19 @@
-# `Box<T>`
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [`std`](#std)
+- [Box](#box)
+- [Implementation of Box](#implementation-of-box)
+
+<br>
+
+# `std`
+|Trait|Path in `std`|
+|:----|:------------|
+|`Box`|[std::boxed::Box](https://doc.rust-lang.org/stable/std/boxed/struct.Box.html)|
+
+<br>
+
+# Box<T>
 ```Rust
 fn main() {
     let v = Box::new(1);

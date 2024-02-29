@@ -1,5 +1,6 @@
 # Table of contents
 - [Table of contents](#table-of-contents)
+- [`std`](#std)
 - [Send and Sync](#send-and-sync)
 - [!Send and !Sync](#send-and-sync-1)
 - [Send + Sync](#send--sync)
@@ -7,6 +8,14 @@
 - [!Send + Sync](#send--sync-2)
 - [!Send + !Sync](#send--sync-3)
   
+<br>
+
+# `std`
+|Trait|Path in `std`|
+|:----|:------------|
+|`Send`|[std::marker::Send](https://doc.rust-lang.org/std/marker/trait.Send.html)|
+|`Sync`|[std::marker::Sync](https://doc.rust-lang.org/std/marker/trait.Sync.html)|
+
 <br>
 
 # Send and Sync

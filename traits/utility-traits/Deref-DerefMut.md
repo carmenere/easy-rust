@@ -1,3 +1,26 @@
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [`std`](#std)
+- [Coercions](#coercions)
+- [Reference type and Dereferenceable type](#reference-type-and-dereferenceable-type)
+- [`Deref` trait](#deref-trait)
+    - [Example](#example)
+- [`DerefMut` trait](#derefmut-trait)
+- [Deref coercion](#deref-coercion)
+- [Deref coercion cases](#deref-coercion-cases)
+- [Dot `.` operator](#dot--operator)
+- [Examples](#examples)
+
+<br>
+
+# `std`
+|Trait|Path in `std`|
+|:----|:------------|
+|`Deref`|[std::ops::Deref](https://doc.rust-lang.org/std/ops/trait.Deref.html)|
+|`DerefMut`|[std::ops::DerefMut](https://doc.rust-lang.org/std/ops/trait.DerefMut.html)|
+
+<br>
+
 # Coercions
 **Type coercions** are **implicit** type conversions.
 

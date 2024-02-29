@@ -1,3 +1,25 @@
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [`std`](#std)
+- [Borrow and BorrowMut](#borrow-and-borrowmut)
+    - [Example 1](#example-1)
+  - [AsRef vs. Borrow](#asref-vs-borrow)
+  - [Declarations](#declarations)
+    - [Borrow](#borrow)
+    - [BorrowMut](#borrowmut)
+    - [Blanket implementation of `Borrow<T>` for `T`, `&T`, `&mut T` in `std`](#blanket-implementation-of-borrowt-for-t-t-mut-t-in-std)
+- [More examples](#more-examples)
+
+<br>
+
+# `std`
+|Trait|Path in `std`|
+|:----|:------------|
+|`Borrow`|[std::borrow::Borrow](https://doc.rust-lang.org/std/borrow/trait.Borrow.html)|
+|`BorrowMut`|[std::borrow::BorrowMut](https://doc.rust-lang.org/std/borrow/trait.BorrowMut.html)|
+
+<br>
+
 # Borrow and BorrowMut
 Both traits are used to **treat borrowed types like owned types**.<br>
 

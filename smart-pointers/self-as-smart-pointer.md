@@ -1,3 +1,10 @@
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [Passing `self` as `Box<Self>`, `Rc<Self>` or `Arc<Self>`](#passing-self-as-boxself-rcself-or-arcself)
+    - [Example](#example)
+
+<br>
+
 # Passing `self` as `Box<Self>`, `Rc<Self>` or `Arc<Self>`
 If `self` parameter is declared in *associated function* as `Box<Self>`, `Rc<Self>` or `Arc<Self>` then such methods can **only** be called on value of the given type.
 

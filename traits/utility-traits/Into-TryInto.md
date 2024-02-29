@@ -1,3 +1,20 @@
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [`std`](#std)
+- [Trait `Into`](#trait-into)
+    - [Example](#example)
+- [Trait `TryInto`](#trait-tryinto)
+
+<br>
+
+# `std`
+|Trait|Path in `std`|
+|:----|:------------|
+|`Into`|[std::convert::Into](https://doc.rust-lang.org/std/convert/trait.Into.html)|
+|`TryInto`|[std::convert::TryInto](https://doc.rust-lang.org/std/convert/trait.TryInto.html)|
+
+<br>
+
 # Trait `Into`
 Trait `Into` is used to convert value **from** type `S` **to** type `D` and **must** be implemented on `S` type.<br>
 Trait `Into` **must** **not fail**. If the conversion **can fail**, use `TryInto`.<br>

@@ -1,4 +1,18 @@
-# Cow
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [`std`](#std)
+- [Cow](#cow)
+
+<br>
+
+# `std`
+|Trait|Path in `std`|
+|:----|:------------|
+|`Cow`|[std::borrow::Cow](https://doc.rust-lang.org/stable/std/borrow/enum.Cow.html)|
+
+<br>
+
+# Cow<T>
 Declaration of type `Cow`:
 ```Rust
 pub enum Cow<'a, B>
