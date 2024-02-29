@@ -1,8 +1,9 @@
 # Table of contents
 - [Table of contents](#table-of-contents)
-- [Registry and index](#registry-and-index)
+- [Registry](#registry)
 - [Index](#index)
-  - [The Format of The Index](#the-format-of-the-index)
+  - [The layout of Index](#the-layout-of-index)
+  - [`config.json`](#configjson)
 - [Source](#source)
     - [Example](#example)
 - [Alternate registries](#alternate-registries)
@@ -12,7 +13,7 @@
 
 <br>
 
-# Registry and index
+# Registry
 The **default registry** is `crates.io`.<br>
 
 `cargo` fetches **packages** from a **registry**.<br>
@@ -44,14 +45,14 @@ A **registry** consists of **3 components**:
 # Index
 The **default index** is `https://github.com/rust-lang/crates.io-index`.<br>
 
-Each **cargo registry** provides an **index**, which is a **git repository** following a **particular format**.<br>
-The purpose of the **index** is to provide an efficient method to **resolve the dependency graph** for a package, i.e. `cargo` uses **index** to figure out which packages it must to download to build crate.<br>
-The index contains **exactly one** file for each crate in the registry.<br>
-After resolution has been performed, `cargo`uses **download endpoint** to download packeges: `GET $dl/$crate_name/$version/download` returns `.crate` file for appropriate crate.
+Each **cargo registry** provides an **index**.<br>
+**Index** is a **git repository** following a **particular layout**.<br>
+The purpose of the **index** is to provide an efficient method to **resolve the dependency graph** for a package, i.e. `cargo` uses **index** to figure out which packages it must to download to build crate. After resolution has been performed, `cargo`uses **download endpoint** to download packeges: `GET $dl/$crate_name/$version/download` returns `.crate` file for appropriate crate.
+**Index** contains **exactly one** file for each crate in the registry.<br>
 
 <br>
 
-## The Format of The Index
+## The layout of Index
 ```
 .
 |
@@ -78,8 +79,13 @@ After resolution has been performed, `cargo`uses **download endpoint** to downlo
 There are three **special directories**: `1`, `2` and `3` for crates with names 1, 2, and 3 characters in length.<br>
 The directories `1` and `2` simply have the crate files underneath them, while the directory `3` is sharded by the first letter of the crate name.<br>
 
-There is a `config.json` file in the **root** of the **index** which contains some information used by `cargo` for accessing the **registry**.<br>
+<br>
 
+## `config.json`
+**Index** must contain `config.json` file in its **root**.<br>
+`config.json` contains information used by `cargo` for accessing the **registry**.<br>
+
+Example of `config.json`:<br>
 ```json
 {
     "dl": "https://crates.io/api/v1/crates",

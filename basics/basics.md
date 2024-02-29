@@ -7,7 +7,6 @@
 - [Comments in Rust](#comments-in-rust)
 - [Control flow](#control-flow)
   - [Notation](#notation-1)
-- [Docstrings in Rust](#docstrings-in-rust)
 - [Functions](#functions)
   - [Function declaration](#function-declaration)
   - [Generic function declaration](#generic-function-declaration)
@@ -96,10 +95,28 @@ let x: i32 = |a, b| a + b;
 <br>
 
 # Comments in Rust
-|Comment style|Description|
-|:----|:----------|
-|`//` *text*|**One line** comment|
-|`/*` *abc*<br>*xyz* `*/`|**Multi line** comment|
+There are 2 kinds of comments:
+1. **Regular comments** which are ignored by the compiler:
+- `//` **One line** comment which go to the end of the line;
+- `/* ... */` **Multi line** comment which go to the closing delimiter;
+2. **Documentation comments** (aka **doc comments**, **docstrings**):
+- `///` **Outer documentation** comment:
+  - the `///` syntax is used to document the *item* **next** to** `///`;
+  - the `///` without any text after it is interpreted as **line break**;
+- `//!` **Inner documentation** comment:
+  - the `//!` syntax is used to document the *item* **enclosing** `//!`, i.e. `//!` syntax is used to document the *item* **that contains the comments** rather than to the items following the comments;
+  - it is often used when documenting the `.rs` file **itself**, because nothing comes before it;
+  - `//!` without any text after it is interpreted as **line break**.
+
+<br>
+
+**Documentation comments** support **Markdown** notation.<br>
+
+Commonly used **sections** in **Documentation comments**:
+- `# Examples`;
+- `# Panics` This section describes the scenarios in which the function being documented could **panic**;
+- `# Errors` If the function returns a `Result`, this section describes the kinds of **errors** that might occur;
+- `# Safety` notes for **unsafe** code;
 
 <br>
 
@@ -118,16 +135,6 @@ if expr1 {
     ...
 }
 ```
-
-<br>
-
-# Docstrings in Rust
-|Docstring style|Description|
-|:----|:----------|
-|`///` *line 1*<br>`///`<br>`///` *line 2*<br>**fn _f_() { … }**|The `///` syntax is used to document the **item next to** `///`.<br>It is called an **outer documentation**.<br>`///` without any text after it is interpreted as **line break**.|
-|**fn _f_() {**<br>&nbsp;&nbsp;&nbsp;&nbsp;`//!` *line 1*<br>&nbsp;&nbsp;&nbsp;&nbsp;`//!`<br>&nbsp;&nbsp;&nbsp;&nbsp;`//!` *line 2*<br>**}**|The `//!` syntax is used to document the **item enclosing** `//!`.<br>It is called an **inner documentation**.<br>It is often used when documenting the `.rs` **file itself**, because nothing comes before it.<br>`//!` without any text after it is interpreted as **line break**.|
-
-Docstrings in Rust support **Markdown** syntax.
 
 <br>
 

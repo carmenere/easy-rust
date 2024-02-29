@@ -1,3 +1,24 @@
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [`std`](#std)
+- [AsRef and AsMut](#asref-and-asmut)
+  - [When to use AsRef and AsMut?](#when-to-use-asref-and-asmut)
+    - [Antipattern](#antipattern)
+  - [Declarations](#declarations)
+    - [AsRef](#asref)
+    - [AsMut](#asmut)
+    - [Blanket implementation of `AsRef` in `std`](#blanket-implementation-of-asref-in-std)
+      - [Example](#example)
+
+<br>
+
+# `std`
+|Trait|Path in `std`|
+|:----|:------------|
+|`AsMut`|[std::convert::AsMut](https://doc.rust-lang.org/std/convert/trait.AsMut.html)|
+|`AsRef`|[std::convert::AsRef](https://doc.rust-lang.org/std/convert/trait.AsRef.html)|
+
+<br>
 
 # AsRef and AsMut
 Compared to `Deref`, which has an *implicit* behavior, `AsRef` is an **explicit** conversion.<br>

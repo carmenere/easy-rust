@@ -1,3 +1,22 @@
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [`std`](#std)
+- [ToOwned](#toowned)
+      - [Example](#example)
+  - [Declaration](#declaration)
+  - [Difference between .clone() and .to\_owned()](#difference-between-clone-and-to_owned)
+    - [`.clone()`](#clone)
+    - [`.to_owned()`](#to_owned)
+
+<br>
+
+# `std`
+|Trait|Path in `std`|
+|:----|:------------|
+|`ToOwned`|[std::borrow::ToOwned](https://doc.rust-lang.org/std/borrow/trait.ToOwned.html)|
+
+<br>
+
 # ToOwned
 Some types make it possible to go from **borrowed** to **owned**, usually by implementing the `Clone` trait.<br>
 But `Clone` works only for going from `&T` to `T`.<br>

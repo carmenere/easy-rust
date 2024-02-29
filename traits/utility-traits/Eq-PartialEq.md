@@ -1,3 +1,22 @@
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [`std`](#std)
+- [PartialEq vs. Eq](#partialeq-vs-eq)
+  - [`PartialEq`](#partialeq)
+  - [`Eq`](#eq)
+  - [Float](#float)
+- [PartialOrd vs. Ord](#partialord-vs-ord)
+
+<br>
+
+# `std`
+|Trait|Path in `std`|
+|:----|:------------|
+|`Eq`|[std::cmp::Eq](https://doc.rust-lang.org/std/cmp/trait.Eq.html)|
+|`PartialEq`|[std::cmp::PartialEq](https://doc.rust-lang.org/std/cmp/trait.PartialEq.html)|
+
+<br>
+
 # PartialEq vs. Eq
 - [PartialEq](https://doc.rust-lang.org/std/cmp/trait.PartialEq.html)
 - [Eq](https://doc.rust-lang.org/std/cmp/trait.Eq.html)

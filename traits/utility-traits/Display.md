@@ -1,11 +1,26 @@
-# Debug and Display
-`Debug` and `Display` traits are part of the `std::fmt` module.<br>
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [`std`](#std)
+- [Display](#display)
+  - [Example: Display](#example-display)
+
+<br>
+
+# `std`
+|Trait|Path in `std`|
+|:----|:------------|
+|`Display`|[std::fmt::Display](https://doc.rust-lang.org/std/fmt/trait.Display.html)|
+
+<br>
+
+# Display
+
 `Debug` is **derivable** trait, but `Display` **not** and have to manually write the implementation.<br>
 Implementing `Display` trait will **automatically implement** `ToString`.<br>
 
 <br>
 
-#### Example: Display
+## Example: Display
 ```Rust
 use core::fmt;
 use std::fmt::Display;

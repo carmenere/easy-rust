@@ -1,3 +1,17 @@
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [`std`](#std)
+- [ToString](#tostring)
+
+<br>
+
+# `std`
+|Trait|Path in `std`|
+|:----|:------------|
+|`ToString`|[std::string::ToString](https://doc.rust-lang.org/std/string/trait.ToString.html)|
+
+<br>
+
 # ToString
 `ToString` trait provides method `.to_string()` to convert **value** to a `String`.<br>
 `ToString` trait is **automatically implemented** for any type that implements `Display`.

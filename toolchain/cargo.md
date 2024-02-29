@@ -1,15 +1,19 @@
 # Table of contents
 - [Table of contents](#table-of-contents)
-- [Description](#description)
+- [`cargo`](#cargo)
 - [`cargo` subcommands](#cargo-subcommands)
-- [Examples](#examples)
+	- [Examples](#examples)
 		- [cargo tree](#cargo-tree)
 		- [cargo build](#cargo-build)
 		- [cargo test](#cargo-test)
+- [`cargo cache`](#cargo-cache)
+	- [Installation](#installation)
+	- [Info](#info)
+	- [Clean all](#clean-all)
 
 <br>
 
-# Description
+# `cargo`
 `cargo` is both the **package manager** and the **build system** for Rust.
 
 <br>
@@ -31,15 +35,15 @@
 
 <br>
 
-# Examples
+## Examples
 ### cargo tree
 - option `-i <package>` **invert** the tree direction and focus on the given package and shows all crates where specified package are used:
-```
+```bash
 cargo tree -i libc
 ```
 
 - option `-e <KIND>` specifies the kind of dependencies to display:
-```
+```bash
 cargo tree -e features
 ```
 
@@ -62,7 +66,6 @@ cargo build $(BUILD_OPTs) \
 		--manifest-path $(PATH_TO_CARGO_TOML) \
 		--target-dir $(CARGO_TARGET_DIR) \
 		--target $(TARGET_ARCH)
-
 ```
 
 <br>
@@ -84,6 +87,30 @@ cargo test $(BUILD_OPTs) \
 		--manifest-path $(PATH_TO_CARGO_TOML) \
 		--target-dir $(CARGO_TARGET_DIR) \
 		--target $(TARGET_ARCH)
+```
 
+<br>
 
+# `cargo cache`
+Displays information on the cargo cache (`~/.cargo/` or `$CARGO_HOME`).<br>
+
+<br>
+
+## Installation
+```bash
+cargo install cargo-cache
+```
+
+<br>
+
+## Info
+```bash
+cargo cache -i
+```
+
+<br>
+
+## Clean all
+```bash
+cargo cache -r all
 ```

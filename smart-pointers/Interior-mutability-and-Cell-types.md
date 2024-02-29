@@ -1,3 +1,27 @@
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [`std`](#std)
+- [Interior mutability](#interior-mutability)
+  - [RefCell vs. Cell](#refcell-vs-cell)
+- [Cell](#cell)
+    - [Example](#example)
+- [RefCell](#refcell)
+    - [Example](#example-1)
+- [Example: wrong code](#example-wrong-code)
+- [Rc\<RefCell\>](#rcrefcell)
+
+<br>
+
+# `std`
+|Trait|Path in `std`|
+|:----|:------------|
+|`UnsafeCell`|[std::cell::UnsafeCell](https://doc.rust-lang.org/stable/std/cell/struct.UnsafeCell.html)|
+|`Cell`|[std::cell::Cell](https://doc.rust-lang.org/stable/std/cell/struct.Cell.html)|
+|`RefCell`|[std::cell::RefCell](https://doc.rust-lang.org/stable/std/cell/struct.RefCell.html)|
+
+<br>
+
+
 # Interior mutability
 **Interior mutability** is **property of type** that allows to **wrap** something that’s **mutable** in a structure that is **immutable**.<br>
 In other words, **interior mutability** allow us to **bypass Rust's borrow rules**.<br>
@@ -61,7 +85,7 @@ Differences between `RefCell` and `Cell`:
 
 <br>
 
-# `Cell<T>`
+# Cell<T>
 `T` must be of **Copy type**.	
 
 Some usefull methods of `Cell<T>`:
@@ -126,7 +150,7 @@ counter:2
 
 <br>
 
-# `RefCell<T>`
+# RefCell<T>
 Some usefull methods of `RefCell<T>` methods:
 - `RefCell::new(somevalue)` creates new `RefCell`, moving value `somevalue` into it;
 - `.borrow()` returns **shared reference** to value inside `RefCell`; panics if the value is **already mutably** *borrowed*;

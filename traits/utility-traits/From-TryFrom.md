@@ -1,3 +1,23 @@
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [`std`](#std)
+- [Trait `From`](#trait-from)
+    - [Example](#example)
+- [Error handling](#error-handling)
+    - [Example](#example-1)
+- [Trait `TryFrom`](#trait-tryfrom)
+    - [Example](#example-2)
+
+<br>
+
+# `std`
+|Trait|Path in `std`|
+|:----|:------------|
+|`From`|[std::convert::From](https://doc.rust-lang.org/std/convert/trait.From.html)|
+|`TryFrom`|[std::convert::TryFrom](https://doc.rust-lang.org/std/convert/trait.TryFrom.html)|
+
+<br>
+
 # Trait `From`
 Trait `From` is used to convert value **from** *source* type `S` **to** *destination* type `D` on which it is implemented.<br>
 Trait `From` **must not fail**.<br>
