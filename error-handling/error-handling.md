@@ -147,29 +147,15 @@ fn example(yes: bool) -> Result<(),MyError> {
 <br>
 
 # Macros `try!` and `?` operator
-The `?` operator is equivalent to `try!`.<br>
+The `?` operator is equivalent to `try!`. Now, `try!` is **deprecated**.<br>
 
-`try!` is **deprecated**.<br>
+`?` **unwrap** `Result` **or** perform **prematurely** /premətʃʊəʳli/ **return** from function.<br>
 
-Syntax for `try!`: `let a = try!(expr);`.<br>
+To use `?`, **calling** and **called** functions must use `Result<T, E>` as return type.<br>
 
-Syntax for `?`: `let a = expr?;`.
+<br>
 
-Both `try!` and `?` **unwrap** `Result` OR perform **prematurely** /premətʃʊəʳli/ **return** from function.<br>
-
-To use `?`, **calling** and **called** functions must use `Result` as return type.
-
-Definition of `try!` in **std**:
-```Rust
-macro_rules! try {
-    ($e:expr) => (match $e {
-        Ok(val) => val,
-        Err(err) => return Err(::std::convert::From::from(err)),
-    });
-}
-```
-
-``expr?`` unfolds to:
+`expr?` **unfolds to**:
 ```Rust
 match ::std::ops::Try::into_result(expr) {
     Ok(val) => val,
