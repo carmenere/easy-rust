@@ -4,8 +4,8 @@
 
 <br>
 
-# `std`
-|Trait|Path in `std`|
+# URLs
+|Trait|URL|
 |:----|:------------|
 |`Ord`|[std::cmp::Ord](https://doc.rust-lang.org/std/cmp/trait.Ord.html)|
 |`PartialOrd`|[std::cmp::PartialOrd](https://doc.rust-lang.org/std/cmp/trait.PartialOrd.html)|

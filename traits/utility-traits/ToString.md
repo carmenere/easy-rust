@@ -5,8 +5,8 @@
 
 <br>
 
-# `std`
-|Trait|Path in `std`|
+# URLs
+|Trait|URL|
 |:----|:------------|
 |`ToString`|[std::string::ToString](https://doc.rust-lang.org/std/string/trait.ToString.html)|
 

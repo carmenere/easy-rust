@@ -9,8 +9,8 @@
 
 <br>
 
-# `std`
-|Trait|Path in `std`|
+# URLs
+|Trait|URL|
 |:----|:------------|
 |`Eq`|[std::cmp::Eq](https://doc.rust-lang.org/std/cmp/trait.Eq.html)|
 |`PartialEq`|[std::cmp::PartialEq](https://doc.rust-lang.org/std/cmp/trait.PartialEq.html)|
