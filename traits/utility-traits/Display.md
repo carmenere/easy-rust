@@ -6,8 +6,8 @@
 
 <br>
 
-# `std`
-|Trait|Path in `std`|
+# URLs
+|Trait|URL|
 |:----|:------------|
 |`Display`|[std::fmt::Display](https://doc.rust-lang.org/std/fmt/trait.Display.html)|
 

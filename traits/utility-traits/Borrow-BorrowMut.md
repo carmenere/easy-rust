@@ -12,8 +12,8 @@
 
 <br>
 
-# `std`
-|Trait|Path in `std`|
+# URLs
+|Trait|URL|
 |:----|:------------|
 |`Borrow`|[std::borrow::Borrow](https://doc.rust-lang.org/std/borrow/trait.Borrow.html)|
 |`BorrowMut`|[std::borrow::BorrowMut](https://doc.rust-lang.org/std/borrow/trait.BorrowMut.html)|

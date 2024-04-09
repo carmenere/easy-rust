@@ -1,14 +1,14 @@
 # Table of contents
 - [Table of contents](#table-of-contents)
-- [`std`](#std)
+- [URLs](#urls)
 - [Trait `Into`](#trait-into)
     - [Example](#example)
 - [Trait `TryInto`](#trait-tryinto)
 
 <br>
 
-# `std`
-|Trait|Path in `std`|
+# URLs
+|Trait|URL|
 |:----|:------------|
 |`Into`|[std::convert::Into](https://doc.rust-lang.org/std/convert/trait.Into.html)|
 |`TryInto`|[std::convert::TryInto](https://doc.rust-lang.org/std/convert/trait.TryInto.html)|
@@ -16,7 +16,7 @@
 <br>
 
 # Trait `Into`
-Trait `Into` is used to convert value **from** type `S` **to** type `D` and **must** be implemented on `S` type.<br>
+Trait `Into` is used to convert value *from* **source** type `S` on which it is implemented *to* **destination** type `D`.<br>
 Trait `Into` **must** **not fail**. If the conversion **can fail**, use `TryInto`.<br>
 
 **Declaration** of `Into`:
@@ -28,14 +28,16 @@ pub trait Into<T> {
 
 Method `into()` performs the conversion.<br>
 
-It is important to understand that `Into` **doesn't** automatically implements a `From` (as `From` does with `Into`).<br>
-Therefore, you should always try to implement `From` and then fall back to `Into` if `From` can’t be implemented.<br>
+<br>
+
+**Notes**:<br>
+- The trait `Into` **doesn't** automatically implements `From` (as `From` does). Therefore, you should always try to implement `From` and then fall back to `Into` if `From` can’t be implemented.
+- Prior to Rust **1.41**, if the *destination type* was **not** part of the **current** crate then you **couldn’t** implement `From` **directly**.
 
 <br>
 
 ### Example
-Prior to Rust 1.41, if the **destination type** was not part of the current crate then you couldn’t implement `From` directly.
-For example, the code below will fail  in older versions:
+For example, the code below will **fail** in Rust prior **1.41** version:
 ```Rust
 struct Wrapper<T>(Vec<T>);
 impl<T> From<Wrapper<T>> for Vec<T> {
@@ -47,7 +49,7 @@ impl<T> From<Wrapper<T>> for Vec<T> {
 
 <br>
 
-To bypass this, you could implement Into directly:
+To bypass this, you could implement `Into` **directly**:
 ```Rust
 struct Wrapper<T>(Vec<T>);
 impl<T> Into<Vec<T>> for Wrapper<T> {

@@ -10,8 +10,8 @@
   
 <br>
 
-# `std`
-|Trait|Path in `std`|
+# URLs
+|Trait|URL|
 |:----|:------------|
 |`Send`|[std::marker::Send](https://doc.rust-lang.org/std/marker/trait.Send.html)|
 |`Sync`|[std::marker::Sync](https://doc.rust-lang.org/std/marker/trait.Sync.html)|

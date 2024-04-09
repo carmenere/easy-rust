@@ -4,8 +4,8 @@
 
 <br>
 
-# `std`
-|Trait|Path in `std`|
+# URLs
+|Trait|URL|
 |:----|:------------|
 |`Clone`|[std::clone::Clone](https://doc.rust-lang.org/std/clone/trait.Clone.html)|
 

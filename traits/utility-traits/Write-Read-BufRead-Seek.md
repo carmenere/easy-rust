@@ -4,8 +4,8 @@
 
 <br>
 
-# `std`
-|Trait|Path in `std`|
+# URLs
+|Trait|URL|
 |:----|:------------|
 |`Write`|[std::io::Write](https://doc.rust-lang.org/stable/std/io/trait.Write.html)|
 |`Write`|[std::fmt::Write](https://doc.rust-lang.org/stable/std/fmt/trait.Write.html)|

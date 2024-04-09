@@ -13,8 +13,8 @@
 
 <br>
 
-# `std`
-|Trait|Path in `std`|
+# URLs
+|Trait|URL|
 |:----|:------------|
 |`Deref`|[std::ops::Deref](https://doc.rust-lang.org/std/ops/trait.Deref.html)|
 |`DerefMut`|[std::ops::DerefMut](https://doc.rust-lang.org/std/ops/trait.DerefMut.html)|

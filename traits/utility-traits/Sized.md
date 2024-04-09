@@ -4,8 +4,8 @@
 
 <br>
 
-# `std`
-|Trait|Path in `std`|
+# URLs
+|Trait|URL|
 |:----|:------------|
 |`Sized`|[std::marker::Sized](https://doc.rust-lang.org/std/marker/trait.Sized.html)|
 
