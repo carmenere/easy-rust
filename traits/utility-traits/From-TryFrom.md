@@ -25,7 +25,7 @@
 # Trait `From`
 Trait `From` is used to convert value *from* **source** type `S` *to* **destination** type `D` on which it is implemented.<br>
 Trait `From` **must not fail**. If the conversion **can** **fail**, use `TryFrom`.<br>
-The `From` is used for **error handling**.<br>
+The `From` is useful for **error handling**.<br>
 
 **Declaration** of `From`(here `Self` implies `D`):
 ```Rust
