@@ -53,13 +53,11 @@ The trait `Borrow<B>` is **stricter** than `AsRef<U>`. If `T` implements `Borrow
 
 ## When to use `AsRef` and `AsMut`?
 `From` and `Into` traits are also used for **conversion**. So, when implement `From` and `Into`, when implement `AsRef` and `AsMut`?<br>
-Both `AsRef<U>` and `AsMut<U>` are expected to be cheap, i.e., they **don't require** **copying** of data and **allocation** of new memory.<br>
-`AsRef` and `AsMut` conversions are expected to be **cheap** - i.e. they don't require any data **copying** or **allocation** of new memory and in most cases performed in **constant time** O(1), whereas `From` and `Into` conversions are **not** guaranteed to be cheap.<br>
+Both `AsRef<U>` and `AsMut<U>` are **expected** to be **cheap**, i.e., they **don't require copying** of data and **allocation** of new memory and in most cases performed in **constant time** O(1), whereas `From` and `Into` conversions are **not** guaranteed to be cheap.<br>
 
 <br>
 
 ### `as_ref().to_owned()`
-If you use:
 ```Rust
 fn f<S>(p: S)
 where S: AsRef<String> { 
