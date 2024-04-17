@@ -1,8 +1,9 @@
 # Table of contents
 - [Table of contents](#table-of-contents)
-- [`std`](#std)
-- [Display](#display)
-  - [Example: Display](#example-display)
+- [URLs](#urls)
+- [In a nutshell](#in-a-nutshell)
+- [Declaration](#declaration)
+- [Example](#example)
 
 <br>
 
@@ -13,14 +14,23 @@
 
 <br>
 
-# Display
-
-`Debug` is **derivable** trait, but `Display` **not** and have to manually write the implementation.<br>
+# In a nutshell
+`Debug` and `Display` traits are part of the `std::fmt` module.<br>
+The `Display` trait is for **custom output** and so **cannot** be **derived**. It formats the value using the **given formatter**.<br>
 Implementing `Display` trait will **automatically implement** `ToString`.<br>
 
 <br>
 
-## Example: Display
+# Declaration
+```rust
+pub trait Display {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result;
+}
+```
+
+<br>
+
+# Example
 ```Rust
 use core::fmt;
 use std::fmt::Display;

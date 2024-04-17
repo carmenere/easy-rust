@@ -1,7 +1,10 @@
 # Table of contents
 - [Table of contents](#table-of-contents)
-- [`std`](#std)
-- [ToString](#tostring)
+- [URLs](#urls)
+- [In a nutshell](#in-a-nutshell)
+- [Declaration](#declaration)
+- [Blanket implementations](#blanket-implementations)
+  - [`impl<T> ToString for T `](#implt-tostring-for-t-)
 
 <br>
 
@@ -12,15 +15,34 @@
 
 <br>
 
-# ToString
+# In a nutshell
+Converts the given value to a `String`.
 `ToString` trait provides method `.to_string()` to convert **value** to a `String`.<br>
-`ToString` trait is **automatically implemented** for any type that implements `Display`.
+`ToString` trait is **automatically implemented** for any type that implements `Display`.<br>
 
-The standard library implements the `ToString` trait on **any type that implements** the `Display` trait:
-```Rust
-impl<T> ToString for T 
-where
-    T: Display + ?Sized
+<br>
+
+# Declaration
+```rust
+pub trait ToString {
+    fn to_string(&self) -> String;
+}
 ```
 
-Because the standard library has this **blanket implementations**, we can call the `to_string()` of `ToString` trait on **any type** that **implements** the `Display` trait.
+<br>
+
+# Blanket implementations
+## `impl<T> ToString for T `
+The standard library implements the `ToString` trait on **any type that implements** the `Display` trait:
+```Rust
+impl<T: fmt::Display + ?Sized> ToString for T {
+    default fn to_string(&self) -> String {
+        let mut buf = String::new();
+        let mut formatter = core::fmt::Formatter::new(&mut buf);
+        // Bypass format_args!() to avoid write_str with zero-length strs
+        fmt::Display::fmt(self, &mut formatter)
+            .expect("a Display implementation returned an error unexpectedly");
+        buf
+    }
+}
+```
