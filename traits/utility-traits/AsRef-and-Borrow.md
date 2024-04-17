@@ -218,6 +218,8 @@ impl<T: ?Sized> Borrow<T> for &mut T {
 }
 ```
 
+<br>
+
 ## `BorrowMut`
 ### `impl<T> BorrowMut<T> for T`
 Note, then `&mut self` is a short form for `self: &mut Self`, but `Self` is equal to `T` in blanket implementation, so `self` is `&mut T`.<br>
