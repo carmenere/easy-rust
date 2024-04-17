@@ -1,22 +1,30 @@
 # Table of contents
 - [Table of contents](#table-of-contents)
 - [URLs](#urls)
-- [When to use them?](#when-to-use-them)
+- [In a nutshell](#in-a-nutshell)
   - [When to use `Borrow` and `BorrowMut`?](#when-to-use-borrow-and-borrowmut)
   - [When to use `AsRef` and `AsMut`?](#when-to-use-asref-and-asmut)
-    - [`as_ref().to_owned()`](#as_refto_owned)
-  - [Implementations in `std`](#implementations-in-std)
-  - [`HashMap` example](#hashmap-example)
+- [Implementations in `std`](#implementations-in-std)
+- [`Borrow` in `HashMap`](#borrow-in-hashmap)
 - [Declarations](#declarations)
   - [`Borrow`](#borrow)
   - [`BorrowMut`](#borrowmut)
   - [`AsRef`](#asref)
   - [`AsMut`](#asmut)
-  - [Blanket implementations](#blanket-implementations)
-    - [`Borrow`](#borrow-1)
-    - [`BorrowMut`](#borrowmut-1)
-    - [`AsRef`](#asref-1)
-    - [`AsMut`](#asmut-1)
+- [Blanket implementations](#blanket-implementations)
+  - [`Borrow`](#borrow-1)
+    - [`impl<T> Borrow<T> for T `](#implt-borrowt-for-t-)
+    - [`impl<T> Borrow<T> for &T`](#implt-borrowt-for-t)
+    - [`impl<T> Borrow<T> for &mut T`](#implt-borrowt-for-mut-t)
+  - [`BorrowMut`](#borrowmut-1)
+    - [`impl<T> BorrowMut<T> for T`](#implt-borrowmutt-for-t)
+    - [`impl<T> BorrowMut<T> for &mut T`](#implt-borrowmutt-for-mut-t)
+  - [`AsRef`](#asref-1)
+    - [`impl<T, U> AsRef<U> for &T`](#implt-u-asrefu-for-t)
+    - [`impl<T, U> AsRef<U> for &mut T`](#implt-u-asrefu-for-mut-t)
+  - [`AsMut`](#asmut-1)
+    - [`impl<T, U> AsMut<U> for &mut T`](#implt-u-asmutu-for-mut-t)
+- [Examples](#examples)
   - [Function that accepts both `&str` and `String`](#function-that-accepts-both-str-and-string)
   - [`AsRef<Path>>`](#asrefpath)
   - [More examples](#more-examples)
@@ -33,7 +41,7 @@
 
 <br>
 
-# When to use them?
+# In a nutshell
 `Borrow` and `AsRef` are almost the same (`a` is an instance of `A`):
 - `impl Borrow<B> for A` indicates that a `a.borrow()` returns `&B`;
 - `impl AsRef<U> for A` indicates that a `a.as_ref()` returns `&U`;
@@ -47,7 +55,7 @@
 <br>
 
 ## When to use `Borrow` and `BorrowMut`?
-The trait `Borrow<B>` is **stricter** than `AsRef<U>`. If `T` implements `Borrow<B>` it means that all traits `Eq`, `Ord` and `Hash` give the **same results** for both `T` and `&B`. In other words, `x.borrow() == y.borrow()` should give the same result as `x == y`.<br>
+The trait `Borrow<B>` is **stricter** than `AsRef<U>`. In other words, if `T` implements `Borrow<B>` it means that all traits `Eq`, `Ord` and `Hash` give the **same results** for both `T` and `&B`. In other words, `x.borrow() == y.borrow()` should give the same result as `x == y`.<br>
 
 <br>
 
@@ -57,17 +65,7 @@ Both `AsRef<U>` and `AsMut<U>` are **expected** to be **cheap**, i.e., they **do
 
 <br>
 
-### `as_ref().to_owned()`
-```Rust
-fn f<S>(p: S)
-where S: AsRef<String> { 
-    let x = p.as_ref().to_owned();
-}
-```
-
-<br>
-
-## Implementations in `std`
+# Implementations in `std`
 - `Vec<T>`:
   - `impl<T> AsRef<[T]> for Vec<T>`;
   - `impl<T> AsMut<[T]> for Vec<T>`;
@@ -86,8 +84,16 @@ where S: AsRef<String> {
 
 <br>
 
-## `HashMap` example
-Consider [std::collections::HashMap](https://doc.rust-lang.org/std/collections/struct.HashMap.html):
+# `Borrow` in `HashMap`
+[`HashMap` doc](https://doc.rust-lang.org/std/collections/struct.HashMap.html).<br>
+[Using `Borrow` in `HashMap`](https://doc.rust-lang.org/std/borrow/trait.Borrow.html#examples):
+- The entire hash map is generic over a key type `K`;
+- The `get` method is generic over the type `Q`;
+- `K` and `Q` are connected: `K` must implement `Borrow<Q>`;
+
+<br>
+
+Slightly simplified defenition of `HashMap<K, V>` look like this:
 ```rust
 use std::borrow::Borrow;
 use std::hash::Hash;
@@ -120,8 +126,6 @@ So,
 - the **key** of `&str` type is used for **searching**;
 
 This is because `impl Borrow<str> for String`.
-
-<br>
 
 ```rust
 use std::collections::HashMap;
@@ -180,8 +184,9 @@ pub trait AsMut<T: ?Sized> {
 
 <br>
 
-## Blanket implementations
-### `Borrow`
+# Blanket implementations
+## `Borrow`
+### `impl<T> Borrow<T> for T `
 Note, then `&self` is a short form for `self: &Self`, but `Self` is equal to `T` in blanket implementation, so `self` is `&T`.<br>
 ```rust
 impl<T: ?Sized> Borrow<T> for T {
@@ -193,6 +198,7 @@ impl<T: ?Sized> Borrow<T> for T {
 
 <br>
 
+### `impl<T> Borrow<T> for &T`
 ```rust
 impl<T: ?Sized> Borrow<T> for &T {
     fn borrow(&self) -> &T {
@@ -203,6 +209,7 @@ impl<T: ?Sized> Borrow<T> for &T {
 
 <br>
 
+### `impl<T> Borrow<T> for &mut T`
 ```rust
 impl<T: ?Sized> Borrow<T> for &mut T {
     fn borrow(&self) -> &T {
@@ -211,7 +218,8 @@ impl<T: ?Sized> Borrow<T> for &mut T {
 }
 ```
 
-### `BorrowMut`
+## `BorrowMut`
+### `impl<T> BorrowMut<T> for T`
 Note, then `&mut self` is a short form for `self: &mut Self`, but `Self` is equal to `T` in blanket implementation, so `self` is `&mut T`.<br>
 ```rust
 impl<T: ?Sized> BorrowMut<T> for T {
@@ -223,6 +231,7 @@ impl<T: ?Sized> BorrowMut<T> for T {
 
 <br>
 
+### `impl<T> BorrowMut<T> for &mut T`
 ```rust
 impl<T: ?Sized> BorrowMut<T> for &mut T {
     fn borrow_mut(&mut self) -> &mut T {
@@ -233,7 +242,8 @@ impl<T: ?Sized> BorrowMut<T> for &mut T {
 
 <br>
 
-### `AsRef`
+## `AsRef`
+### `impl<T, U> AsRef<U> for &T`
 ```Rust
 impl<T: ?Sized, U: ?Sized> AsRef<U> for &T
 where
@@ -249,6 +259,7 @@ It means: for **any types** `T` and `U`, if `T: AsRef<U>`, then `&T: AsRef<U>` a
 
 <br>
 
+### `impl<T, U> AsRef<U> for &mut T`
 ```rust
 impl<T: ?Sized, U: ?Sized> AsRef<U> for &mut T
 where
@@ -264,7 +275,8 @@ It means: for **any types** `T` and `U`, if `T: AsRef<U>`, then `&mut T: AsRef<U
 
 <br>
 
-### `AsMut`
+## `AsMut`
+### `impl<T, U> AsMut<U> for &mut T`
 ```rust
 impl<T: ?Sized, U: ?Sized> AsMut<U> for &mut T
 where
@@ -278,6 +290,7 @@ where
 
 <br>
 
+# Examples
 ## Function that accepts both `&str` and `String`
 ```rust
 fn print<T> (s: T)
@@ -308,6 +321,5 @@ This allows `File.open()` to accept not only `Path`, but also `OsStr`, `OsString
 <br>
 
 ## More examples
-More examples
 - [borrow-for-case-insensitive-str](https://github.com/carmenere/easy-rust/blob/main/examples/traits/borrow-for-case-insensitive-str.md)
 - [borrow-own-hashmap-implementation](https://github.com/carmenere/easy-rust/blob/main/examples/hashmaps/borrow-own-hashmap-implementation.md)
