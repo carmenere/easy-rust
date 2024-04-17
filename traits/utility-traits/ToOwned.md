@@ -75,10 +75,8 @@ impl ToOwned for str {
    }
 }
 ```
-- d
-```rust
-```
 
+<br>
 
 # Blanket implementations
 ## `impl<T> ToOwned for T`
