@@ -4,9 +4,9 @@
 - [Declaration](#declaration)
 - [`Sized`](#sized)
 - [`?Sized`](#sized-1)
-  - [Examples](#examples)
-    - [`Sized` trait](#sized-trait)
-    - [`?Sized` generic](#sized-generic)
+- [Examples](#examples)
+  - [`Sized` trait](#sized-trait)
+  - [`?Sized` generic](#sized-generic)
 
 <br>
 
@@ -55,8 +55,8 @@ So,
 
 <br>
 
-## Examples
-### `Sized` trait
+# Examples
+## `Sized` trait
 ```rust
 trait Foo { }
 trait Bar: Sized { }
@@ -79,7 +79,7 @@ let y: &dyn Bar = &Impl; // Error
 
 <br>
 
-### `?Sized` generic
+## `?Sized` generic
 ```rust
 struct Bar<T>(T) where T: ?Sized;
 struct BarUse(Bar<[i32]>); // OK
