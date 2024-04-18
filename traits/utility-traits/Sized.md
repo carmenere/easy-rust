@@ -2,8 +2,8 @@
 - [Table of contents](#table-of-contents)
 - [URLs](#urls)
 - [Declaration](#declaration)
-- [In a nutshell](#in-a-nutshell)
-- [`?Sized`](#sized)
+- [`Sized`](#sized)
+- [`?Sized`](#sized-1)
   - [Examples](#examples)
     - [`Sized` trait](#sized-trait)
     - [`?Sized` generic](#sized-generic)
@@ -24,7 +24,7 @@ pub trait Sized { }
 
 <br>
 
-# In a nutshell
+# `Sized`
 The `Sized` trait is the **marker trait** and it indicates that the **size** of type is **known** *at compile time*.<br>
 The `Sized` trait is implemented **automatically** by the compiler for most types. In other words, most of types have **implicit** `Sized` bound **by default**.<br>
 
