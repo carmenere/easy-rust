@@ -2,15 +2,19 @@
 - [Table of contents](#table-of-contents)
 - [URLs](#urls)
 - [Trait `From`](#trait-from)
-    - [Example](#example)
+  - [Declaration](#declaration)
+  - [In a nutshell](#in-a-nutshell)
+  - [Example](#example)
 - [Trait `TryFrom`](#trait-tryfrom)
-    - [Example](#example-1)
+  - [Declaration](#declaration-1)
+  - [In a nutshell](#in-a-nutshell-1)
+  - [Example](#example-1)
 - [Blanket implementations](#blanket-implementations)
   - [Every type can be converted to itself](#every-type-can-be-converted-to-itself)
   - [Relation with trait `Into`](#relation-with-trait-into)
     - [Example](#example-2)
 - [Error handling](#error-handling)
-    - [Example](#example-3)
+  - [Example](#example-3)
 
 <br>
 
@@ -23,22 +27,26 @@
 <br>
 
 # Trait `From`
-Trait `From` is used to convert value *from* **source** type `S` *to* **destination** type `D` on which it is implemented.<br>
-Trait `From` **must not fail**. If the conversion **can** **fail**, use `TryFrom`.<br>
-The `From` is useful for **error handling**.<br>
-
-**Declaration** of `From`(here `Self` implies `D`):
-```Rust
+## Declaration
+```rust
 pub trait From<S> {
     fn from(value: S) -> Self;
 }
 ```
 
-Method `from()` performs the conversion.<br>
+- `Self` implies **destination** type `D`;
+- method `from()` performs the conversion;
 
 <br>
 
-### Example
+## In a nutshell
+Trait `From` is used to convert value *from* **source** type `S` *to* **destination** type `D` on which it is implemented.<br>
+Trait `From` **must not fail**. If the conversion **can** **fail**, use `TryFrom`.<br>
+The `From` is useful for **error handling**.<br>
+
+<br>
+
+## Example
 **Notes**:<br>
 - The compiler is **unable** to **infer** destination type `D` when `From::from()` is used.
 - Explicit type declaration must be used in **let binding**, for example: `let n: Number = From::from(30);`.
@@ -67,9 +75,7 @@ fn main() {
 <br>
 
 # Trait `TryFrom`
-`TryFrom<T>` returns `Result<T, E>`.<br>
-
-**Declaration** of `TryFrom`:
+## Declaration
 ```Rust
 pub trait TryFrom<T> {
     type Error;
@@ -79,7 +85,12 @@ pub trait TryFrom<T> {
 
 <br>
 
-### Example
+## In a nutshell
+`TryFrom<T>` returns `Result<T, E>`.<br>
+
+<br>
+
+## Example
 ```Rust
 struct GreaterThanZero(i32);
 
@@ -178,7 +189,7 @@ The `?` operator **automatically** converts the **error** to `Err` variant of `R
 
 <br>
 
-### Example
+## Example
 ```Rust
 use std::fs;
 use std::io;

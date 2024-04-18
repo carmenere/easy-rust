@@ -1,10 +1,10 @@
 # Table of contents
 - [Table of contents](#table-of-contents)
 - [URLs](#urls)
+- [Declaration](#declaration)
 - [In a nutshell](#in-a-nutshell)
   - [Examples](#examples)
     - [`.as_ref()` with `.to_owned()`](#as_ref-with-to_owned)
-- [Declaration](#declaration)
 - [Implementations in `std`](#implementations-in-std)
 - [Blanket implementations](#blanket-implementations)
   - [`impl<T> ToOwned for T`](#implt-toowned-for-t)
@@ -19,6 +19,19 @@
 |Trait|URL|
 |:----|:------------|
 |`ToOwned`|[std::borrow::ToOwned](https://doc.rust-lang.org/std/borrow/trait.ToOwned.html)|
+
+<br>
+
+# Declaration
+```Rust
+pub trait ToOwned {
+    type Owned: Borrow<Self>;
+
+    fn to_owned(&self) -> Self::Owned;
+
+    fn clone_into(&self, target: &mut Self::Owned) { ... }
+}
+```
 
 <br>
 
@@ -47,19 +60,6 @@ fn f<S>(p: S)
 where S: AsRef<String>
 { 
     let x = p.as_ref().to_owned();
-}
-```
-
-<br>
-
-# Declaration
-```Rust
-pub trait ToOwned {
-    type Owned: Borrow<Self>;
-
-    fn to_owned(&self) -> Self::Owned;
-
-    fn clone_into(&self, target: &mut Self::Owned) { ... }
 }
 ```
 

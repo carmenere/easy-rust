@@ -1,8 +1,8 @@
 # Table of contents
 - [Table of contents](#table-of-contents)
 - [URLs](#urls)
-- [In a nutshell](#in-a-nutshell)
 - [Declaration](#declaration)
+- [In a nutshell](#in-a-nutshell)
 - [Example](#example)
 
 <br>
@@ -14,19 +14,19 @@
 
 <br>
 
-# In a nutshell
-`Debug` and `Display` traits are part of the `std::fmt` module.<br>
-The `Display` trait is for **custom output** and so **cannot** be **derived**. It formats the value using the **given formatter**.<br>
-Implementing `Display` trait will **automatically implement** `ToString`.<br>
-
-<br>
-
 # Declaration
 ```rust
 pub trait Display {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result;
 }
 ```
+
+<br>
+
+# In a nutshell
+`Debug` and `Display` traits are part of the `std::fmt` module.<br>
+The `Display` trait is for **custom output** and so **cannot** be **derived**. It formats the value using the **given formatter**.<br>
+Implementing `Display` trait will **automatically implement** `ToString`.<br>
 
 <br>
 

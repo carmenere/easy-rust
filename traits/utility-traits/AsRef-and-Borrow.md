@@ -1,16 +1,16 @@
 # Table of contents
 - [Table of contents](#table-of-contents)
 - [URLs](#urls)
-- [In a nutshell](#in-a-nutshell)
-  - [When to use `Borrow` and `BorrowMut`?](#when-to-use-borrow-and-borrowmut)
-  - [When to use `AsRef` and `AsMut`?](#when-to-use-asref-and-asmut)
-- [Implementations in `std`](#implementations-in-std)
-- [`Borrow` in `HashMap`](#borrow-in-hashmap)
 - [Declarations](#declarations)
   - [`Borrow`](#borrow)
   - [`BorrowMut`](#borrowmut)
   - [`AsRef`](#asref)
   - [`AsMut`](#asmut)
+- [In a nutshell](#in-a-nutshell)
+  - [When to use `Borrow` and `BorrowMut`?](#when-to-use-borrow-and-borrowmut)
+  - [When to use `AsRef` and `AsMut`?](#when-to-use-asref-and-asmut)
+- [Implementations in `std`](#implementations-in-std)
+  - [`Borrow` in `HashMap`](#borrow-in-hashmap)
 - [Blanket implementations](#blanket-implementations)
   - [`Borrow`](#borrow-1)
     - [`impl<T> Borrow<T> for T `](#implt-borrowt-for-t-)
@@ -38,6 +38,52 @@
 |`BorrowMut`|[std::borrow::BorrowMut](https://doc.rust-lang.org/std/borrow/trait.BorrowMut.html)|
 |`AsRef`|[std::convert::AsRef](https://doc.rust-lang.org/std/convert/trait.AsRef.html)|
 |`AsMut`|[std::convert::AsMut](https://doc.rust-lang.org/std/convert/trait.AsMut.html)|
+
+<br>
+
+# Declarations
+## `Borrow`
+The trait `Borrow` **immutably** borrows from an **owned** value.<br>
+
+```rust
+pub trait Borrow<B: ?Sized> {
+    fn borrow(&self) -> &B;
+}
+```
+
+<br>
+
+## `BorrowMut`
+The trait `BorrowMut` **mutably** borrows from an **owned** value.<br>
+The `Borrow` trait is a **supertrait** of `BorrowMut`, i.e. implementing `BorrowMut` requires to also implement `Borrow`.<br>
+
+```rust
+pub trait BorrowMut<B: ?Sized>: Borrow<B> {
+    fn borrow_mut(&mut self) -> &mut B;
+}
+```
+
+<br>
+
+## `AsRef`
+The trait `AsRef` converts this type into a **shared** *reference* of antoher type.<br>
+
+```rust
+pub trait AsRef<T: ?Sized> {
+    fn as_ref(&self) -> &T;
+}
+```
+
+<br>
+
+## `AsMut`
+Converts this type into a **mutable** *reference* of antoher type.<br>
+
+```rust
+pub trait AsMut<T: ?Sized> {
+    fn as_mut(&mut self) -> &mut T;
+}
+```
 
 <br>
 
@@ -84,7 +130,7 @@ Both `AsRef<U>` and `AsMut<U>` are **expected** to be **cheap**, i.e., they **do
 
 <br>
 
-# `Borrow` in `HashMap`
+## `Borrow` in `HashMap`
 [`HashMap` doc](https://doc.rust-lang.org/std/collections/struct.HashMap.html).<br>
 [Using `Borrow` in `HashMap`](https://doc.rust-lang.org/std/borrow/trait.Borrow.html#examples):
 - The entire hash map is generic over a key type `K`;
@@ -134,52 +180,6 @@ let mut map = HashMap::new();
 map.insert("Foo".to_string(), 42);
 
 assert_eq!(map.get("Foo"), Some(&42));
-```
-
-<br>
-
-# Declarations
-## `Borrow`
-The trait `Borrow` **immutably** borrows from an **owned** value.<br>
-
-```rust
-pub trait Borrow<B: ?Sized> {
-    fn borrow(&self) -> &B;
-}
-```
-
-<br>
-
-## `BorrowMut`
-The trait `BorrowMut` **mutably** borrows from an **owned** value.<br>
-The `Borrow` trait is a **supertrait** of `BorrowMut`, i.e. implementing `BorrowMut` requires to also implement `Borrow`.<br>
-
-```rust
-pub trait BorrowMut<B: ?Sized>: Borrow<B> {
-    fn borrow_mut(&mut self) -> &mut B;
-}
-```
-
-<br>
-
-## `AsRef`
-The trait `AsRef` converts this type into a **shared** *reference* of antoher type.<br>
-
-```rust
-pub trait AsRef<T: ?Sized> {
-    fn as_ref(&self) -> &T;
-}
-```
-
-<br>
-
-## `AsMut`
-Converts this type into a **mutable** *reference* of antoher type.<br>
-
-```rust
-pub trait AsMut<T: ?Sized> {
-    fn as_mut(&mut self) -> &mut T;
-}
 ```
 
 <br>
