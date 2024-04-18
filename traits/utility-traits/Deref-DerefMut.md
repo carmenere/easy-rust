@@ -1,15 +1,20 @@
 # Table of contents
 - [Table of contents](#table-of-contents)
-- [`std`](#std)
-- [Coercions](#coercions)
-- [Reference type and Dereferenceable type](#reference-type-and-dereferenceable-type)
-- [`Deref` trait](#deref-trait)
-    - [Example](#example)
-- [`DerefMut` trait](#derefmut-trait)
+- [URLs](#urls)
+- [Declarations](#declarations)
+  - [`Deref`](#deref)
+  - [`DerefMut`](#derefmut)
+- [In a nutshell](#in-a-nutshell)
+  - [Example](#example)
 - [Deref coercion](#deref-coercion)
-- [Deref coercion cases](#deref-coercion-cases)
+  - [Deref coercion rules](#deref-coercion-rules)
+  - [Example](#example-1)
 - [Dot `.` operator](#dot--operator)
-- [Examples](#examples)
+  - [Example](#example-2)
+- [Implementations in `std`](#implementations-in-std)
+- [Blanket implementations](#blanket-implementations)
+  - [`impl<T> Deref<Target=T> for &T`](#implt-dereftargett-for-t)
+  - [`impl<T> Deref<Target=T> for &mut T`](#implt-dereftargett-for-mut-t)
 
 <br>
 
@@ -21,36 +26,9 @@
 
 <br>
 
-# Coercions
-**Type coercions** are **implicit** type conversions.
-
-<br>
-
-More about type here [type coercions in Rust](https://doc.rust-lang.org/reference/type-coercions.html)
-
-<br>
-
-# Reference type and Dereferenceable type
-What types can be **dereferenced**?<br>
-A type can be **dereferenced** if it **dereferenceable type**.<br>
-**Dereferenceable type** is a type that implements the `Deref` and/or `DerefMut` traits.<br>
-**Reference type** is a type of **reference** that was created by `&` **reference operator**.<br>
-Compiler automatically adds `Deref` and/or `DerefMut` traits for **reference types**.<br>
-So, **reference type** is **dereferenceable type**.<br>
-
-Non-pointer types like `bool` or `char` or `(u8, u8)` **cannot** be **dereferenced**: they **don't** implement the `Deref` trait and **don't** act like pointers to some other type.<br>
-
-```Rust
-fn foo(b: &bool) -> bool { *b }
-```
-
-<br>
-
-# `Deref` trait
-`Deref` trait is used for **immutable** dereferencing operations, like `let v = *s;`.<br>
-
-**Defenition** of `Deref` trait:
-```Rust
+# Declarations
+## `Deref`
+```rust
 pub trait Deref {
     type Target: ?Sized;
 
@@ -58,15 +36,50 @@ pub trait Deref {
 }
 ```
 
-### Example
+<br>
+
+## `DerefMut`
+```rust
+pub trait DerefMut: Deref {
+    fn deref_mut(&mut self) -> &mut Self::Target;
+}
+```
+
+<br>
+
+# In a nutshell
+There are **2 types** of reference:
+1. **Regular reference** is an ordinary `&` reference.
+2. **Smart pointer** is any type that implements `Deref` and `DerefMut` traits.
+
+<br>
+
+Without `Deref` trait the compiler can only dereference **regular references**.<br>
+Methods `deref()` and `deref_mut()` return a reference to the value we want to access with the `*` operator.<br>
+
+<br>
+
+In expression `*v`:
+  - if `v` is a value of type `T` and `T` implements `Deref<Target=U>`:
+    - Rust **substitutes** the `v` with a call to the `deref()`;
+    - then Rust applies `*` to the value returned from `deref()`: `*(v.deref())`;
+  - if `v` is a value of type `T` and `T` implements `DerefMut<Target=U>`:
+    - Rust **substitutes** the `v` with a call to the `deref_mut()`;
+    - then Rust applies `*` to the value returned from `deref_mut()`: `*(v.deref_mut())`;
+  - if `v` is a value of type `T` and `T` doesn't implemet `Deref` and `DerefMut`:
+    - Rust applies `*` to the `v` **directly**;
+
+<br>
+
+## Example
 ```Rust
 use std::ops::Deref;
 
-struct DerefExample<T> {
+struct MyBox<T> {
     value: T
 }
 
-impl<T> Deref for DerefExample<T> {
+impl<T> Deref for MyBox<T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
@@ -74,99 +87,102 @@ impl<T> Deref for DerefExample<T> {
     }
 }
 
-let x = DerefExample { value: 'a' };
-assert_eq!('a', *x);
-```
-
-<br>
-
-`deref` method returns a **reference** to the value we want to access with the `*` **dereference operator**.<br>
-Without the `Deref` trait, the compiler can only **dereference** **reference types**.<br>
-The `deref` method gives the compiler the ability to take a value of any type that implements `Deref` and call the `deref` method to get a **reference type** that it knows how to dereference.
-
-When we type `*y` in our code, behind the scenes Rust actually converts it to: `*(y.deref())`.<br>
-
-<br>
-
-# `DerefMut` trait
-`DerefMut` trait is used for **mutable** dereferencing operations, like `*v = 5;`.<br>
-
-**Defenition** of `Deref` trait:
-```Rust
-pub trait DerefMut: Deref {
-    fn deref_mut(&mut self) -> &mut Self::Target;
+fn main() {
+    let x = MyBox { value: 'a' };
+    assert_eq!('a', *x);
 }
 ```
-
-When we type `*y` in our code, behind the scenes Rust actually converts it to: `*(y.deref_mut())`.<br>
 
 <br>
 
 # Deref coercion
-**Deref coercion** converts a *reference* to a **dereferenceable type** into a *reference* to **another type**.
+**Deref coercion** is **implicit** type conversion.<br>
+Rust performs **deref coercion** every time we pass a reference to a function or method that **doesn't** match the parameter type.<br>
+But, Rust **doesn't** *coerce* **immutable** *reference* to **mutable** *reference*.<br>
 
+<br>
+
+## Deref coercion rules
+1. Compiler **doesn't** *coerce* **immutable** *reference* to **mutable** *reference*.
+2. If `T: Deref<Target=U>`, then
+- values of type `&T` are coerced to values of type `&U`;
+- values of type `&mut T` are coerced to values of type `&U`;
+3. If `T: DerefMut<Target=U>`, then
+- values of type `&mut T` are coerced to values of type `&mut U`;
+
+<br>
+
+## Example
 To see **deref coercion** in action, consider function `hello` that has the parameter `name` of type `&str`:
 ```Rust
 fn hello(name: &str) {
     println!("Hello, {name}!");
 }
 ```
-
 This `hello` function receives a **string slice** as an **argument**, such as `hello("Rust");`.<br>
 **Deref coercion** makes it possible to call `hello` with a **reference** to a value of type `MyBox<String>`:
-
 ```Rust
 fn main() {
     let m = MyBox::new(String::from("Rust"));
     hello(&m);
 }
 ```
-
 Here we’re calling the `hello` function with the argument `&m`, which is a **reference** to a `MyBox<String>` value.<br>
 Rust performs following **deref chain**: 
-- `&MyBox<String>` -> `&String` (because `MyBox<T>` implements `Deref` trait such that it returns `&String`);
-- `&String` -> `&str` (because `String` implements `Deref` trait such that it returns `&str`).
-
-<br>
-
-# Deref coercion cases
-|From => To|Trait boudary|Description|
-|:---------|:-------------|:----------|
-|`&T` => `&U`|`T: Deref<Target=U>`|If you have a `&T`, and `T` implements `Deref` to some type `U`, compiler will **coerce** `&T` into `&U` **transparently**.|
-|`&mut T` => `&mut U`|`T: DerefMut<Target=U>`|If you have a `&mut T`, and `T` implements `DerefMut` to some type `U`, compiler will **coerce** `&mut T` into `&mut U` **transparently**.|
-|`&mut T` => `&U`|`T: Deref<Target=U>`|If you have a `&mut T`, and `T` implements `Deref` to some type `U`, compiler will **coerce** `&mut T` into `&U` **transparently**.|
-
-<br>
-
-> Note<br>
-> Compiler **will not** *coerce* **immutable** *reference* to **mutable** *reference*.
+- `&MyBox<String>` coerced to `&String` because `MyBox<T>` implements `Deref<Target=T>` such that it returns `&T`;
+- `&String` coerced to `&str` because `String` implements `Deref<Target=str>`;
 
 <br>
 
 # Dot `.` operator
-When you use **dot operator** `.`, the compiler will insert as many `*` (dereferencing operations) as necessary to find the appropriate method. As **this happens** **at compile tim**e, there is **no** **runtime cost** of finding the method.
+When you use **dot operator** `.`, the compiler inserts **at compile time** as many `*` as necessary to find the appropriate method. So, there is **no runtime overhead** of finding the method.
 
-For example, if `x` has type `&i32`, then writing `x.count_ones()` is shorthand for `(*x).count_ones()`, because the `count_ones` method requires an `i32`.
+In other words,
+- `T: Deref<Target=U>` means that when we can call on the value of `T` type methods of `U` type which take `&self`;
+- `T: DerefMut<Target=U>` means that when we can call on the value of `T` type methods of `U` type which take `&mut self`;
 
 <br>
 
-# Examples
-```Rust
-fn foo(a: &[i32]) {
-    // code
+## Example
+If `x` has type `&i32`, then writing `x.count_ones()` is shorthand for `(*x).count_ones()`, because the `count_ones` method requires an `i32`.
+
+<br>
+
+# Implementations in `std`
+- `Vec<T>`:
+  - `Vec<T>` implements `Deref<Target=[T]>`;
+- `String`:
+  - `String` implements `Deref<Target=str>`;
+- `Rc<T>`:
+  - `Rc<T>` implements `Deref<Target=T>`
+- `Arc<T>`:
+  - `Arc<T>` implements `Deref<Target=T>`
+- `Box<T>`:
+  - `Box<T>` implements `Deref<Target=T>`
+
+<br>
+
+# Blanket implementations
+## `impl<T> Deref<Target=T> for &T`
+```rust
+impl<T: ?Sized> Deref for &T {
+    type Target = T;
+
+    fn deref(&self) -> &T {
+        *self
+    }
 }
+```
 
-fn bar(s: &str) {
-    // code
+<br>
+
+## `impl<T> Deref<Target=T> for &mut T`
+```rust
+impl<T: ?Sized> Deref for &mut T {
+    type Target = T;
+
+    fn deref(&self) -> &T {
+        *self
+    }
 }
-
-let v = vec![1, 2, 3];
-// &Vec<i32> coerces into &[i32] because Vec<T> impls Deref<Target=[T]>
-foo(&v); 
-
-let s = "Hello world".to_string();
-let rc = Rc::new(s);
-// Rc<T> impls Deref<Target=T> and &Rc<String> coerces into &String 
-// which coerces into &str. This happens as much as needed at compile time.
-bar(&rc);
 ```
