@@ -2,8 +2,12 @@
 - [Table of contents](#table-of-contents)
 - [URLs](#urls)
 - [Trait `Into`](#trait-into)
-    - [Example](#example)
+  - [Declaration](#declaration)
+  - [In a nutshell](#in-a-nutshell)
+  - [Example](#example)
 - [Trait `TryInto`](#trait-tryinto)
+  - [Declaration](#declaration-1)
+  - [In a nutshell](#in-a-nutshell-1)
 
 <br>
 
@@ -16,17 +20,21 @@
 <br>
 
 # Trait `Into`
-Trait `Into` is used to convert value *from* **source** type `S` on which it is implemented *to* **destination** type `D`.<br>
-Trait `Into` **must** **not fail**. If the conversion **can fail**, use `TryInto`.<br>
-
-**Declaration** of `Into`:
-```Rust
-pub trait Into<T> {
-    fn into(self) -> T;
+## Declaration
+```rust
+pub trait Into<D> {
+    fn into(self) -> D;
 }
 ```
 
-Method `into()` performs the conversion.<br>
+- `Self` implies **source** type `S`;
+- method `into()` performs the conversion;
+
+<br>
+
+## In a nutshell
+Trait `Into` is used to convert value *from* **source** type `S` on which it is implemented *to* **destination** type `D`.<br>
+Trait `Into` **must** **not fail**. If the conversion **can fail**, use `TryInto`.<br>
 
 <br>
 
@@ -36,7 +44,7 @@ Method `into()` performs the conversion.<br>
 
 <br>
 
-### Example
+## Example
 For example, the code below will **fail** in Rust prior **1.41** version:
 ```Rust
 struct Wrapper<T>(Vec<T>);
@@ -62,12 +70,15 @@ impl<T> Into<Vec<T>> for Wrapper<T> {
 <br>
 
 # Trait `TryInto`
-`TryInto<T>` returns `Result<T, E>`.<br>
-
-**Declaration** of `TryInto`:
+## Declaration
 ```Rust
 pub trait TryInto<T> {
     type Error;
     fn try_into(self) -> Result<T, Self::Error>;
 }
 ```
+
+<br>
+
+## In a nutshell
+`TryInto<T>` returns `Result<T, E>`.<br>

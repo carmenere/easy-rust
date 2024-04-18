@@ -1,8 +1,8 @@
 # Table of contents
 - [Table of contents](#table-of-contents)
 - [URLs](#urls)
-- [In a nutshell](#in-a-nutshell)
 - [Declaration](#declaration)
+- [In a nutshell](#in-a-nutshell)
 
 <br>
 
@@ -10,6 +10,15 @@
 |Trait|URL|
 |:----|:------------|
 |`Default`|[std::default::Default](https://doc.rust-lang.org/std/default/trait.Default.html)|
+
+<br>
+
+# Declaration
+```rust
+pub trait Default: Sized {
+    fn default() -> Self;
+}
+```
 
 <br>
 
@@ -26,14 +35,5 @@ enum Kind {
     A,
     B,
     C,
-}
-```
-
-<br>
-
-# Declaration
-```rust
-pub trait Default: Sized {
-    fn default() -> Self;
 }
 ```

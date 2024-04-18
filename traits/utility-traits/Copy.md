@@ -1,8 +1,8 @@
 # Table of contents
 - [Table of contents](#table-of-contents)
 - [URLs](#urls)
-- [In a nutshell](#in-a-nutshell)
 - [Declaration](#declaration)
+- [In a nutshell](#in-a-nutshell)
 
 <br>
 
@@ -13,12 +13,13 @@
 
 <br>
 
-# In a nutshell
-Differs from `Copy` in that `Copy` is **implicit** and an **inexpensive bit-wise copy**, while `Clone` is **always explicit** and **may** or **may not** be **expensive**.
-
-<br>
-
 # Declaration
 ```rust
 pub trait Copy: Clone { }
 ```
+
+<br>
+
+# In a nutshell
+The `Copy` trait is the **marker trait**.<br>
+Differs from `Clone` in that `Copy` is **implicit** and an **inexpensive bit-wise copy**, while `Clone` is **always explicit** and **may** or **may not** be **expensive**.

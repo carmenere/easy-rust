@@ -1,8 +1,8 @@
 # Table of contents
 - [Table of contents](#table-of-contents)
 - [URLs](#urls)
-- [In a nutshell](#in-a-nutshell)
 - [Declaration](#declaration)
+- [In a nutshell](#in-a-nutshell)
 - [Blanket implementations](#blanket-implementations)
   - [`impl<T> ToString for T `](#implt-tostring-for-t-)
 
@@ -15,19 +15,19 @@
 
 <br>
 
-# In a nutshell
-Converts the given value to a `String`.
-`ToString` trait provides method `.to_string()` to convert **value** to a `String`.<br>
-`ToString` trait is **automatically implemented** for any type that implements `Display`.<br>
-
-<br>
-
 # Declaration
 ```rust
 pub trait ToString {
     fn to_string(&self) -> String;
 }
 ```
+
+<br>
+
+# In a nutshell
+Converts the given value to a `String`.
+`ToString` trait provides method `.to_string()` to convert **value** to a `String`.<br>
+`ToString` trait is **automatically implemented** for any type that implements `Display`.<br>
 
 <br>
 
