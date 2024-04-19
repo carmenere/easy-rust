@@ -61,7 +61,7 @@ parameter := argument '$'
 <br>
 
 ### `align`
-`align` parameter sets **alignment** for value inside field of with `width`.<br>
+`align` parameter sets **alignment** for value inside field of width `width`.<br>
 By default `align` is **left**-aligned for **non-numerics** and **right**-alignment for **numeric**.<br>
 
 Variants:
