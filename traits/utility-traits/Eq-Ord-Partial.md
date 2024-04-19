@@ -2,10 +2,10 @@
 - [Table of contents](#table-of-contents)
 - [URLs](#urls)
 - [Declarations](#declarations)
-  - [PartialEq](#partialeq)
-  - [Eq](#eq)
-  - [PartialOrd](#partialord)
-  - [Ord](#ord)
+  - [`PartialEq`](#partialeq)
+  - [`Eq`](#eq)
+  - [`PartialOrd`](#partialord)
+  - [`Ord`](#ord)
 - [In a nutshell](#in-a-nutshell)
   - [Correspondence to binary relations](#correspondence-to-binary-relations)
   - [`PartialEq`](#partialeq-1)
@@ -26,7 +26,7 @@
 <br>
 
 # Declarations
-## PartialEq
+## `PartialEq`
 ```rust
 pub trait PartialEq<Rhs: ?Sized = Self> {
     // Required method
@@ -40,14 +40,14 @@ pub trait PartialEq<Rhs: ?Sized = Self> {
 
 <br>
 
-## Eq
+## `Eq`
 ```rust
 pub trait Eq: PartialEq<Self> { }
 ```
 
 <br>
 
-## PartialOrd
+## `PartialOrd`
 ```rust
 pub trait PartialOrd<Rhs: ?Sized = Self>: PartialEq<Rhs> {
     // Required method
@@ -62,7 +62,7 @@ pub trait PartialOrd<Rhs: ?Sized = Self>: PartialEq<Rhs> {
 
 <br>
 
-## Ord
+## `Ord`
 ```rust
 pub trait Ord: Eq + PartialOrd<Self> {
     // Required method
