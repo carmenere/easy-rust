@@ -13,8 +13,8 @@
   - [`Borrow` in `HashMap`](#borrow-in-hashmap)
 - [Blanket implementations](#blanket-implementations)
   - [`Borrow`](#borrow-1)
-    - [`impl<T> Borrow<T> for T `](#implt-borrowt-for-t-)
-    - [`impl<T> Borrow<T> for &T`](#implt-borrowt-for-t)
+    - [`impl<T> Borrow<T> for T`](#implt-borrowt-for-t)
+    - [`impl<T> Borrow<T> for &T`](#implt-borrowt-for-t-1)
     - [`impl<T> Borrow<T> for &mut T`](#implt-borrowt-for-mut-t)
   - [`BorrowMut`](#borrowmut-1)
     - [`impl<T> BorrowMut<T> for T`](#implt-borrowmutt-for-t)
@@ -186,7 +186,7 @@ assert_eq!(map.get("Foo"), Some(&42));
 
 # Blanket implementations
 ## `Borrow`
-### `impl<T> Borrow<T> for T `
+### `impl<T> Borrow<T> for T`
 Note, then `&self` is a short form for `self: &Self`, but `Self` is equal to `T` in blanket implementation, so `self` is `&T`.<br>
 ```rust
 impl<T: ?Sized> Borrow<T> for T {
