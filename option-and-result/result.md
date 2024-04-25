@@ -6,7 +6,7 @@
 - [Result alias](#result-alias)
   - [Example](#example)
 - [Combinators](#combinators)
-  - [Methods for checking the contained value](#methods-for-checking-the-contained-value)
+  - [Predicates for checking the contained value](#predicates-for-checking-the-contained-value)
   - [Methods for working with references](#methods-for-working-with-references)
   - [Methods for extracting the contained value](#methods-for-extracting-the-contained-value)
   - [Methods for transforming the contained value](#methods-for-transforming-the-contained-value)
@@ -87,199 +87,40 @@ fn double_number(number_str: &str) -> Result<i32> {
 <br>
 
 # Combinators
-## Methods for checking the contained value
-<table>
-    <tr>
-        <th>Method</th>
-        <th>Description</th>
-    </tr>
-<tr></tr>
-<tr>
-<td>
-
-```Rust
-fn is_ok(&self) -> bool
-```
-
-</td>
-
-
-<td>
-
-If the `self` is `Err` it returns `false`.<br>If the `self` is `Ok` it returns `true`.
-
-</td>
-</tr>
-
-<tr></tr>
-<tr>
-<td>
-
-```Rust
-fn is_err(&self) -> bool
-```
-
-</td>
-
-<td>
-
-If the `self` is `Err` it returns `true`. <br>If the `self` is `Ok` it returns `false`.
-
-</td>
-</tr>
-</table>
+## Predicates for checking the contained value
+- [**is_ok()**]():
+  - if the `self` is `Err` it returns `false`;
+  - if the `self` is `Ok` it returns `true`;
+- [**is_err()**]():
+  - if the `self` is `Err` it returns `true`;
+  - if the `self` is `Ok` it returns `false`;
 
 <br>
 
 ## Methods for working with references
-<table>
-    <tr>
-        <th>Method</th>
-        <th>Description</th>
-    </tr>
-<tr></tr>
-<tr>
-<td>
-
-```Rust
-fn as_ref(&self) -> Result<&T, &E>
-```
-
-</td>
-
-<td>
-
-Converts from `&Result<T, E>` to `Result<&T, &E>`.
-
-</td>
-</tr>
-
-<tr></tr>
-
-<tr>
-<td>
-
-```Rust
-fn as_mut(&mut  self) -> Result<&mut T, &mut E>
-```
-
-</td>
-
-<td>
-
-Converts from `&mut Result<T, E>` to `Result<&mut T, &mut E>`.
-
-</td>
-
-
-</table>
+- [**as_ref()**]():
+  - converts from `&Result<T, E>` to `Result<&T, &E>`;
+- [**as_mut()**]():
+  - converts from `&mut Result<T, E>` to `Result<&mut T, &mut E>`;
 
 <br>
 
 ## Methods for extracting the contained value
-<table>
-    <tr>
-        <th>Method</th>
-        <th>Description</th>
-    </tr>
-<tr></tr>
-<tr>
-<td>
-
-```Rust
-fn unwrap(self) -> T
-where
-    E: Debug
-```
-
-</td>
-<td>
-
-- If the result is `Ok(v)` returns **inner value** `v` of type `T`;
-- If the result is `Err(e)` **panics** with a **generic message**.
-
-</td>
-</tr>
-
-<tr></tr>
-
-<tr>
-<td>
-
-```Rust
-fn expect(self, msg: &str) -> T
-where
-    E: Debug
-```
-
-</td>
-<td>
-
-- If the result is `Ok(v)` returns **inner value** `v` of type `T`.
-- If the result is `Err(e)` **panics** with a **custom message** provided by `msg`.
-
-</td>
-</tr>
-
-<tr></tr>
-
-<tr>
-<td>
-
-```Rust
-fn unwrap_or(self, default: T) -> T
-```
-
-</td>
-<td>
-
-- If the result is `Ok(v)` returns **inner value** `v` of type `T`.
-- If the result is `Err(e)` returns the **default value** provided by `default`.
-
-</td>
-</tr>
-
-<tr></tr>
-
-<tr>
-<td>
-
-```Rust
-fn unwrap_or_else<F>(self, f: F) -> T
-where
-    F: FnOnce() -> T
-```
-
-</td>
-<td>
-
-- If the result is `Ok(v)` returns **inner value** `v` of type `T`.
-- If the result is `Err(e)` calls **closure** `f()` and returns **its result** of type `T`.
-
-</td>
-</tr>
-
-<tr></tr>
-
-<tr>
-<td>
-
-```Rust
-fn unwrap_or_default(self) -> T
-where
-    T: Default
-```
-
-</td>
-<td>
-
-- If the result is `Ok(v)` returns **inner value** `v` of type `T`.
-- If the result is `Err(e)` returns the **default value** tor type `T`. Type `T` must implement `Default` trait..
-
-</td>
-</tr>
-
-</table>
+- [**unwrap()**]():
+  - if the result is `Ok(v)` returns **inner value** `v` of type `T`;
+  - if the result is `Err(e)` **panics** with a **generic message**;
+- [**expect()**]():
+  - if the result is `Ok(v)` returns **inner value** `v` of type `T`;
+  - if the result is `Err(e)` **panics** with a **custom message** provided by `msg`;
+- [**unwrap_or()**]():
+  - if the result is `Ok(v)` returns **inner value** `v` of type `T`;
+  - if the result is `Err(e)` returns the **default value** of type `T` provided by `default`;
+- [**unwrap_or_else()**]():
+  - if the result is `Ok(v)` returns **inner value** `v` of type `T`;
+  - if the result is `Err(e)` calls **closure** `f()` and returns **its result** of type `T`;
+- [**unwrap_or_default()**]():
+  - if the result is `Ok(v)` returns **inner value** `v` of type `T`;
+  - if the result is `Err(e)` returns the **default value** tor type `T`. Type `T` must implement `Default` trait;
 
 <br>
 

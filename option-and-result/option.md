@@ -4,7 +4,7 @@
 - [Declaration](#declaration)
 - [In a nutshell](#in-a-nutshell)
 - [Combinators](#combinators)
-  - [Methods for checking the contained value](#methods-for-checking-the-contained-value)
+  - [Predicates for checking the contained value](#predicates-for-checking-the-contained-value)
   - [Methods for working with references](#methods-for-working-with-references)
   - [Methods for extracting the contained value](#methods-for-extracting-the-contained-value)
   - [Methods for transforming the contained value](#methods-for-transforming-the-contained-value)
@@ -31,7 +31,7 @@ pub enum Option<T> {
 }
 ```
 
-`T` – type of **value**. `T` is wrapped in `Some` variant.<br>
+`T` is a type of some **wrapped value**.
 
 <br>
 
@@ -41,206 +41,50 @@ pub enum Option<T> {
 Value of type `T` can only be obtained via `match`:
 ```Rust
 match val { 
-Some(val) => {any code using val},
-None => expr
+    Some(val) => ...,
+    None => ...
 }
 ```
 
-Here `val` is of type `Option<T>`, after deconstructing, `val` is of type `T`.
+Here `val` is of type `Option<T>`, **after deconstructing**, `val` becomes of type `T`.
 
 <br>
 
 # Combinators
-## Methods for checking the contained value
-<table>
-    <tr>
-        <th>Method</th>
-        <th>Description</th>
-    </tr>
-<tr></tr>
-<tr>
-<td>
-
-```Rust
-fn is_some(&self) -> bool
-```
-
-</td>
-
-
-<td>
-
-If the `self` is `None` it returns `false`.<br>If the `self` is `Some(t)` it returns `true`.
-
-</td>
-</tr>
-
-<tr></tr>
-<tr>
-<td>
-
-```Rust
-fn is_none(&self) -> bool
-```
-
-</td>
-
-<td>
-
-If the `self` is `None` it returns `true`. <br>If the `self` is `Some(t)` it returns `false`.
-
-</td>
-</tr>
-</table>
+## Predicates for checking the contained value
+- [**is_some()**](https://doc.rust-lang.org/std/option/enum.Option.html#method.is_some):
+  - if the `self` is `None` it returns `false`;
+  - if the `self` is `Some(t)` it returns `true`;
+- [**is_none()**](https://doc.rust-lang.org/std/option/enum.Option.html#method.is_none):
+  - if the `self` is `None` it returns `true`;
+  - if the `self` is `Some(t)` it returns `false`;
 
 <br>
 
 ## Methods for working with references
-<table>
-    <tr>
-        <th>Method</th>
-        <th>Description</th>
-    </tr>
-<tr></tr>
-<tr>
-<td>
-
-```Rust
-fn as_ref(&self) -> Option<&T>
-```
-
-</td>
-
-<td>
-
-Converts from `&Option<T>` to `Option<&T>`.
-
-</td>
-</tr>
-
-<tr></tr>
-
-<tr>
-<td>
-
-```Rust
-fn as_mut(&mut self) -> Option<&mut T>
-```
-
-</td>
-
-<td>
-
-Converts from `&mut Option<T>` to `Option<&mut T>`.
-
-</td>
-
-
-</table>
+- [**as_ref()**](https://doc.rust-lang.org/std/option/enum.Option.html#method.as_ref):
+  - converts from `&Option<T>` to `Option<&T>`;
+- [**as_mut()**](https://doc.rust-lang.org/std/option/enum.Option.html#method.as_mut):
+  - converts from `&mut Option<T>` to `Option<&mut T>`;
 
 <br>
 
 ## Methods for extracting the contained value
-<table>
-    <tr>
-        <th>Method</th>
-        <th>Description</th>
-    </tr>
-<tr></tr>
-<tr>
-<td>
-
-```Rust
-fn unwrap(self) -> T
-```
-
-</td>
-<td>
-
-- If the result is `Some(v)` returns **inner value** of type `T`;
-- If the result is `None` **panics** with a **generic message**.
-
-</td>
-</tr>
-
-<tr></tr>
-
-<tr>
-<td>
-
-```Rust
-fn expect(self, msg: &str) -> T
-```
-
-</td>
-<td>
-
-- If the result is `Some(v)` returns **inner value** of type `T`.
-- If the result is `None` **panics** with a **custom message** provided by `msg`.
-
-</td>
-</tr>
-
-<tr></tr>
-
-<tr>
-<td>
-
-```Rust
-fn unwrap_or(self, default: T) -> T
-```
-
-</td>
-<td>
-
-- If the result is `Some(v)` returns **inner value** of type `T`.
-- If the result is `None` returns the **default value** provided by `default`.
-
-</td>
-</tr>
-
-<tr></tr>
-
-<tr>
-<td>
-
-```Rust
-fn unwrap_or_else<F>(self, f: F) -> T
-where
-    F: FnOnce() -> T
-
-```
-
-</td>
-<td>
-
-- If the result is `Some(v)` returns **inner value** of type `T`.
-- If the result is `None` calls **closure** `f()` and returns **its result** of type `T`.
-
-</td>
-</tr>
-
-<tr></tr>
-
-<tr>
-<td>
-
-```Rust
-fn unwrap_or_default(self) -> T
-where
-    T: Default
-```
-
-</td>
-<td>
-
-- If the result is `Some(v)` returns **inner value** of type `T`;
-- If the result is `None` returns the **default value** tor type `T`. Type `T` must implement `Default` trait.
-
-</td>
-</tr>
-
-</table>
+- [**unwrap()**](https://doc.rust-lang.org/std/option/enum.Option.html#method.unwrap):
+  - if the result is `Some(v)` returns **inner value** of type `T`;
+  - if the result is `None` **panics** with a **generic message**;
+- [**expect()**](https://doc.rust-lang.org/std/option/enum.Option.html#method.expect):
+  - if the result is `Some(v)` returns **inner value** of type `T`;
+  - if the result is `None` **panics** with a **custom message** provided by `msg`;
+- [**unwrap_or()**](https://doc.rust-lang.org/std/option/enum.Option.html#method.unwrap_or):
+  - if the result is `Some(v)` returns **inner value** of type `T`;
+  - if the result is `None` returns the **default value** of type `T` provided by `default`;
+- [**unwrap_or_else()**](https://doc.rust-lang.org/std/option/enum.Option.html#method.unwrap_or_else):
+  - if the result is `Some(v)` returns **inner value** of type `T`;
+  - if the result is `None` calls **closure** `f()` and returns **its result** of type `T`;
+- [**unwrap_or_default()**](https://doc.rust-lang.org/std/option/enum.Option.html#method.unwrap_or_default):
+  - if the result is `Some(v)` returns **inner value** of type `T`;
+  - if the result is `None` returns the **default value** tor type `T`. Type `T` must implement `Default` trait;
 
 <br>
 
@@ -257,7 +101,7 @@ where
     - `None` => `f()`, where `f()` returns value of type `E`.
 
 - [**transpose()**](https://doc.rust-lang.org/std/option/enum.Option.html#method.transpose):
-  - **transposes** `Option<Result<T, E>>` to `Result<Option<T>, E>`
+  - **transposes** an `Option` of a `Result` into a `Result` of an `Option`: `Option<Result<T, E>>` to `Result<Option<T>, E>`
     - `None` => `Ok(None)`;
     - `Some(Ok(v))` => `Ok(Some(v)) `;
     - `Some(Err(e))` => `Err(e)`.
