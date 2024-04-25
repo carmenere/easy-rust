@@ -1,6 +1,6 @@
 # Table of contents
 - [Table of contents](#table-of-contents)
-- [`std`](#std)
+- [URLs](#urls)
 - [Interior mutability](#interior-mutability)
   - [RefCell vs. Cell](#refcell-vs-cell)
 - [Cell](#cell)
@@ -12,8 +12,8 @@
 
 <br>
 
-# `std`
-|Trait|Path in `std`|
+# URLs
+|Trait|URL|
 |:----|:------------|
 |`UnsafeCell`|[std::cell::UnsafeCell](https://doc.rust-lang.org/stable/std/cell/struct.UnsafeCell.html)|
 |`Cell`|[std::cell::Cell](https://doc.rust-lang.org/stable/std/cell/struct.Cell.html)|

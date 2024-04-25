@@ -1,16 +1,16 @@
 # Table of contents
 - [Table of contents](#table-of-contents)
-- [`std`](#std)
-- [Mutex](#mutex)
+- [URLs](#urls)
+- [In a nutshell](#in-a-nutshell)
 
 <br>
 
-# `std`
-|Trait|Path in `std`|
+# URLs
+|Trait|URL|
 |:----|:------------|
 |`Mutex`|[std::sync::Mutex](https://doc.rust-lang.org/stable/std/sync/struct.Mutex.html)|
 |`MutexGuard`|[std::sync::MutexGuard](https://doc.rust-lang.org/stable/std/sync/struct.MutexGuard.html)|
 
 <br>
 
-# Mutex<T>
+# In a nutshell
