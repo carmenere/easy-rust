@@ -88,37 +88,37 @@ fn double_number(number_str: &str) -> Result<i32> {
 
 # Combinators
 ## Predicates for checking the contained value
-- [**is_ok()**]():
+- [**is_ok()**](https://doc.rust-lang.org/std/result/enum.Result.html#method.is_ok):
   - if the `self` is `Err` it returns `false`;
   - if the `self` is `Ok` it returns `true`;
-- [**is_err()**]():
+- [**is_err()**](https://doc.rust-lang.org/std/result/enum.Result.html#method.is_err):
   - if the `self` is `Err` it returns `true`;
   - if the `self` is `Ok` it returns `false`;
 
 <br>
 
 ## Methods for working with references
-- [**as_ref()**]():
+- [**as_ref()**](https://doc.rust-lang.org/std/result/enum.Result.html#method.as_ref):
   - converts from `&Result<T, E>` to `Result<&T, &E>`;
-- [**as_mut()**]():
+- [**as_mut()**](https://doc.rust-lang.org/std/result/enum.Result.html#method.as_mut):
   - converts from `&mut Result<T, E>` to `Result<&mut T, &mut E>`;
 
 <br>
 
 ## Methods for extracting the contained value
-- [**unwrap()**]():
+- [**unwrap()**](https://doc.rust-lang.org/std/result/enum.Result.html#method.unwrap):
   - if the result is `Ok(v)` returns **inner value** `v` of type `T`;
   - if the result is `Err(e)` **panics** with a **generic message**;
-- [**expect()**]():
+- [**expect()**](https://doc.rust-lang.org/std/result/enum.Result.html#method.expect):
   - if the result is `Ok(v)` returns **inner value** `v` of type `T`;
   - if the result is `Err(e)` **panics** with a **custom message** provided by `msg`;
-- [**unwrap_or()**]():
+- [**unwrap_or()**](https://doc.rust-lang.org/std/result/enum.Result.html#method.unwrap_or):
   - if the result is `Ok(v)` returns **inner value** `v` of type `T`;
   - if the result is `Err(e)` returns the **default value** of type `T` provided by `default`;
-- [**unwrap_or_else()**]():
+- [**unwrap_or_else()**](https://doc.rust-lang.org/std/result/enum.Result.html#method.unwrap_or_else):
   - if the result is `Ok(v)` returns **inner value** `v` of type `T`;
   - if the result is `Err(e)` calls **closure** `f()` and returns **its result** of type `T`;
-- [**unwrap_or_default()**]():
+- [**unwrap_or_default()**](https://doc.rust-lang.org/std/result/enum.Result.html#method.unwrap_or_default):
   - if the result is `Ok(v)` returns **inner value** `v` of type `T`;
   - if the result is `Err(e)` returns the **default value** tor type `T`. Type `T` must implement `Default` trait;
 
