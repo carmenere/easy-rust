@@ -1,7 +1,7 @@
 # Table of contents
 - [Table of contents](#table-of-contents)
-- [`std`](#std)
-- [Rc](#rc)
+- [URLs](#urls)
+- [In a nutshell](#in-a-nutshell)
   - [Cloning an Rc](#cloning-an-rc)
     - [Example](#example)
   - [Reference counting loops (aka reference cycles)](#reference-counting-loops-aka-reference-cycles)
@@ -11,15 +11,15 @@
 
 <br>
 
-# `std`
-|Trait|Path in `std`|
+# URLs
+|Trait|URL|
 |:----|:------------|
 |`Rc`|[std::rc::Rc](https://doc.rust-lang.org/stable/std/rc/struct.Rc.html)|
 |`Weak`|[std::rc::Weak](https://doc.rust-lang.org/stable/std/rc/struct.Weak.html)|
 
 <br>
 
-# Rc<T>
+# In a nutshell
 `Rc` stands for **Reference Counter**.<br>
 The `Rc<T>` type provides **shared ownership** of some **value** of type `T`, allocated in the **heap**.<br>
 The `Rc<T>` type is useful when we **can’t** determine which scope will destroy value *at compile time*.<br>

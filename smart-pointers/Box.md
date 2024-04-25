@@ -1,19 +1,20 @@
 # Table of contents
 - [Table of contents](#table-of-contents)
-- [`std`](#std)
-- [Box](#box)
-- [Implementation of Box](#implementation-of-box)
+- [URLs](#urls)
+- [In a nutshell](#in-a-nutshell)
+- [Examples](#examples)
+  - [Custom implementation of Box](#custom-implementation-of-box)
 
 <br>
 
-# `std`
-|Trait|Path in `std`|
+# URLs
+|Trait|URL|
 |:----|:------------|
 |`Box`|[std::boxed::Box](https://doc.rust-lang.org/stable/std/boxed/struct.Box.html)|
 
 <br>
 
-# Box<T>
+# In a nutshell
 ```Rust
 fn main() {
     let v = Box::new(1);
@@ -28,7 +29,8 @@ Notes:
 
 <br>
 
-# Implementation of Box
+# Examples
+## Custom implementation of Box
 Under the hood `Box` can be represented as:
 ```Rust
 use std::ops::Deref;

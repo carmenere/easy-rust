@@ -1,18 +1,19 @@
 # Table of contents
 - [Table of contents](#table-of-contents)
-- [`std`](#std)
-- [Cow](#cow)
+- [URLs](#urls)
+- [Declaration](#declaration)
+- [In a nutshell](#in-a-nutshell)
 
 <br>
 
-# `std`
-|Trait|Path in `std`|
+# URLs
+|Trait|URL|
 |:----|:------------|
 |`Cow`|[std::borrow::Cow](https://doc.rust-lang.org/stable/std/borrow/enum.Cow.html)|
 
 <br>
 
-# Cow<T>
+# Declaration
 Declaration of type `Cow`:
 ```Rust
 pub enum Cow<'a, B>
@@ -26,6 +27,7 @@ where
 
 <br>
 
+# In a nutshell
 The type `Cow` is a smart pointer providing **clone-on-write** functionality: 
 - it provides **immutable** access to **borrowed** data;
 - it performs **clone** the data lazily when **mutation** or **ownership** is required.
@@ -33,8 +35,7 @@ The type `Cow` is a smart pointer providing **clone-on-write** functionality:
 <br>
 
 `Cow<T>` implements the `Deref` trait which means it can directly call the immutable methods of `T`.<br>
-`.to_mut()` returns **mutable reference** to owned data. It **clones** the data if it is **not** already owned.<br>
-Multiple calls to `.to_mut()` will produce only **one** `.clone()`.
+`.to_mut()` returns **mutable reference** to owned data. It **clones** the data if it is **not** already owned. Multiple calls to `.to_mut()` will produce only **one** `.clone()`.
 
 <br>
 
