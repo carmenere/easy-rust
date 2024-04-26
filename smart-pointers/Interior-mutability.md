@@ -153,7 +153,7 @@ unsafe impl<T: ?Sized> Send for RefCell<T> where T: Send {}
 <br>
 
 Some usefull methods of `RefCell<T>` methods:
-- [**Cell::new(val)**]():
+- [**Cell::new(val)**](https://doc.rust-lang.org/stable/std/cell/struct.RefCell.html#method.new):
   - **creates** new `RefCell`, moving value `val` into it;
 - [**get_mut()**](https://doc.rust-lang.org/stable/std/cell/struct.RefCell.html#method.get_mut):
   - returns a **mutable** reference to the underlying data.
