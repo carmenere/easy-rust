@@ -12,7 +12,7 @@
 <br>
 
 # URLs
-|Trait|URL|
+|Smart pointer|URL|
 |:----|:------------|
 |`Rc`|[std::rc::Rc](https://doc.rust-lang.org/stable/std/rc/struct.Rc.html)|
 |`Weak`|[std::rc::Weak](https://doc.rust-lang.org/stable/std/rc/struct.Weak.html)|

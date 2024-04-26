@@ -6,7 +6,7 @@
 <br>
 
 # URLs
-|Trait|URL|
+|Smart pointer|URL|
 |:----|:------------|
 |`Mutex`|[std::sync::Mutex](https://doc.rust-lang.org/stable/std/sync/struct.Mutex.html)|
 |`MutexGuard`|[std::sync::MutexGuard](https://doc.rust-lang.org/stable/std/sync/struct.MutexGuard.html)|
