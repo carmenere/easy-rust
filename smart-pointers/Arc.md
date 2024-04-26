@@ -6,7 +6,7 @@
 <br>
 
 # URLs
-|Trait|URL|
+|Smart pointer|URL|
 |:----|:------------|
 |`Arc`|[std::sync::Arc](https://doc.rust-lang.org/stable/std/sync/struct.Arc.html)|
 

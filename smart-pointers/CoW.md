@@ -7,7 +7,7 @@
 <br>
 
 # URLs
-|Trait|URL|
+|Smart pointer|URL|
 |:----|:------------|
 |`Cow`|[std::borrow::Cow](https://doc.rust-lang.org/stable/std/borrow/enum.Cow.html)|
 

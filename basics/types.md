@@ -140,11 +140,11 @@ const URL: &str = "google.com";
 <br>
 
 # Static
-**Static variables** are **global variables**.<br>
-*Static variable* **must** have **static lifetime**.<br>
-*Static variables* can be **mutable** or **immutable**.<br>
-**Mutable** *static variables* can only be **read** and **modified** inside `unsafe` **block**.<br>
-*Static variables* have **fixed address** in the memory.
+**Static variables** are **global variables** with following properties:
+- *Static variable* **must** have **static lifetime**.
+- *Static variables* can be **mutable** or **immutable**.
+- *Static variables* have **fixed address** in the memory.
+- **Mutable** *static variables* can only be **read** and **modified** inside `unsafe` **block**.
 
 <br>
 
