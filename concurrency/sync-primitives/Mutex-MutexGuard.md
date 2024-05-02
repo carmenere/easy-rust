@@ -66,7 +66,6 @@ Some usefull methods of `PoisonError<T>`:
 <br>
 
 ### `TryLockError`
-The lock could not be acquired because another thread failed while holding the lock:
 ```rust
 pub enum TryLockError<T> {
     Poisoned(PoisonError<T>),
@@ -81,6 +80,8 @@ Below:
 - The `Guard` parameter means a type that carries the value, this is `MutexGuard` for `Mutex`;
 - The `Ok` variant means that lock is **acquired** and **not** poisoned;
 - The Err variant means that lock was **not** *acquired* because it's already **locked** (`WouldBlock`) or because mutex is **poisoned** (`Poisoned`);
+
+<br>
 
 ### `TryLockResult`
 ```rust
@@ -134,8 +135,9 @@ Both `lock()` and `try_lock()` return **RAII guard**. **RAII guard** means that 
 <br>
 
 So `MutexGuard<T>` is a **smart pointer** that is a **RAII guard**. The `MutexGuard<T>` holds the data.<br>
-Due to **deref coercions** we can call `T`’s methods on the `MutexGuard<T>` instance. Its `deref()` method returns pointer to internal value.<br>
 When `MutexGuard<T>` **goes out of scope** it **releases lock** to the data. But it can be released as soon as possible by `drop()` function.<br>
+
+Due to **deref coercions** we can call `T`’s methods on the `MutexGuard<T>` instance. Its `deref()` method returns pointer to internal value.<br>
 
 <br>
 
