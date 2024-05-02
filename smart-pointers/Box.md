@@ -11,7 +11,7 @@
 # URLs
 |Smart pointer|URL|
 |:----|:------------|
-|`Box`|[std::boxed::Box](https://doc.rust-lang.org/stable/std/boxed/struct.Box.html)|
+|`Box`|[**std::boxed::Box**](https://doc.rust-lang.org/stable/std/boxed/struct.Box.html)|
 
 <br>
 

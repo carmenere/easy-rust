@@ -9,7 +9,7 @@
 # URLs
 |Smart pointer|URL|
 |:----|:------------|
-|`Cow`|[std::borrow::Cow](https://doc.rust-lang.org/stable/std/borrow/enum.Cow.html)|
+|`Cow`|[**std::borrow::Cow**](https://doc.rust-lang.org/stable/std/borrow/enum.Cow.html)|
 
 <br>
 

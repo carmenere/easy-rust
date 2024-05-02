@@ -1,45 +1,100 @@
 # Table of contents
 - [Table of contents](#table-of-contents)
 - [URLs](#urls)
+- [Declarations](#declarations)
+  - [`RcBox<T>`](#rcboxt)
+  - [`Rc<T>`](#rct)
 - [In a nutshell](#in-a-nutshell)
-  - [Cloning an Rc](#cloning-an-rc)
-    - [Example](#example)
-  - [Reference counting loops (aka reference cycles)](#reference-counting-loops-aka-reference-cycles)
-    - [Not working example](#not-working-example)
-- [`Weak` pinter to prevent reference cycles](#weak-pinter-to-prevent-reference-cycles)
-- [Working example](#working-example)
+  - [Cloning](#cloning)
+  - [Deref](#deref)
+  - [Reference counting loops](#reference-counting-loops)
+- [Examples](#examples)
+  - [List in the LISP style](#list-in-the-lisp-style)
+  - [Reference counting loop](#reference-counting-loop)
 
 <br>
 
 # URLs
 |Smart pointer|URL|
 |:----|:------------|
-|`Rc`|[std::rc::Rc](https://doc.rust-lang.org/stable/std/rc/struct.Rc.html)|
-|`Weak`|[std::rc::Weak](https://doc.rust-lang.org/stable/std/rc/struct.Weak.html)|
+|`Rc`|[**std::rc::Rc**](https://doc.rust-lang.org/stable/std/rc/struct.Rc.html)|
 
 <br>
+
+# Declarations
+## `RcBox<T>`
+```rust
+#[repr(C)]
+struct RcBox<T: ?Sized> {
+    strong: Cell<usize>,
+    weak: Cell<usize>,
+    value: T,
+}
+```
+
+<br>
+
+## `Rc<T>`
+```rust
+pub struct Rc<T, A = Global>
+where
+    A: Allocator,
+    T: ?Sized,
+{
+    ptr: NonNull<RcBox<T>>,
+    phantom: PhantomData<RcBox<T>>,
+    alloc: A,
+}
+```
+
+<br>
+
+The `Rc<T>` type wraps the value of type `T`. The **value** of type `T` is allocated in the **heap**.
+
+<br>
+
 
 # In a nutshell
-`Rc` stands for **Reference Counter**.<br>
-The `Rc<T>` type provides **shared ownership** of some **value** of type `T`, allocated in the **heap**.<br>
-The `Rc<T>` type is useful when we **can’t** determine which scope will destroy value *at compile time*.<br>
+The `Rc` stands for **Reference Counted**.
+The `Rc<T>` type is **thread-unsafe reference-counting pointer**. It uses **non-atomic reference counting**.<br>
+The `Rc<T>` type **keeps track** of the **number of references** to **original value** it wraps.<br>
+The `Rc<T>` type is useful when we **can’t determine** *at compile time* in which **scope** the **value** `T` will be **destroyed**.<br>
 
-> Note:<br>
-> A value owned by `Rc` pointer is **immutable**, i.e., `Rc` **can't** return a **mutable reference** (`&mut T`).<br>
-> `Rc` is **not thread-safe**, it uses **non-atomic** reference counting.<br>
-> `Rc` **can't** be **sent between threads**, therefore `Rc` **doesn't** implement `Send`.<br>
+To avoid names clashes with `T`'s methods, all *methods* of `Rc` are **associated functions** and they must be called using **fully qualified syntax**, example: `Rc::get_mut(...)`.<br>
+
+The `Rc` **can't** be **sent between threads**, therefore `Rc<T>` implements `!Send` and `!Sync`:
+```rust
+impl<T: ?Sized, A: Allocator> !Send for Rc<T, A> {}
+impl<T: ?Sized, A: Allocator> !Sync for Rc<T, A> {}
+```
 
 <br>
 
-## Cloning an Rc<T>
-The `Rc` **keeps track** of the **number of references** to **original value** it wraps.<br>
-`.clone()` method called on `Rc<T>` instance or `Rc::clone()` function applied to `Rc<T>` instance both **don’t clone original value** of type `T`, instead they simply create **new pointer** to **value** of type `T` and increment the **strong_count**.<br>
-When instance of `Rc` **goes out of scope** it is destroyed and the **strong_count** is decremented by `1`.<br>
+## Cloning
+`Rc`'s implementation of `Clone` trait may be called using **fully qualified syntax** or **method-call syntax**:
+- `rc.clone();`
+- `Rc::clone(&rc);`
+
+The `Rc::clone()` **doesn't clone original wrapped value** of type `T`, instead it creates new instance of `Rc<T>` and **increments** the **strong_count**.<br>
+When instance of `Rc` **goes out of scope** it is destroyed and the **strong_count** is **decremented** by `1`.<br>
 When the **strong_count** is reached `0` the **original value** of type `T` is also **dropped**.<br>
 
 <br>
 
-### Example
+## Deref
+The `Rc` implements `Deref` trait, so you can call `T`'s methods on a value of type `Rc<T>`.
+
+<br>
+
+## Reference counting loops
+**Reference counting loop** (aka **reference cycle**) is a situation when **two** `Rc<T>` instances **point** to **each other**, *reference counter* will **always** above zero and the values will **never** be freed.<br>
+**Reference counting loop** is **available** when **interior mutability** is used with `Rc<T>`.<br>
+To **avoid** *reference counting loop* there is special type [Weak](https://github.com/carmenere/easy-rust/blob/main/smart-pointers/Weak.md) in Rust.
+
+<br>
+
+# Examples
+## List in the LISP style
 ```Rust
 enum List {
     Cons(i32, Rc<List>),
@@ -64,14 +119,7 @@ fn main() {
 
 <br>
 
-## Reference counting loops (aka reference cycles)
-**Reference counting loop** (aka **reference cycle**) is a situation when **two** `Rc<T>` instances **point** to **each other**, reference counter will always above zero and the values will never be freed.<br>
-**Reference counting loop** is **available** when **interior mutability** is used with `Rc<T>`.<br>
-To **avoid** *reference counting loop* there is special type `std::rc::Weak` in Rust.
-
-<br>
-
-### Not working example
+## Reference counting loop
 ```Rust
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -114,55 +162,5 @@ Here: `c.next -> b.next -> a.next -> c`.<br>
 
 The `strong_count` for `a`, `b`, and `c` is `2`.<br>
 To drop a value inside `Rc` instance, we must ensure that its `strong_count` is equal to `0`.<br>
-At the end of `main`, variables `a`, `b` and `c` are dropped, the `strong_count` of these 3 variable is decreased to `1`. But the heap memory of `Rc` (the **original value**) won't be dropped since the reference count is `1`. It is **memory leak**.
-
-<br>
-
-# `Weak` pinter to prevent reference cycles
-`Weak` pointer can be created by calling `Rc::downgrade`, and it increases the `weak_count` by `1`.<br>
-the `weak_count` **doesn’t** need to be `0` for the `Rc<T>` instance to **drop original value**.<br>
-A use case for `Weak`: a tree could use `Rc` **from parent to children**, and `Weak` pointer **from children to their parents**.
-
-<br>
-
-# Working example
-```Rust
-use std::cell::RefCell;
-use std::rc::{Rc, Weak};
-
-#[derive(Debug)]
-struct Node {
-    next: Option<Rc<RefCell<Node>>>,
-    head: Option<Weak<RefCell<Node>>>,
-}
-
-impl Drop for Node {
-    fn drop(&mut self) {
-        println!("Dropping");
-    }
-}
-
-fn main() {
-    let a = Rc::new(RefCell::new(Node {next: None, head: None}));
-    println!("a strong count: {:?}, weak count: {:?}", Rc::strong_count(&a), Rc::weak_count(&a));
-    let b = Rc::new(RefCell::new(Node {next: Some(Rc::clone(&a)), head: None}));
-    println!("a strong count: {:?}, weak count: {:?}", Rc::strong_count(&a), Rc::weak_count(&a));
-    println!("b strong count: {:?}, weak count: {:?}", Rc::strong_count(&b), Rc::weak_count(&b));
-    let c = Rc::new(RefCell::new(Node {next: Some(Rc::clone(&b)), head: None}));
-
-    // Creates a reference cycle
-    (*a).borrow_mut().head = Some(Rc::downgrade(&c));
-    println!("a strong count: {:?}, weak count: {:?}", Rc::strong_count(&a), Rc::weak_count(&a));
-    println!("b strong count: {:?}, weak count: {:?}", Rc::strong_count(&b), Rc::weak_count(&b));
-    println!("c strong count: {:?}, weak count: {:?}", Rc::strong_count(&c), Rc::weak_count(&c));
-
-    println!("a {:?}",  &a);
-}
-```
-
-<br>
-
-The **original value** is accessed by calling `.upgrade()` method on the `Weak` pointer or `Rc::upgrade()` function applied to the `Weak` pointer, which returns an `Option<Rc<T>>`.<br>
-`Weak` reference **does not** prevent the value stored in the allocation from being dropped, and `Weak` itself makes **no guarantees** about the **value still being present**.<br>
-Thus it may return `None` when upgraded.<br>
-Note however that a `Weak` reference **prevents** itself from being deallocated.
+At the end of `main`, variables `a`, `b` and `c` are dropped, the `strong_count` of these 3 variable is decreased to `1`.<br>
+But the heap memory of `Rc` (the **original value**) won't be dropped since the reference count is `1`. It is **memory leak**.
