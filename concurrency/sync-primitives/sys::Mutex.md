@@ -7,7 +7,6 @@
 <br>
 
 # Rust language project
-https://github.com/rust-lang/rust/tree/master
 The Rust's `Cargo.toml` has `"library/std"` in its `members` section.<br>
 [**Cargo.toml**](https://github.com/rust-lang/rust/blob/master/Cargo.toml):
 ```toml

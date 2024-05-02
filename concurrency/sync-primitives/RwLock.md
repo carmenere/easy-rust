@@ -1,12 +1,20 @@
 # Table of contents
 - [Table of contents](#table-of-contents)
+- [URLs](#urls)
 - [RwLock](#rwlock)
 - [Examples](#examples)
 
 <br>
 
+# URLs
+|Smart pointer|URL|
+|:----|:------------|
+|`RwLock`|[**std::sync::RwLock**](https://doc.rust-lang.org/std/sync/struct.RwLock.html)|
+
+<br>
+
 # RwLock
-`RwLock` stand for **read write locks**.
+`RwLock` stand for **a reader-writer lock**.<br>
 
 <br>
 
