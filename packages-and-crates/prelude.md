@@ -1,5 +1,7 @@
 # Table of contents
 - [Table of contents](#table-of-contents)
+- [The Rust Core library](#the-rust-core-library)
+- [The Rust Standard library](#the-rust-standard-library)
 - [Prelude](#prelude)
   - [Standard library prelude](#standard-library-prelude)
   - [Extern prelude](#extern-prelude)
@@ -7,8 +9,22 @@
 
 <br>
 
+# The Rust Core library
+**The Rust Core library** links to **no** **upstream** libraries, **no** **system** libraries, **no** `libc`.<br>
+**The Rust Core library** is **minimal**: it **isn't** even aware of heap allocation, it **doesn't** provide concurrency or I/O.<br>
+
+<br>
+
+# The Rust Standard library
+**The Rust Standard library** (aka `std`) is avaliable to all Rust crates by default.<br>
+It offers **core types**, **standard macros**, **I/O**, **multithreading** and so on.<br>
+The `std` defines **prelude**.<br>
+
+<br>
+
 # Prelude
-A **prelude** is a collection of names that are automatically brought into scope of every module in a crate by compiler. It means that compiler **implicitly** injects `use std::prelude::*` **in every module** in a crate.
+A **prelude** is **small collection of items** that are **automatically imported** into **every** module of **every** crate by compiler.<br>
+It means that compiler **implicitly** injects `use std::prelude::*` into **every** module of **every** crate.
 
 <br>
 
