@@ -21,13 +21,16 @@ There are two forms of dispatch:
 - **static** dispatch (aka **early binding**) – implementation of a polymorphic operation is selected **at compile time**.
 - **dynamic** dispatch – implementation of a polymorphic operation is selected **at run time**.
 
+<br>
 
 ## Monomorphization
 **Static dispatch** is used for **generics** and is called **monomorphization**.<br>
 
 **Monomorphization** is a process of creating **specialized** versions of polymorphic entities (function/type/trait) **at compile time**.<br>
 
-Every time compiler sees polymorphic entity it replaces type variable ``T`` with **concrete type** that is **inferred** from passed value and implicitly creates specific version as it was written manually and replaces such polymorphic entity with created monomorphized version.<br>
+Every time compiler sees polymorphic entity it replaces type variable `T` with **concrete type** that is **inferred** from passed value and implicitly creates specific version as it was written manually and replaces such polymorphic entity with created monomorphized version.<br>
+
+<br>
 
 #### Example
 ```Rust
@@ -63,6 +66,7 @@ There 2 approaches to implement **dynamic dispatch** for **subtyping polymorphis
 - Calling a method by **index** in **vtable** at run time.
 - Calling a method by **name** at run time (aka l**ate binding**).
 
+<br>
 
 ### vtable
 Compiler creates **vtable** for every type that has at least one virtual method at compile time.<br>
@@ -74,10 +78,10 @@ Compiler sets fixed offset in vtable for every virtual method of this class.<br>
 - **vtable** cannot be modified at run-time.
 
 Every instance of class inherits its **vptr**.<br>
-Every time the compiler encounters a call of virtual method in the code it replaces call with some function, e.g., ``dispatch(instance, index)``.<br>
-``dispatch()`` takes **vptr** on instance and access to called method through its index in **vtable** at run time.<br>
+Every time the compiler encounters a call of virtual method in the code it replaces call with some function, e.g., `dispatch(instance, index)`.<br>
+`dispatch()` takes **vptr** on instance and access to called method through its index in **vtable** at run time.<br>
 
-
+<br>
 
 #### Example
 ```Java
@@ -120,5 +124,4 @@ int main()
     speak(simba);
     return 0;
 }
-
 ```

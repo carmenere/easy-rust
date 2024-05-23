@@ -65,7 +65,7 @@ end.
 **Parametric** polymorphism means that language allows to define **one function** that can handle values of **different types**.<br>
 **Parametric** polymorphism implies that function does not depend on a specific type and has **the same logic** for **every** possible **type**.<br>
 **Generic** is a **declaration**/**definition** of **type** (**function**/**struct**/**enum**/**trait**) that contains **type variable** (aka **type parameter**).<br>
-**Type var** is often defined in **angle brackets**, e.g. ``<T>`` or ``<E>``. There can be **multiple** *type vars* in **generic**.<br>
+**Type var** is often defined in **angle brackets**, e.g. `<T>` or `<E>`. There can be **multiple** *type vars* in **generic**.<br>
 
 **Parametric** polymorphism is a **part of the type system**.<br>
 
