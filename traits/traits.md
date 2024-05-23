@@ -244,11 +244,26 @@ So, the compiler **doesn't allow** us to define an implementation of `MyTrait` f
 trait MyTrait {}
 
 impl<T> MyTrait for T {}
-
 impl<T> MyTrait for &T {} // ❌
-
 impl<T> MyTrait for &mut T {} // ❌
 ```
+
+<br>
+
+**But** when **trait has generic** there are will be different implementations for different types.<br>
+
+Consider example:
+```rust
+impl<T> Borrow<T> for T
+impl<T> Borrow<T> for &T
+```
+
+From compiler's point of view both implementations `Borrow<T> for &T` and `Borrow<T> for T` are **not** overlapped.<br>
+Indeed, `Borrow<T> for &T` and `Borrow<T> for T` give 4 **disjoint** implementations for `T=u32` and `T=&u32`:
+1. `Borrow<u32> for u32` (`impl<T> Borrow<T> for T` for `T=u32`);
+2. `Borrow<&u32> for &u32` (by `impl<T> Borrow<T> for T` for `T=&u32`);
+3. `Borrow<u32> for &u32` (by `impl<T> Borrow<T> for &T` for `T=u32`);
+4. `Borrow<&u32> for &&u32` (by `impl<T> Borrow<T> for &T` for `T=&u32`);
 
 <br>
 

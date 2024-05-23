@@ -8,7 +8,7 @@
 
 # Generics
 **Generic** is a **declaration**/**definition** of **type** (**function**/**struct**/**enum**/**trait**) that contains **type variable** (aka **type parameter**).<br>
-**Type var** is often defined in **angle brackets**, e.g. ``<T>`` or ``<E>``. There can be **multiple** *type vars* in **generic**.<br>
+**Type var** is often defined in **angle brackets**, e.g. `<T>` or `<E>`. There can be **multiple** *type vars* in **generic**.<br>
 **Generics** can be **limited** by **traits**, i.e. we can use trait as type for **type var**.
 
 Example of **generic function**:
@@ -16,7 +16,7 @@ Example of **generic function**:
 fn f <T>(param: T) {}
 ```
 
-Example, **type var** ``T`` is **limited** by trait ``Bark``:
+Example, **type var** `T` is **limited** by trait `Bark`:
 ```Rust
 fn bark<T: Bark> (b: T) { ... }
 ```
@@ -151,7 +151,7 @@ impl<T: std::ops::Add + Copy + Default + std::ops::AddAssign> Summable<T> for Ve
 
 <br>
 
-When a **trait** has a **generic parameter**, it **can** be implemented for a **some type**, e.g., ``Mytype`` **multiple times**, **changing** the **concrete types** of the **type var each time**, example:
+When a **trait** has a **generic parameter**, it **can** be implemented for a **some type**, (e.g. `Mytype`) **multiple times**, **changing** the **concrete types** of the **type var each time**, example:
 
 
 ```Rust
