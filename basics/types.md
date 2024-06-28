@@ -1,36 +1,19 @@
 # Table of contents
 - [Table of contents](#table-of-contents)
-- [Type casting](#type-casting)
-- [Arrays](#arrays)
-  - [*Initialization* syntax](#initialization-syntax)
-    - [Syntax options for *pre initialized* arrays:](#syntax-options-for-pre-initialized-arrays)
-    - [Syntax options for *empty* arrays:](#syntax-options-for-empty-arrays)
-  - [*Type declaration* syntax](#type-declaration-syntax)
-- [Constants](#constants)
-  - [Notes](#notes)
-  - [Examples](#examples)
-- [Static](#static)
-  - [Examples](#examples-1)
-- [DST (Dynamically Sized Types)](#dst-dynamically-sized-types)
-- [Enums](#enums)
-  - [Syntax](#syntax)
-    - [*Type declaration* syntax](#type-declaration-syntax-1)
-      - [Example](#example)
-    - [*Initialization* syntax](#initialization-syntax-1)
-  - [Access to `enum` variant](#access-to-enum-variant)
-      - [Example](#example-1)
-- [Primitive Type never](#primitive-type-never)
-- [Newtype pattern](#newtype-pattern)
-  - [Syntax](#syntax-1)
-      - [Example](#example-2)
-  - [Destructuring let](#destructuring-let)
-      - [Example](#example-3)
 - [Scalars](#scalars)
 - [Number separator](#number-separator)
-  - [Example](#example-4)
+  - [Example](#example)
 - [Overflow-checks](#overflow-checks)
+  - [Examples](#examples)
+- [Constants](#constants)
+  - [Notes](#notes)
+  - [Examples](#examples-1)
+- [Static](#static)
   - [Examples](#examples-2)
+- [Range operator](#range-operator)
+- [Type casting](#type-casting)
 - [Strings](#strings)
+  - [String literals](#string-literals)
   - [`&str`](#str)
     - [Examples](#examples-3)
   - [`String`](#string)
@@ -39,6 +22,25 @@
   - [Bytes. Chars. Vec](#bytes-chars-vec)
   - [Conversions between string types](#conversions-between-string-types)
 - [Unit type `()`](#unit-type-)
+- [Arrays](#arrays)
+  - [*Initialization* syntax](#initialization-syntax)
+    - [Syntax options for *pre initialized* arrays:](#syntax-options-for-pre-initialized-arrays)
+    - [Syntax options for *empty* arrays:](#syntax-options-for-empty-arrays)
+  - [*Type declaration* syntax](#type-declaration-syntax)
+- [DST (Dynamically Sized Types)](#dst-dynamically-sized-types)
+- [Enums](#enums)
+  - [Syntax](#syntax)
+    - [*Type declaration* syntax](#type-declaration-syntax-1)
+      - [Example](#example-1)
+    - [*Initialization* syntax](#initialization-syntax-1)
+  - [Access to `enum` variant](#access-to-enum-variant)
+      - [Example](#example-2)
+- [Primitive Type never](#primitive-type-never)
+- [Newtype pattern](#newtype-pattern)
+  - [Syntax](#syntax-1)
+      - [Example](#example-3)
+  - [Destructuring let](#destructuring-let)
+      - [Example](#example-4)
 - [Structs](#structs)
   - [Syntax](#syntax-2)
     - [*Type declaration* syntax](#type-declaration-syntax-2)
@@ -47,7 +49,7 @@
       - [`Struct` constructor](#struct-constructor)
         - [Example](#example-6)
       - [Method `new()`](#method-new)
-  - [`..` operator](#-operator)
+  - [Range operator in structs](#range-operator-in-structs)
       - [Example](#example-7)
 - [Tuple structs](#tuple-structs)
   - [Syntax](#syntax-3)
@@ -75,50 +77,46 @@
 
 <br>
 
-# Type casting
+# Scalars
+|Type group|Types|
+|:---------|:----|
+|**Integer**|**Signed**: `u8`, `u16`, `u32`, `u64`, `u128`<br>**Unsigned**: `i8`, `i16`, `i32`, `i64`, `i128`.<br>**Sizes of pointers**: `isize`, `usize` and they depend on **arch**.|
+|**Float**|`f32`, `f64`|
+|**Boolean**|`false`<br>`true`|
+|**Character**|**One letter** in **single quotes**.<br>Example: `let ch = 'A';`|
+
+<br>
+
+# Number separator
+The `_` symbol is called **number separator** and is used in **literals**.
+
+## Example
 ```Rust
-let v = true;
-let flag = v as i32;
+let a = 1_000_000;
+let b = 1u64;
+let c = 1_u64;
 ```
 
 <br>
 
-# Arrays
-An **array** is **fixed-size** *collection* of elements of **the same type**.<br>
-Arrays are **allocated** on the **stack**.
+# Overflow-checks
+`rustc` flag `-C overflow-checks=yes|no` controls the behavior of **runtime integer overflow** ([RFC 560](https://github.com/rust-lang/rfcs/blob/master/text/0560-integer-overflow.md)):
+- when this flag is **enabled** `overflow-checks=yes` a **panic** will occur on **overflow** (e.g., `255 + 1` causes to **panic**).<br>
+- when this flag is **disabled** `overflow-checks=no` a **two’s complement** is used (e.g., `255 + 1` becomes `0` for an `u8` integer).<br>
 
 <br>
 
-## *Initialization* syntax
-### Syntax options for *pre initialized* arrays:
-- **Comma-delimited**: explicit enumeration of values within square brackets \[\]:
-```Rust
-let arr = [0, 1, 2];
-```
-
-- **Repeat expression**: \[`V`; `N`\], where the **value** `V` is **repeated** `N`times:
-```Rust
-let arr = [100; 5];
-```
-
-### Syntax options for *empty* arrays:
-- **Repeat expression** where `N` = 0:
-```Rust
-let a = [100; 0];
-println!("len of 'a' is {}.", a.len());
-
-Output:
-len of a is 0.
-```
+Rust behaves differently in **debug mode** and **release mode** on **integer overflow**:
+- in **debug mode** `overflow-checks=yes` by default;
+- in **release mode** `overflow-checks=no` by default;
 
 <br>
 
-## *Type declaration* syntax
-- **Repeat expression**: \[`T`; `N`\], where the value of a **type** `T` is **repeated** `N` times:
+## Examples
 ```Rust
-let arr1: [u64; 3] = [0, 1, 2];
+RUSTFLAGS="-C overflow-checks=yes|no" cargo run --release
 
-let arr2: [u64; 3] = [100; 3];
+RUSTFLAGS="-C overflow-checks=yes|no" cargo run
 ```
 
 <br>
@@ -171,215 +169,21 @@ fn main () {
 
 <br>
 
-# DST (Dynamically Sized Types)
-[More here](https://github.com/carmenere/easy-rust/blob/main/traits/utility-traits/Sized.md)
+# Range operator
+Type of ranges:
+- `a..b` **right-exclusive range**, e.g. `1..3` means `1, 2`;
+- `..b`	**right-exclusive range to** *without starting* point;
+- `a..=b`	**inclusive range**, e.g. `1..=3` means `1, 2, 3`;
+- `..=b` **inclusive range to** *without starting* point;
+- `a..`	**range from** *without ending* point;
+- `..` **full range** means the whole collection;
 
 <br>
 
-# Enums
-An `enum` in Rust is **tagged union** or **sum type**.<br>
-`enum` consists of different `variants`.<br>
-Each `variant` in the `enum` reperesents **some** `type`.<br>
-A value of an `enum` type matches to **one specific** `variant`.
-
-<br>
-
-## Syntax
-### *Type declaration* syntax
+# Type casting
 ```Rust
-enum <Name> {
-    Variant_1,
-    Variant_2(SomeType_2),
-    Variant_3(SomeType_3),
-}
-```
-where `Variant_i` wraps type `SomeType_i` or without any type like `Variant_1`.
-
-#### Example
-```Rust
-enum MyEnum {
-    Bar,
-    Foo(i32, i32, i32),
-    Baz { x: i32, y: i32 },
-    FooBar(String),
-}
-```
-
-<br>
-
-### *Initialization* syntax
-Variable of `enum` type can **only** be initialized with **specific** value of type `SomeType_i`:
-```Rust
-let x: SomeType_i = SomeType_i::new(...);
-let v: <Name> = <Name>::Variant_i(x);
-```
-
-<br>
-
-## Access to `enum` variant
-To access to **specific** `variant` of variable of `enum` type **pattern matching** is used.
-
-#### Example
-```Rust
-#[derive(Debug)]
-struct MyStruct { x: i32, y: i32 }
-
-#[derive(Debug)]
-enum MyEnum {
-    Bar,
-    Foo(i32, i32, i32),
-    Baz (MyStruct),
-    FooBar(String),
-}
-
-fn main() {
-    let s = MyStruct { x: 3, y: 4 };
-
-    let v = MyEnum::Baz(MyStruct { x: 3, y: 4 });
-
-    match &v {
-        MyEnum::Bar => println!(""),
-        MyEnum::Foo(x, y, z) => println!("MyEnum::Foo"),
-        MyEnum::Baz(MyStruct) => println!("MyEnum::Baz"),
-        MyEnum::FooBar(val) => println!("MyEnum::FooBar"),
-    }
-
-    println!("{:X?}", v);
-}
-```
-
-<br>
-
-# Primitive Type never
-The `!` type is called **never type**.<br>
-
-<br>
-
-```Rust
-const FOO: bool = true;
-
-fn main () {
-    let bar = None;
-    while FOO {
-        let v = match bar {
-            Some(v) => v,
-            None => continue,
-        };
-    };
-}
-```
-
-In the above example, variable `v` inside `while {}` is of **never type**, because `None => continue` arm of `match` will never return any value.
-
-<br>
-
-```Rust
-const FOO: bool = true;
-
-fn main () {
-    let bar = Some(10);
-    while FOO {
-        let v = match bar {
-            Some(v) => v,
-            None => continue,
-        };
-    };
-}
-```
-
-In the above example, variable `v` inside `while {}` is of `i32` type, because `Some(v) => v` arm of `match` returns value `10`.
-
-<br>
-
-So,
-- `panic!` macro returns **never type**;
-- `loop` returns **never type**, e.g., `let r: ! = loop {};`;
-- keyword `continue` inside loop returns **never type**;
-
-<br>
-
-# Newtype pattern
-The `newtype pattern` allows to create a **new type** that is **distinct** from its contained value and also has its own semantic.
-
-<br>
-
-## Syntax
-```Rust
-struct <MyNewTypeName>(T);
-```
-where `T` is of some type.
-
-#### Example
-```Rust
-struct Foo(i32);
-
-fn main() {
-    let f = Foo(10);
-    println!("Value of f: {}.", f.0);
-}
-```
-
-<br>
-
-## Destructuring let
-To **extract** the **inner value** `destructuring let` is used.
-
-#### Example
-```Rust
-struct Foo(i32);
-
-fn main() {
-    let f = Foo(10);
-    let Foo(v) = f;  // destructuring let
-    println!("Value of 'v': {}.", v);
-}
-
-Output:
-Value of 'v': 10.
-```
-
-<br>
-
-# Scalars
-|Type group|Types|
-|:---------|:----|
-|**Integer**|**Signed**: `u8`, `u16`, `u32`, `u64`, `u128`<br>**Unsigned**: `i8`, `i16`, `i32`, `i64`, `i128`.<br>**Sizes of pointers**: `isize`, `usize` and they depend on **arch**.|
-|**Float**|`f32`, `f64`|
-|**Boolean**|`false`<br>`true`|
-|**Character**|**One letter** in **single quotes**.<br>Example: `let ch = 'A';`|
-
-<br>
-
-# Number separator
-The `_` symbol is called **number separator** and is used in **literals**.
-
-## Example
-```Rust
-let a = 1_000_000;
-let b = 1u64;
-let c = 1_u64;
-```
-
-<br>
-
-# Overflow-checks
-`rustc` flag `-C overflow-checks=yes|no` controls the behavior of **runtime integer overflow** ([RFC 560](https://github.com/rust-lang/rfcs/blob/master/text/0560-integer-overflow.md)):
-- when this flag is **enabled** `overflow-checks=yes` a **panic** will occur on **overflow** (e.g., `255 + 1` causes to **panic**).<br>
-- when this flag is **disabled** `overflow-checks=no` a **two’s complement** is used (e.g., `255 + 1` becomes `0` for an `u8` integer).<br>
-
-<br>
-
-Rust behaves differently in **debug mode** and **release mode** on **integer overflow**:
-- in **debug mode** `overflow-checks=yes` by default;
-- in **release mode** `overflow-checks=no` by default;
-
-<br>
-
-## Examples
-```Rust
-RUSTFLAGS="-C overflow-checks=yes|no" cargo run --release
-
-RUSTFLAGS="-C overflow-checks=yes|no" cargo run
+let v = true;
+let flag = v as i32;
 ```
 
 <br>
@@ -388,6 +192,28 @@ RUSTFLAGS="-C overflow-checks=yes|no" cargo run
 A **string** is a sequence of `Unicode` scalar values encoded as a stream of `UTF-8` bytes.<br>
 
 Rust has two main types of strings: `&str` and `String`.
+
+<br>
+
+## String literals
+Types of string literal:
+- `"..."`	**string literal**, it is UTF-8 `&'static str`, it **interprets common escapes**:
+  - `\n` becomes new line;
+  - `\r`
+  - `\t`
+  - `\0`
+  - `\\` becomes slash;
+  - `\u{7fff}` becomes symbol;
+- `r"..."` **raw string literal**, it **doesn't** interpret **common escapes**;
+- `r#"..."#` **raw string literal** that can also contain `"`;
+- `c"..."` **C string literal**, i.e. a **NUL-terminated** `&'static CStr` **for FFI**;
+- `cr"..."` **raw C string literal**;
+- `cr#"..."#` **raw C string literal** that can also contain `"`;
+- `b"..."` **byte string literal**; it **constructs ASCII-only** `&'static [u8; N]`.
+- `br"..."` **raw byte string literal**;
+- `br#"..."#` **raw byte string literal** that can also contain `"`;
+- `b'x'` **ASCII byte literal**, it is a **single u8 byte**;
+- `'A'` **character literal**, it is **fixed 4 byte unicode char**;
 
 <br>
 
@@ -595,6 +421,215 @@ It is **ZST** (**zero-sized type**).
 
 <br>
 
+# Arrays
+An **array** is **fixed-size** *collection* of elements of **the same type**.<br>
+Arrays are **allocated** on the **stack**.
+
+<br>
+
+## *Initialization* syntax
+### Syntax options for *pre initialized* arrays:
+- **Comma-delimited**: explicit enumeration of values within square brackets \[\]:
+```Rust
+let arr = [0, 1, 2];
+```
+
+- **Repeat expression**: \[`V`; `N`\], where the **value** `V` is **repeated** `N`times:
+```Rust
+let arr = [100; 5];
+```
+
+### Syntax options for *empty* arrays:
+- **Repeat expression** where `N` = 0:
+```Rust
+let a = [100; 0];
+println!("len of 'a' is {}.", a.len());
+
+Output:
+len of a is 0.
+```
+
+<br>
+
+## *Type declaration* syntax
+- **Repeat expression**: \[`T`; `N`\], where the value of a **type** `T` is **repeated** `N` times:
+```Rust
+let arr1: [u64; 3] = [0, 1, 2];
+
+let arr2: [u64; 3] = [100; 3];
+```
+
+<br>
+
+# DST (Dynamically Sized Types)
+[More here](https://github.com/carmenere/easy-rust/blob/main/traits/utility-traits/Sized.md)
+
+<br>
+
+# Enums
+An `enum` in Rust is **tagged union** or **sum type**.<br>
+`enum` consists of different `variants`.<br>
+Each `variant` in the `enum` reperesents **some** `type`.<br>
+A value of an `enum` type matches to **one specific** `variant`.
+
+<br>
+
+## Syntax
+### *Type declaration* syntax
+```Rust
+enum <Name> {
+    Variant_1,
+    Variant_2(SomeType_2),
+    Variant_3(SomeType_3),
+}
+```
+where `Variant_i` wraps type `SomeType_i` or without any type like `Variant_1`.
+
+#### Example
+```Rust
+enum MyEnum {
+    Bar,
+    Foo(i32, i32, i32),
+    Baz { x: i32, y: i32 },
+    FooBar(String),
+}
+```
+
+<br>
+
+### *Initialization* syntax
+Variable of `enum` type can **only** be initialized with **specific** value of type `SomeType_i`:
+```Rust
+let x: SomeType_i = SomeType_i::new(...);
+let v: <Name> = <Name>::Variant_i(x);
+```
+
+<br>
+
+## Access to `enum` variant
+To access to **specific** `variant` of variable of `enum` type **pattern matching** is used.
+
+#### Example
+```Rust
+#[derive(Debug)]
+struct MyStruct { x: i32, y: i32 }
+
+#[derive(Debug)]
+enum MyEnum {
+    Bar,
+    Foo(i32, i32, i32),
+    Baz (MyStruct),
+    FooBar(String),
+}
+
+fn main() {
+    let s = MyStruct { x: 3, y: 4 };
+
+    let v = MyEnum::Baz(MyStruct { x: 3, y: 4 });
+
+    match &v {
+        MyEnum::Bar => println!(""),
+        MyEnum::Foo(x, y, z) => println!("MyEnum::Foo"),
+        MyEnum::Baz(MyStruct) => println!("MyEnum::Baz"),
+        MyEnum::FooBar(val) => println!("MyEnum::FooBar"),
+    }
+
+    println!("{:X?}", v);
+}
+```
+
+<br>
+
+# Primitive Type never
+The `!` type is called **never type**.<br>
+
+<br>
+
+```Rust
+const FOO: bool = true;
+
+fn main () {
+    let bar = None;
+    while FOO {
+        let v = match bar {
+            Some(v) => v,
+            None => continue,
+        };
+    };
+}
+```
+
+In the above example, variable `v` inside `while {}` is of **never type**, because `None => continue` arm of `match` will never return any value.
+
+<br>
+
+```Rust
+const FOO: bool = true;
+
+fn main () {
+    let bar = Some(10);
+    while FOO {
+        let v = match bar {
+            Some(v) => v,
+            None => continue,
+        };
+    };
+}
+```
+
+In the above example, variable `v` inside `while {}` is of `i32` type, because `Some(v) => v` arm of `match` returns value `10`.
+
+<br>
+
+So,
+- `panic!` macro returns **never type**;
+- `loop` returns **never type**, e.g., `let r: ! = loop {};`;
+- keyword `continue` inside loop returns **never type**;
+
+<br>
+
+# Newtype pattern
+The `newtype pattern` allows to create a **new type** that is **distinct** from its contained value and also has its own semantic.
+
+<br>
+
+## Syntax
+```Rust
+struct <MyNewTypeName>(T);
+```
+where `T` is of some type.
+
+#### Example
+```Rust
+struct Foo(i32);
+
+fn main() {
+    let f = Foo(10);
+    println!("Value of f: {}.", f.0);
+}
+```
+
+<br>
+
+## Destructuring let
+To **extract** the **inner value** `destructuring let` is used.
+
+#### Example
+```Rust
+struct Foo(i32);
+
+fn main() {
+    let f = Foo(10);
+    let Foo(v) = f;  // destructuring let
+    println!("Value of 'v': {}.", v);
+}
+
+Output:
+Value of 'v': 10.
+```
+
+<br>
+
 # Structs
 `Struct` type is container for values of different types.
 
@@ -653,7 +688,7 @@ let v: <Name> = <Name>::new(a=val_1, b=val_2, ... );
 
 <br>
 
-## `..` operator
+## Range operator in structs
 A `struct` **constructor** can include `..` operator to **copy** some values from another variable of **the same** `struct` type. 
 
 #### Example
