@@ -34,6 +34,15 @@ fn bark<T: Bark> (b: T) { ... }
         <td>Generic struct</td>
 <td>
 
+**Syntactic forms**:
+- `S<T> where T: R` **trait bound**, it guarantees type `T` **impls** trait `R`, the `S<T: R>` is *short form*;
+- `S<T,P> where T: R, P: S` **independent trait bounds**, here one for `T` and one for `P`;
+- `S<const N: usize>` **generic const bound**;
+  - `S<const N: u8 = 0>` **default parameter** for constants;
+`S<T = R>` **default parameter**, e.g.,`S<T = u8>`;
+
+<br>
+
 ```Rust
 struct Point<T, V> {
     x: T,
@@ -104,6 +113,18 @@ enum Colors<T> {
     <tr>
         <td>Generic trait</td>
 <td>
+
+**Syntactic forms**:
+- `trait T<X> {}` a **trait generic** over `X`, can have **multiple** `impl T<X> for S` (one per `X`);
+- `trait T { type X; }` defines **associated type**, **only one** `impl T for S` **possible**;
+- `trait T { type X<G>; }` defines **generic associated type**;
+- `trait T { type X<'a>; }` defines a **generic associated type** generic over a lifetime;
+  - `type X = R;` set **associated type**, e.g. `impl T for S { type X = R; }`;
+  - `type X<G> = R<G>;` set **associated type** for **generic associated type**, e.g., `impl T for S { type X<G> = Vec<G>; }`.
+- `fn f() where Self: R;` in trait `T {}`, make `f` accessible **only** on types known to also `impl R`;
+  - `fn f() where Self: Sized;`;
+
+<br>
 
 ```Rust
 #[allow(unused_variables)]

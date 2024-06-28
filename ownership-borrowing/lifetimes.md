@@ -243,6 +243,12 @@ Here `'b` specifies that lifetimes of the `Movie` struct **must live as long** o
 <br>
 
 # Lifetimes bounds
+**Syntactic forms**:
+- `S<T> where T: 'a` **type lifetime bound**; if `T` has **references**, they **must outlive** `'a`;
+- `S<T> where 'b: 'a` **lifetime** `'b` **must live** *at least as long as* (**outlive**) `'a` **bound**;
+
+<br>
+
 *Lifetimes* can be used as **trait bounds** and called **lifetimes bounds**.<br>
 Consider following type:<br>
 ```Rust
