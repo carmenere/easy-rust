@@ -129,7 +129,8 @@ Cargo uses the **automatic target discovery** by default. *Automatic target disc
 Fields `name` and `version` are **required**.<br>
 **Any hyphens** in the **package name** are **replaced** with **underscores**.<br>
 
-- `name` specifies a **package name**, **package name** is like **identifier** used to refer to the package;
+- `name` specifies a **package name**;
+  - the **package name** is like **identifier** used to refer to the package;
   - **by default**, the **package name** is used as **name** for *auto discovered crate*: **binary** (`src/main.rs`) and/or **library** (`src/lib.rs`);
 - `version` specifies the **version** of the package;
 - `authors` specifies the **authors** of the package;
@@ -155,7 +156,7 @@ Fields `name` and `version` are **required**.<br>
     - the `Cargo.toml` file of the package itself is **always included**, it does not need to be listed in include;
     - **if** a `license-file` is **specified**, it is **always included**;
 - `resolver` sets the **dependency resolver** to use;
-- The repository field should be a URL to the source repository for your package:
+- `repository` field should be a URL to the source repository for your package:
   - example: `repository = "https://github.com/rust-lang/cargo"`;
 - `license` specifies the **name of the software license** that the package is released under and the **name** must be in a **SPDX license expressions**:
   - example: `license = "MIT OR Apache-2.0"`
@@ -223,11 +224,11 @@ The **version requirement syntax**:
 - **caret requirement** is the **default** version requirement strategy;
   - example: `"^1.2.3"` or just `1.2.3`, appropriate **compatibility range** is `[1.2.3, 2.0.0)`;
 - **tilde requirement** specifies a minimal version with some ability to update;
-  - example: `"~1.2.3"`, its appropriate **compatibility range** is `[1.2.3, 1.3.0)`;
+  - example: `"~1.2"`, its appropriate **compatibility range** is `[1.2.0, 1.3.0)`;
 - **wildcard requirement** allows for any version where the wildcard `*` is positioned;
   - example: `"1.*"`, its appropriate **compatibility range** is `[1.0.0, 2.0.0)`;
 - **equal requirement** specifies exact version only;
-  - example: `"=1.2.3"`, its appropriate **compatibility range** is `[1.2.3]`;
+  - example: `"=1.2.3"`, its appropriate **compatibility range** is `[1.2.3, 1.2.3]`;
 - **compound requirement** allows multiple version requirements separated with a comma:
   - example: `">=1.2, <1.5"`, its appropriate **compatibility range** is `[1.2.0, 1.5.0)`;
 

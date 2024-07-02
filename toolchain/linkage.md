@@ -8,7 +8,7 @@
   - [The manifest `links = %name%` key](#the-manifest-links--name-key)
   - [Static and dynamic C runtimes](#static-and-dynamic-c-runtimes)
 - [Examples](#examples)
-  - [Building a native library as part of a package](#building-a-native-library-as-part-of-a-package)
+  - [Building C code as part of a package](#building-c-code-as-part-of-a-package)
 
 <br>
 
@@ -142,7 +142,7 @@ There are **several types of libraries**:
 <br>
 
 ## `*-sys` packages
-A **native dependency** is any dependency that requires compilation of `C++`/`C`.<br>
+A **native dependency** is any dependency that requires compilation of `C++`/`C` code.<br>
 **Packages** that link to **system libraries** (**C libraries**) are also called **native dependencies**.<br>
 **Native dependencies** have a **naming convention** of having a `-sys` **suffix**.<br>
 
@@ -182,12 +182,12 @@ The `crt-static` **feature** of `target-feature` **codegen option** configure **
 
 It's recommended to **inspect the resulting binary** to ensure that it's linked as you would expect after the compiler succeeds.<br>
 
-For example, **alpine** libraries link **dynamically** to **musl libc**, while `rustc` **statically** links to **musl libc** *by default*. The conflict there somehow causes the libssl dynamic library to not link in properly at runtime. If you set `RUSTFLAGS=-Ctarget-feature=-crt-static` to configure rustc to dynamically link to musl as well, things appear to work. If you want a fully statically linked binary, you'll need to build openssl from source configured to statically link to musl as well.<br>
+For example, **alpine** libraries link **dynamically** to **musl libc**, while `rustc` **statically** links to **musl libc** *by default*.<br>
 
 <br>
 
 # Examples
-## Building a native library as part of a package
+## Building C code as part of a package
 The package layout:
 ```rust
 .
