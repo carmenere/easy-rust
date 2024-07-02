@@ -19,7 +19,7 @@ The **build script** does **not** have access to the dependencies listed in the 
 <br>
 
 Sometimes it’s necessary:
-- to **generate** some **source rust code** just before they are compiled for various reasons.;
+- to **generate** some **source rust code** just **before** build a package for various reasons;
 - to **build** some **native** `C` or `C++` **code** as **part of a package**;
 - to **link** to a **native library** to bind its functionality;
   - **native library** can either be **located on the system** or need to be **built from source**;
@@ -142,16 +142,15 @@ There are **several types of libraries**:
 <br>
 
 ## `*-sys` packages
-A **native dependency** is any dependency that requires compilation of `C++`/`C`, because they **rely on code that is compiled on the machine**.<br>
+A **native dependency** is any dependency that requires compilation of `C++`/`C`.<br>
+**Packages** that link to **system libraries** (**C libraries**) are also called **native dependencies**.<br>
+**Native dependencies** have a **naming convention** of having a `-sys` **suffix**.<br>
 
-You may be **unable** to **statically** link your binary due to **dependencies** that **mandate dynamic linking**.<br>
-There is convention that all **native-linking crates** use the `-sys` suffix in their name.<br>
-So, it is fairly simple to **find dependencies that dynamically link to libraries**:
-- `cargo tree | grep '\-sys'`
-- 
-`*-sys` is a **naming convention** for **native dependency**, in other words, crates that link to **system libraries** (**C libraries**), e.g. `libz-sys`.
-**Packages** that link to **system libraries** have a **naming convention** of having a `-sys` **suffix**.<br>
-It is common to have a **companion package** without the `-sys` suffix that provides a safe, high-level abstractions on top of the **sys package**. For example, the `git2` crate provides a high-level interface to the `libgit2-sys` crate.
+So, it is fairly simple to **find native dependencies**:
+- `cargo tree | grep '\-sys'`;
+
+It is common to have a **companion package** without the `-sys` suffix that provides a safe, high-level abstractions on top of the **sys package**.<br>
+For example, the `git2` crate provides a high-level interface to the `libgit2-sys` crate.
 
 <br>
 
@@ -160,7 +159,7 @@ The `links` key is only **informational** and it does **not** actually **link** 
 
 When the `links` key is used, the package **must** have a **build script**, and the *build script* **should** use the `rustc-link-lib` instruction to **link** the **library**.<br>
 
-The name `%name%` of **C library** must be without any **prefix**/**suffix** (e.g. `links = "z"`, **not** `"libz.so"`), example:<br>
+The name `%name%` of **C library** must be **without** any **prefix**/**suffix** (e.g. `links = "z"`, **not** `"libz.so"`), example:<br>
 ```toml
 [package]
 # ...
