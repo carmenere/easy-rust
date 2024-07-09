@@ -4,12 +4,14 @@
 - [Index](#index)
   - [The layout of Index](#the-layout-of-index)
   - [`config.json`](#configjson)
-- [Source](#source)
-    - [Example](#example)
+- [Publish and yank](#publish-and-yank)
+  - [cargo yank](#cargo-yank)
+  - [cargo publish](#cargo-publish)
 - [Alternate registries](#alternate-registries)
-- [cargo yank](#cargo-yank)
-- [cargo publish](#cargo-publish)
-    - [Merge rules for `.cargo/config.toml` files](#merge-rules-for-cargoconfigtoml-files)
+    - [Example](#example)
+- [Source replacement](#source-replacement)
+    - [Example](#example-1)
+- [Merge rules for `.cargo/config.toml` files](#merge-rules-for-cargoconfigtoml-files)
 
 <br>
 
@@ -25,7 +27,7 @@ Cargo supports two protocols for remote registry: `git` and `sparse`:
 <br>
 
 A **registry** consists of **3 components**:
-- (*required*) **index**;
+- (*required*) **index** (aka **registry index**);
 - (*required*) **download endpoint** at the location defined in `config.json` which is used used by `cargo` to donwload `.crate` files created by `cargo package`:
   - `GET $dl/$crate_name/$version/download` must return `.crate` file for appropriate crate;
   - the **sha256sum** of the `.crate` file needs to match the the checksum in the index file for that version of the crate.
@@ -43,10 +45,8 @@ A **registry** consists of **3 components**:
 <br>
 
 # Index
+Each **cargo registry** provides an **index**. **Index** is a **git repository** following a **particular layout**.<br>
 The **default index** is `https://github.com/rust-lang/crates.io-index`.<br>
-
-Each **cargo registry** provides an **index**.<br>
-**Index** is a **git repository** following a **particular layout**.<br>
 The purpose of the **index** is to provide an efficient method to **resolve the dependency graph** for a package, i.e. `cargo` uses **index** to figure out which packages it must to download to build crate. After resolution has been performed, `cargo`uses **download endpoint** to download packeges: `GET $dl/$crate_name/$version/download` returns `.crate` file for appropriate crate.
 **Index** contains **exactly one** file for each crate in the registry.<br>
 
@@ -143,40 +143,35 @@ Example of **entry**:<br>
 
 <br>
 
-# Source
-**Sources** are described in `.cargo/config.toml` file in `[source]` section.<br>
-**Source** can contain **more than 1 registry**.
+# Publish and yank
+## cargo yank
+The `cargo yank` command does not delete any data, and the crate will still be available for download via the registry’s download link.<br>
+The `cargo yank` command **prevents new projects** from depending on a **yanked version** but it will **still be available** to projects that have a `Cargo.lock`.<br>
+
+<br>
+
+## cargo publish
+The `cargo publish` command performs the following steps:
+1. Perform some verification checks on your package.
+2. Compress your source code into a `.crate` file.
+3. Extract the `.crate` file into a temporary directory and verify that it compiles.
+4. Upload the `.crate` file to `crates.io`.
+5. The registry will perform some additional checks on the uploaded package before adding it.
+
+<br>
+
+# Alternate registries
+Configuration of **alternative registries** is done through `.cargo/config`.<br>
+The `[registries]` table is used for specifying **alternative registries**. It consists of a sub-tables `[registries.<name>]` for each **named registry**.<br>
+
+The `registries.<name>.index` parameter specifies the **URL** of the **index** for the **registry**.<br>
 
 <br>
 
 ### Example
 ```toml
-# For example this section defines a new source, called `my-vendor-source`, which comes from a directory
-# located at `vendor` relative to the directory containing this `.cargo/config.toml` file
-[source.my-vendor-source]
-directory = "vendor"
-
-# The crates.io default source for crates is available under the name "crates-io", and here we use 
-# the `replace-with` key to indicate that it's replaced with our source above.
-# The `replace-with` key can also reference an alternative registry name defined in the `[registries]` table.
-[source.crates-io]
-registry = 'https://github.com/rust-lang/crates.io-index'
-replace-with = "my-vendor-source"
-
-# Several kinds of sources can be specified (described in more detail below):
-registry = "https://example.com/path/to/index"
-local-registry = "path/to/registry"
-directory = "path/to/vendor"
-```
-
-<br>
-
-# Alternate registries
-To use **alternate registry**, the **name** of **registry** and its **index URL** must be added to a `.cargo/config.toml` file.<br>
-Example:<br>
-```toml
 [registries.my-registry]
-index = "https://gitlab.com/my-organization/my-registry"
+index = "https://example.com/path/to/index"
 ```
 
 Then specify **name** of **registry** for package in `Cargo.toml`:
@@ -187,23 +182,40 @@ foobar = {version = "1.4.0", registry = "my-registry"}
 
 <br>
 
-# cargo yank
-The `cargo yank` command does not delete any data, and the crate will still be available for download via the registry’s download link.<br>
-The `cargo yank` command **prevents new projects** from depending on a **yanked version** but it will **still be available** to projects that have a `Cargo.lock`.<br>
+The `[registry]` table controls the **default registry** used when one is not specified.
 
 <br>
 
-# cargo publish
-The `cargo publish` command performs the following steps:
-1. Perform some verification checks on your package.
-2. Compress your source code into a `.crate` file.
-3. Extract the `.crate` file into a temporary directory and verify that it compiles.
-4. Upload the `.crate` file to `crates.io`.
-5. The registry will perform some additional checks on the uploaded package before adding it.
+# Source replacement
+A **source** (aka **registry source**) is one that is the same as `crates.io` itself. A **source** is a provider that contains crates. The `crates.io` is a **default** *source* and it is available under the name **crates-io**, e.g. `[source.crates-io]`.<br>
+The `[source]` table in `.cargo/config.toml` is used for specifying **registry sources**. It consists of a sub-tables `[source.<name>]` for each **named source**. Every such **named source** must define **one kind** of *source* (**directory**, **registry**, **local registry**, or **git**).<br>
 
 <br>
 
-### Merge rules for `.cargo/config.toml` files
+There are **several kinds** of *sources* and every kind has **special key** to be set:
+- `source.<name>.directory` defines **path** to a **directory source**;
+- `source.<name>.registry` defines **URL** to a **registry source**, in other word it sets URL of **index** of **registry**, e.g. `https://example.com/path/to/index`;
+- `source.<name>.local-registry` defines **path** to a **local registry** source;
+- `source.<name>.git` defines **URL** of a **git repository** source;
+
+<br>
+
+Configuration of **source replacement** is done through `source.<name>.replace-with = <some-source>|<some-registry>` parameter. **If set**, it **replaces** *current source* `<name>` with the given **named source** (`<some-source>`) or **named registry** (`<some-registry>`).
+
+<br>
+
+### Example
+```toml
+[source.my-source]
+registry = "https://example.com/path/to/index"
+
+[source.crates-io]
+replace-with = "my-source"
+```
+
+<br>
+
+# Merge rules for `.cargo/config.toml` files
 If, for example, `cargo` was invoked in `/projects/foo/bar/baz`, then it will read and merge `.cargo/config.toml` files in following order:<br>
 ```sh
 /projects/foo/bar/baz/.cargo/config.toml
