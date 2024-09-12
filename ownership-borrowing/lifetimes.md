@@ -6,6 +6,12 @@
   - [Lifetimes rules](#lifetimes-rules)
   - [Lifetimes in structs](#lifetimes-in-structs)
   - [Lifetimes in impl blocks](#lifetimes-in-impl-blocks)
+- [Lifetime arithmetic](#lifetime-arithmetic)
+  - [Examples](#examples)
+    - [Example 1](#example-1)
+    - [Example 2](#example-2)
+    - [Example 3](#example-3)
+    - [Example 4](#example-4)
 - [Interpretation of lifetimes](#interpretation-of-lifetimes)
   - [Lifetime subtyping](#lifetime-subtyping)
   - [Example](#example)
@@ -84,6 +90,133 @@ fn main() {
     println!("x is: {}", f.x());
 }
 ```
+
+<br>
+
+# Lifetime arithmetic
+In fact, **scopes** and **lifetimes** are **different concepts**:
+- in rust code, **all** objects, including constants, owned variables and references, **have scopes**;
+- **lifetime parameters** are associated with **references** to express **relationships between scopes**;
+
+<br>
+
+For the expression `x: &'a T`, instead of saying `'a` is the lifetime of `x`, we should say: `'a` is a **lifetime parameter associated** with the **reference** `x`.<br>
+
+In terms of algebra, **scopes** are **values** like `1`, `2`, `3`, and **lifetimes** are **variables** like `x`, `y`, `z`.<br>
+
+Rules:
+1. **Association rule**: `x: &'a T` ⇒ `scope(x)` ⊆ `'a T`.
+In other words: the lifetime associated with the reference is a **superset** of the scope of this reference.
+
+2. **Reference rule**: `x: &'a T = &y` ⇒ `'a T` ⊆ `scope(y)`. Here `y` is **owned type**.
+In other words: a lifetime associated with a reference is a **subset** of the scope of the referent object.
+
+3. **Assignment rule**: `x: &'a S = y: &'b T` ⇒ `'a` ⊆ `'b`. Here `x` and `y` are both references.
+In other words: the lifetime associated with the assignee is a **subset** of the lifetime associated with the assigner.
+
+4. **Struct reference rule**: given a struct struct `S<'a> { x: &'a T }`, then `s: &'b S<'a>` ⇒ `'b` ⊆ `'a`.
+In other words: the lifetime associated with a struct reference is a **subset** of the lifetime associated with the struct member.
+
+*Proof*.
+- for `s: &'b S<'a>`, there must be an object `y: S<'a>`, such that `s: &'b S` = `&y`;
+- `x: &'a T` ⇒ `scope(x)` ⊆ `'a T`;
+- `y: S<'a> = S::new()` ⇒ `scope(y.x)` ⊆ `'a T`;
+- `s: &'b S<'a> = &y` ⇒ `'b` ⊆ `scope(y)`, `scope(y)` = `scope(S<'a>)`;
+- `scope(y.x)` = `scope(y)`;
+- `'b` ⊆ `scope(y)` = `scope(y.x)` ⊆ `'a T`;
+So, `'b: 'a`.
+
+5. **Double reference rule**:
+`x: &'b &'a T` ⇒ `'b ⊆ 'a`
+
+6. **Lifetime bound**:
+`'a: 'b` ⇔ `'b ⊆ 'a`
+
+7. **Static scope**:
+`'a` ⇒ `'a ⊆ 'static`
+
+Only **static objects** have **static scopes**.
+Static objects are **not** located in **stack** or **heap**. They are **located** in **data segments** or **code segments** that are mapped to the process memory.
+
+## Examples
+### Example 1
+```rust
+{
+    let r;
+    {
+        let x = 5;
+        r = &x;
+    }
+    println!("r: {}", r);
+}
+```
+The compiler tries to associate a lifetime `'a` with reference `r` that satisfies the follow inequalities:
+rule 1: `​scope(r)` ⊆ `'a`
+rule 2: `​'a` ⊆ `scope(x)`
+​​ 
+​<br>
+
+### Example 2
+```rust
+fn longest<'a>(x: &'a str, y: &'a str) -> &'a str {
+    if x.len() > y.len() {
+        x
+    } else {
+        y
+    }
+}
+
+fn main() {
+    let s1 = String::from("long string is long");
+    let s2 = String::from("xyz");
+    let result;
+    {
+        let rs1 = &s1;
+        let rs2 = &s2;
+        result = longest(rs1, rs2);
+    }
+    println!("The longest string is {}", result);
+}
+```
+
+In this example, lifetime `'a` is associated with both `rs1` and `rs2`. The compiler needs to find a lifetime `'a` that satisfies:
+- `​scope(rs1)` ⊆ `'a` ⊆ `scope(s1)`;
+- `​scope(rs2)` ⊆ `'a` ⊆ `scope(s2)`;
+- `​scope(result)` ⊆ `'a`;
+- `scope(result)` satisfies these inequalities, so `'a` could be;
+- `scope(result)`, and the compiler passes the check;
+
+<br>
+
+### Example 3
+```rust
+struct S<'a> {
+    x: &'a u32,
+}
+
+fn foo<'a, 'b, 'c, 'd>(s: &'b S<'a>) -> &'d S<'c> where 'a: 'c, 'b: 'd {
+    s
+}
+```
+The constraints in the where clause are necessary in order to satisfy the **assignment rule**.<br>
+There are also two implied constraints from the struct reference rule: `'a: 'b` and `'c: 'd`.<br>
+
+<br>
+
+### Example 4
+```rust
+#[derive(Debug)]
+struct S {}
+
+fn main() {
+    let x = S {};
+    let y = &x;
+    let z = x;
+    println!("{:?}", y);
+}
+```
+An instance of struct `S` is first bound to `x`, then moved to `z`. But the scope of `x` ends when `x` is moved to `z`.<br>
+Any lifetime associated with `y` could **not** be satisfied because `scope(y)` ⊈ `scope(x)`. Thus the code does **not** compile.<br>
 
 <br>
 
