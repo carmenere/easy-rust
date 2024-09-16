@@ -219,11 +219,8 @@ where
 ```
 
 ## `'static` constraint
-The `'static` constraint means that the **closure** and its **return value** must have a **lifetime** of the **whole program execution**.<br>
-The reason for this is that threads **can outlive** the lifetime they have been created in.<br>
-Indeed if the **thread** and its **return value** can **outlive** their **caller**, we need to make sure that they will be **valid** afterwards, and since we **can’t know** when it will return we need to have them valid **as long as possible**, that is **until the end of the program**, hence the `'static` **lifetime**.<br>
-
-Rust has no way of knowing how long the child thread will run, so it **assumes** the **worst**: it assumes the **child thread** can **outlive** **parent thread**.<br>
+The `'static` constraint means that the **closure** and its **return value** must have a **lifetime** of the **whole program execution**, in other words, a value passed to a closure must live **until the end of the program**, hence the `'static` **lifetime**. The reason for this is that *spawned thread* **can outlive** scope in which it was originated.<br>
+Rust has no way of knowing how long the *child thread* will run, so it **assumes** the **worst**: it assumes that *child thread* **outlives** *parent thread*.<br>
 So when you pass reference to `thread::spawn` closure, it assumes this **reference can outlive original value it points to**.<br>
 
 <br>

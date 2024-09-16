@@ -12,8 +12,13 @@
 <br>
 
 # `unsafe` keyword
-There is `unsafe` keyword in Rust.<br>
-`unsafe` keyword gives 5 abilities:
+The `unsafe` block **disables some of the compiler's safety checks**. The Rust language has a **set of rules** that need to be followed to avoid UB. It is possible to **bypass** some of *these rules* **inside** `unsafe` block.<br>
+**Unsafe** doesn't mean that the code is incorrect or never safe to use, but rather that the **compiler doesn't validate** for you that the code is safe.<br>
+If the code **violates** *these rules*, it is called **unsound**.<br>
+
+When calling any `unsafe` function, read its documentation carefully and make sure you fully understand its **safety requirements**: the assumptions you need to uphold, as the caller, to avoid UB.<br>
+
+The `unsafe` keyword gives 5 abilities:
 1. **Dereference raw pointer**.
 2. **Call unsafe function or method**.
 3. **Modify a mutable static variable**.
