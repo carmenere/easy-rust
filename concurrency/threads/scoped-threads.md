@@ -3,9 +3,9 @@
 - [Non-scoped threads](#non-scoped-threads)
     - [Example: borrow variables with the `'static` lifetime](#example-borrow-variables-with-the-static-lifetime)
 - [Scoped threads](#scoped-threads)
-    - [Scoped threads example](#scoped-threads-example)
-  - [`scope` function](#scope-function)
-    - [Scoped threads lifetimes](#scoped-threads-lifetimes)
+- [Constraints](#constraints)
+  - [std::thread::scope](#stdthreadscope)
+  - [`Scope` type](#scope-type)
 
 <br>
 
@@ -66,33 +66,32 @@ fn main() {
 <br>
 
 # Scoped threads
-**Scoped threads** are a mechanism to guarantee to the compiler that **spawned threads will be joined before the scope ends**.<br>
-Whenever a scope spawns a thread, it promises to join the thread **before the scope ends**.<br>
-scope guarantees all threads will be joined at the end of the scope, i.e., **scoped threads only live within the scope** and **can safely access variables outside it**.<br>
-Unlike *non-scoped threads*, scoped threads **can borrow non**-`'static` data.
-All threads spawned within the scope that haven’t been manually joined will be **automatically joined** before this function returns.
-
-<br>
-
-### Scoped threads example
+Consider example:
 ```Rust
 use std::thread;
 
 fn main() {
     let s = String::from("Hello");
 
-    thread::scope(|scope| {
-        scope.spawn(|| {
+    thread::scope(|s| {
+        s.spawn(|| {
             println!("Length: {}", s.len());
         });
     });
 }
 ```
 
+The Rust stndard library provides the `std::thread::scope` function. We call `std::thread::scope` function with a closure. This closure gets an instance of `Scope`: `s`, representing the **scope**. This argument `s` of closure is used further to spawn threads.<br>
+The `scope` guarantees that **none** of the threads spawned inside the `std::thread::scope` **can outlive** the `scope`, in other words, **all** threads will be joined at the end of the scope. Scoped `.spawn()` method doesn't have a `'static` bound, allowing to reference anything that outlives the scope.<br>
+Unlike *non-scoped threads*, scoped threads **can borrow non**-`'static` data.<br>
+When `scope` ends, all threads that haven't been joined yet are automatically joined.<br>
+
+So, *scoped threads* allow us **borrow** data from **longer living** *parent threads*.<br>
+
 <br>
 
-
-## `scope` function
+# Constraints
+## std::thread::scope
 Signature of `std::thread::scope` function:
 ```rust
 pub fn scope<'env, F, T>(f: F) -> T
@@ -105,7 +104,7 @@ where
 
 <br>
 
-Type `Scope`:
+## `Scope` type
 ```rust
 pub struct Scope<'scope, 'env: 'scope> {
     data: Arc<ScopeData>,
@@ -113,14 +112,12 @@ pub struct Scope<'scope, 'env: 'scope> {
     env: PhantomData<&'env mut &'env ()>,
 }
 ```
-
 <br>
 
-### Scoped threads lifetimes
 Scoped threads involve two lifetimes: `'scope` and `'env`:
 - the `'scope` lifetime represents the **lifetime of the scoped threads**, once this **lifetime ends**, all **scoped threads are joined**;
 - the `'env` lifetime represents the **lifetime of whatever is borrowed** by the scoped threads;
 
 <br>
 
-Also there is boundary: `'env: 'scope`, it means means `'env` outlives `'scope`.<br>
+The `'env: 'scope` boundary means means `'env` outlives `'scope`.<br>
