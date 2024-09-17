@@ -98,6 +98,10 @@ pub type LockResult<Guard> = Result<Guard, PoisonError<Guard>>;
 <br>
 
 # In a nutshell
+A `Mutex` is very similar to `RwLock`, but slightly simpler. **Instead** of keeping track of the number of **shared** and **exclusive** borrows like an `RwLock`, it **only allows exclusive borrows**.<br>
+
+<br>
+
 - The `Mutex<T>` type **implements** `Send` and `Sync` if type `T` does:
 ```rust
 unsafe impl<T: ?Sized + Send> Send for Mutex<T> {}

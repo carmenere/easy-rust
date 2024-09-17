@@ -3,7 +3,9 @@
 - [URLs](#urls)
 - [Declaration](#declaration)
   - [`RcBox`](#rcbox)
-- [In a nutshell](#in-a-nutshell)
+- [Reference counting loops](#reference-counting-loops)
+  - [Example](#example)
+- [`Weak`](#weak)
 - [Examples](#examples)
   - [Bypassing reference counting loop](#bypassing-reference-counting-loop)
 
@@ -31,14 +33,77 @@ where
 
 <br>
 
-# In a nutshell
-`Weak` pointer can be created by calling `Rc::downgrade()`, and it increases the `weak_count` by `1`.<br>
-The `weak_count` **doesn’t** need to be `0` for the `Rc<T>` instance to **drop original value**.<br>
-The **original value** is accessed by calling `.upgrade()` method on the `Weak` pointer which returns an `Option<Rc<T>>`.<br>
-`Weak` reference **does not** prevent the value stored in the allocation from being dropped, and `Weak` itself makes **no guarantees** about the **value still being present**.<br>
-Thus it may return `None` when upgraded.<br>
+# Reference counting loops
+**Reference counting loop** (aka **reference cycle**) is a situation when **two** `Rc<T>` or `Arc<T>` instances **point** to **each other**, *reference counter* will **always** above zero and the values will **never** be freed.<br>
+**Reference counting loop** is **available** when **interior mutability** is used with `Rc<T>`.<br>
+To **avoid** *reference counting loop* there is special type [Weak](./Weak.md) in Rust.
 
-A use case for `Weak`: a tree could use `Rc` **from parent to children**, and `Weak` pointer **from children to their parents**.<br>
+<br>
+
+
+## Example
+```Rust
+use std::cell::RefCell;
+use std::rc::Rc;
+
+#[derive(Debug)]
+struct Node {
+    next: Option<Rc<RefCell<Node>>>,
+}
+
+impl Drop for Node {
+    fn drop(&mut self) {
+        println!("Dropping");
+    }
+}
+
+fn main() {
+    let a = Rc::new(RefCell::new(Node {next: None}));
+    println!("a count: {:?}",  Rc::strong_count(&a));
+    let b = Rc::new(RefCell::new(Node {next: Some(Rc::clone(&a))}));
+    println!("a count: {:?}",  Rc::strong_count(&a));
+    println!("b count: {:?}",  Rc::strong_count(&b));
+    let c = Rc::new(RefCell::new(Node {next: Some(Rc::clone(&b))}));
+
+    // Creates a reference cycle
+    (*a).borrow_mut().next = Some(Rc::clone(&c));
+    println!("a count: {:?}",  Rc::strong_count(&a));
+    println!("b count: {:?}",  Rc::strong_count(&b));
+    println!("c count: {:?}",  Rc::strong_count(&c));
+
+    // Print a will casue stack overlfow
+    // println!("a {:?}",  &a);
+}
+```
+
+<br>
+
+Here: `c.next -> b.next -> a.next -> c`.<br>
+
+<br>
+
+The `strong_count` for `a`, `b`, and `c` is `2`.<br>
+To drop a value inside `Rc` instance, we must ensure that its `strong_count` is equal to `0`.<br>
+At the end of `main`, variables `a`, `b` and `c` are dropped, the `strong_count` of these 3 variable is decreased to `1`.<br>
+But the heap memory of `Rc` (the **original value**) won't be dropped since the reference count is `1`. It is **memory leak**.
+
+<br>
+
+# `Weak`
+The `Weak` type can be used to **break cycles**: a tree could use `Rc` or `Arc` **from parent to children**, and `Weak` pointer **from children to their parents**. Then,
+dropping of a parent node is not prevented through the existence of its child nodes.<br>
+
+Usage:
+- to obtain `Weak` pointer call `downgrade()` method on `Rc` or `Arc`. Every instance of `Weak` increases the `weak_count` by `1`;
+- to access the `T` through `Weak<T>`, it can be **upgraded** to an `Arc<T>`/`Rc<T>` or `Rc<T>` by `Weak::upgrade()` method;
+
+<br>
+
+A `T` can be shared between several `Arc<T>`/`Rc<T>` and `Weak<T>` objects, but when **all** `Arc<T>`/`Rc<T>` objects are **gone**, the `T` is **dropped**, **regardless** of whether there are any `Weak<T>` objects left. This means that a `Weak<T>` can exist without a `T`.<br>
+
+So, the `Weak` reference **does not** prevent the value stored in the allocation from being dropped, and `Weak` makes **no guarantees** about the **value still being present**.<br>
+
+That's why `Weak::upgrade()` method returns an `Option<Arc<T>>` or `Option<Rc<T>>`: the `None` means that the `T` **has already been dropped**.<br>
 
 <br>
 

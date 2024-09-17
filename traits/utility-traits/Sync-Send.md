@@ -32,6 +32,7 @@ From compiler point of view **thread** is a **scope** `{}`.<br>
 <br>
 
 > **Note**:<br>
+> `T` is `Send` if **ownership** of a value of that type can be transferred to another thread.
 > `T` is `Sync` if and only if `&T` is `Send`.
 
 <br>
@@ -40,6 +41,26 @@ Both `Sync` and `Send` are **marker** traits and they both are **unsafe**:
 ```rust
 pub unsafe auto trait Send { }
 pub unsafe auto trait Sync { }
+```
+
+Both `Sync` and `Send` are **auto traits**, which means that they are automatically implemented for your types based on their fields. A **struct** in which **all fields** are `Send` and `Sync` is **also** `Send` and `Sync`.<br>
+
+The way to opt out of `Send` or/and `Sync` is to add a field to your type that does not implement the trait. For that purpouse, there is special `std::marker::PhantomData<T>` type.<br>
+The `std::marker::PhantomData<T>` is treated by the compiler as a `T`, except it doesn't actually exist at runtime, in other words, it takes no space at runtime.<br>
+
+Example (disable `Sync` for type `X`):
+```rust
+use std::cell::Cell;
+use std::marker::PhantomData;
+
+struct X {
+    a: i32,
+    _not_sync: PhantomData<Cell<()>>
+}
+
+fn main() {
+
+}
 ```
 
 <br>
@@ -51,7 +72,7 @@ pub unsafe auto trait Sync { }
 <br>
 
 # Send + Sync
-Most types are `Send` + `Sync`:
+**All primitive types** are both `Send` and `Sync`:
 - `i8`, `f32`, `bool`, `char`, `&str`, ...;
 - `(T1, T2)`, `[T; N]`, `&[T]`, `struct { x: T }`, ...;
 - `String`, `Option<T>`, `Vec<T>`, `Box<T>`, ...;
@@ -87,8 +108,25 @@ More details [here](https://whenderson.dev/blog/rust-mutexes/).
 # !Send + !Sync
 These types are **not thread-safe** and **cannot be moved** to other threads:
   - `Rc<T>`;
-  - **raw pointers** (`*const T`, `*mut T`);
+  - **raw pointers** (`*const T`, `*mut T`) are neither `Send` nor `Sync`, since the compiler doesn't know much about what they represent;
   - types from **external libraries** that are **not thread safe**;
+
+<br>
+
+Explicit implementation of `Send` or/and `Sync` trait for `!Sync` or/and `!Send` types **requires** `unsafe` keyword, since the compiler cannot check for you if it's correct.<br>
+Example:
+```rust
+struct Y {
+    a: *mut i32
+}
+
+unsafe impl Send for Y {}
+unsafe impl Sync for Y {}
+
+fn main() {
+
+}
+```
 
 <br>
 

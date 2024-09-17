@@ -98,8 +98,8 @@ To make *cell types* **thread safe** use `Mutex`.
 <br>
 
 ## `UnsafeCell<T>`
-This type is core primitive for **interior mutability**.<br>
-The `UnsafeCell` API technically very simple: `get()` returns a raw pointer `*mut T`:
+This type is **building block** for **interior mutability**.<br>
+An `UnsafeCell` wraps `T`, but doesn't come with any conditions or restrictions to avoid UB. Instead, its `get()` method just returns a **raw pointer** `*mut T` to the value it wraps:
 ```rust
 impl<T: ?Sized> UnsafeCell<T> {
     pub const fn get(&self) -> *mut T {
@@ -107,6 +107,8 @@ impl<T: ?Sized> UnsafeCell<T> {
     }
 }
 ```
+
+It leaves it up to the developper to use it in a way that does not cause any UB.<br>
 
 <br>
 
@@ -120,8 +122,9 @@ where
 <br>
 
 ## `Cell<T>`
-The `Cell<T>` type provides **zero-cost interior mutability**, but only for `Copy` types.
-`T` must be of **Copy type**.	
+The `Cell<T>` type provides **zero-cost interior mutability**, but only for `Copy` types.<br>
+To avoid UB, it only allows you to **copy** the value out or **replace** it with another value as a whole. That's why it requires `T` to be of **Copy type**.<br>
+The `Cell<T>` can be used within a **single** thread.<br>
 
 The `Cell<T>` type implements `Send` if `T` does:
 ```rust
@@ -143,7 +146,9 @@ Some usefull methods of `Cell<T>`:
 <br>
 
 ## `RefCell<T>`
-The `RefCell<T>` type performs **borrow checking at runtime**.<br>
+Unlike a `Cell<T>`, a `RefCell<T>` type allows to **borrow** its contents at a small runtime cost.<br>
+The `RefCell<T>` performs **borrow checking at runtime**: if you try to borrow it while it is already mutably borrowed (or vice-versa), it will panic, which avoids UB.<br>
+The `RefCell<T>` can be used within a **single** thread.<br>
 
 The `RefCell<T>` type implements `Send` if `T` does:
 ```rust
