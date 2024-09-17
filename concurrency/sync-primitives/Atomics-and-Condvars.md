@@ -18,6 +18,13 @@
 
 # Atomics
 [**About portability of atomic types here**](https://doc.rust-lang.org/stable/std/sync/atomic/index.html#portability).<br>
+The **atomic** types represent the concurrent version of a `Cell`.
+Like `Cell`, they avoid UB by making us copy values in and out as whole, without letting us borrow the content directly.<br>
+
+Unlike a `Cell` they **cannot** be of **arbitrary size**. Because of this, there is **no** generic `Atomic<T>` type for any type `T`, but there are **only specific atomic types** such as `AtomicU32` and `AtomicPtr<T>`. Which **atomic** types are avaliable **depends on the platform**, since they **require support from the processor** to avoid data races.<br>
+
+Because of limited size **atomics** don't directly contain the data that needs to be shared between threads. Instead, **atomics** are often used as a tool **to build synchronization primitives**.<br>
+
 Constructors for all **atomic types** are all `const` functions: `const fn abc() { … }`.<br>
 It is possible to use **global atomic variable**. But **atomic globals** are limited to `integers` and `bool`.<br>
 

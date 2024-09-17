@@ -62,6 +62,7 @@ Another way to share ownership is by **tracking the number of owners**, we can m
 <br>
 
 ### Example: `Rc`
+More details [**here**](../../smart-pointers/Rc.md).
 ```rust
 use std::rc::Rc;
 
@@ -76,6 +77,7 @@ fn main() {
 <br>
 
 ### Example: `Arc`
+More details [**here**](../../smart-pointers/Arc.md).
 ```rust
 use std::thread;
 use std::sync::Arc;

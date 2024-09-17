@@ -5,12 +5,9 @@
   - [`RcBox<T>`](#rcboxt)
   - [`Rc<T>`](#rct)
 - [In a nutshell](#in-a-nutshell)
-  - [Cloning](#cloning)
-  - [Deref](#deref)
-  - [Reference counting loops](#reference-counting-loops)
-- [Examples](#examples)
-  - [List in the LISP style](#list-in-the-lisp-style)
-  - [Reference counting loop](#reference-counting-loop)
+  - [Example](#example)
+- [Cloning](#cloning)
+- [Deref](#deref)
 
 <br>
 
@@ -70,31 +67,7 @@ impl<T: ?Sized, A: Allocator> !Sync for Rc<T, A> {}
 
 <br>
 
-## Cloning
-`Rc`'s implementation of `Clone` trait may be called using **fully qualified syntax** or **method-call syntax**:
-- `rc.clone();`
-- `Rc::clone(&rc);`
-
-The `Rc::clone()` **doesn't clone original wrapped value** of type `T`, instead it creates new instance of `Rc<T>` and **increments** the **strong_count**.<br>
-When instance of `Rc` **goes out of scope** it is destroyed and the **strong_count** is **decremented** by `1`.<br>
-When the **strong_count** is reached `0` the **original value** of type `T` is also **dropped**.<br>
-
-<br>
-
-## Deref
-The `Rc` implements `Deref` trait, so you can call `T`'s methods on a value of type `Rc<T>`.
-
-<br>
-
-## Reference counting loops
-**Reference counting loop** (aka **reference cycle**) is a situation when **two** `Rc<T>` instances **point** to **each other**, *reference counter* will **always** above zero and the values will **never** be freed.<br>
-**Reference counting loop** is **available** when **interior mutability** is used with `Rc<T>`.<br>
-To **avoid** *reference counting loop* there is special type [Weak](https://github.com/carmenere/easy-rust/blob/main/smart-pointers/Weak.md) in Rust.
-
-<br>
-
-# Examples
-## List in the LISP style
+## Example
 ```Rust
 enum List {
     Cons(i32, Rc<List>),
@@ -119,48 +92,16 @@ fn main() {
 
 <br>
 
-## Reference counting loop
-```Rust
-use std::cell::RefCell;
-use std::rc::Rc;
+# Cloning
+`Rc`'s implementation of `Clone` trait may be called using **fully qualified syntax** or **method-call syntax**:
+- `rc.clone();`
+- `Rc::clone(&rc);`
 
-#[derive(Debug)]
-struct Node {
-    next: Option<Rc<RefCell<Node>>>,
-}
-
-impl Drop for Node {
-    fn drop(&mut self) {
-        println!("Dropping");
-    }
-}
-
-fn main() {
-    let a = Rc::new(RefCell::new(Node {next: None}));
-    println!("a count: {:?}",  Rc::strong_count(&a));
-    let b = Rc::new(RefCell::new(Node {next: Some(Rc::clone(&a))}));
-    println!("a count: {:?}",  Rc::strong_count(&a));
-    println!("b count: {:?}",  Rc::strong_count(&b));
-    let c = Rc::new(RefCell::new(Node {next: Some(Rc::clone(&b))}));
-
-    // Creates a reference cycle
-    (*a).borrow_mut().next = Some(Rc::clone(&c));
-    println!("a count: {:?}",  Rc::strong_count(&a));
-    println!("b count: {:?}",  Rc::strong_count(&b));
-    println!("c count: {:?}",  Rc::strong_count(&c));
-
-    // Print a will casue stack overlfow
-    // println!("a {:?}",  &a);
-}
-```
+The `Rc::clone()` **doesn't clone original wrapped value** of type `T`, instead it creates new instance of `Rc<T>` and **increments** the **strong_count**.<br>
+When instance of `Rc` **goes out of scope** it is destroyed and the **strong_count** is **decremented** by `1`.<br>
+When the **strong_count** is reached `0` the **original value** of type `T` is also **dropped**.<br>
 
 <br>
 
-Here: `c.next -> b.next -> a.next -> c`.<br>
-
-<br>
-
-The `strong_count` for `a`, `b`, and `c` is `2`.<br>
-To drop a value inside `Rc` instance, we must ensure that its `strong_count` is equal to `0`.<br>
-At the end of `main`, variables `a`, `b` and `c` are dropped, the `strong_count` of these 3 variable is decreased to `1`.<br>
-But the heap memory of `Rc` (the **original value**) won't be dropped since the reference count is `1`. It is **memory leak**.
+# Deref
+The `Rc` implements `Deref` trait, so you can call `T`'s methods on a value of type `Rc<T>`.

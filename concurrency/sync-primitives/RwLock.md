@@ -14,7 +14,11 @@
 <br>
 
 # RwLock
-`RwLock` stand for **a reader-writer lock**.<br>
+An `RwLock` or **reader-writer lock** is the concurent version of a `RefCell<T>`. An `RwLock<T>` holds a `T` and tracks any outstanding borrows. However, unlike `RefCell<T>`, it **doesn't panic** on conflicting borrows. Instead, it blocks the current thread - putting it to sleep.<br>
+
+**Borrowing** the content of an `RwLock` is called **locking**.<br>
+
+A `Mutex` is very similar to `RwLock`, but slightly simpler. **Instead** of keeping track of the number of **shared** and **exclusive** borrows like an `RwLock`, it **only allows exclusive borrows**.<br>
 
 <br>
 
