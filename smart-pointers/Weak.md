@@ -43,38 +43,31 @@ To **avoid** *reference counting loop* there is special type [Weak](./Weak.md) i
 
 ## Example
 ```Rust
-use std::cell::RefCell;
-use std::rc::Rc;
+use std::{cell::RefCell, sync::Arc};
 
-#[derive(Debug)]
-struct Node {
-    next: Option<Rc<RefCell<Node>>>,
-}
-
-impl Drop for Node {
+impl Drop for Data {
     fn drop(&mut self) {
-        println!("Dropping");
+        println!("data {} drops here", self.x);
     }
+}
+pub struct Data {
+    pub x: usize,
+    pub next: Option<Arc<RefCell<Data>>>,
 }
 
 fn main() {
-    let a = Rc::new(RefCell::new(Node {next: None}));
-    println!("a count: {:?}",  Rc::strong_count(&a));
-    let b = Rc::new(RefCell::new(Node {next: Some(Rc::clone(&a))}));
-    println!("a count: {:?}",  Rc::strong_count(&a));
-    println!("b count: {:?}",  Rc::strong_count(&b));
-    let c = Rc::new(RefCell::new(Node {next: Some(Rc::clone(&b))}));
-
-    // Creates a reference cycle
-    (*a).borrow_mut().next = Some(Rc::clone(&c));
-    println!("a count: {:?}",  Rc::strong_count(&a));
-    println!("b count: {:?}",  Rc::strong_count(&b));
-    println!("c count: {:?}",  Rc::strong_count(&c));
-
-    // Print a will casue stack overlfow
-    // println!("a {:?}",  &a);
+    let data1 = RefCell::new(Data { x: 42, next: None });
+    let data2 = RefCell::new(Data { x: 53, next: None });
+    let ptr1 = Arc::new(data1);
+    let ptr2 = Arc::new(data2);
+    ptr1.borrow_mut().next = Some(ptr2.clone());
+    ptr2.borrow_mut().next = Some(ptr1.clone());
+    println!("Hello, world!");
 }
 ```
+
+The output is just a line of `Hello, world!`, and **no** drops happen here.<br>
+That's becase even the pointers `ptr1` and `ptr2` are **dropped** at the end of the main function, **but** the reference counters of `data1` and `data2` are still **1**, not decresed to **0**.<br>
 
 <br>
 
