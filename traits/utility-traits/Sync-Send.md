@@ -32,8 +32,8 @@ From compiler point of view **thread** is a **scope** `{}`.<br>
 <br>
 
 > **Note**:<br>
-> `T` is `Send` if **ownership** of a value of that type can be transferred to another thread.
-> `T` is `Sync` if and only if `&T` is `Send`.
+> `T` is `Send` if **ownership** of a value of that type can be transferred to another thread.<br>
+> `T` is `Sync` if and only if `&T` is `Send`.<br>
 
 <br>
 

@@ -11,9 +11,11 @@
     - [`TryLockResult`](#trylockresult)
     - [`LockResult`](#lockresult)
 - [In a nutshell](#in-a-nutshell)
-  - [Poisoning](#poisoning)
-  - [`Arc<Mutex<T>>`](#arcmutext)
-- [Examples](#examples)
+  - [Example](#example)
+- [Lock poisoning](#lock-poisoning)
+- [`Arc<Mutex<T>>`](#arcmutext)
+  - [Example](#example-1)
+- [Lifetime of the `MutexGuard`](#lifetime-of-the-mutexguard)
 
 <br>
 
@@ -98,7 +100,13 @@ pub type LockResult<Guard> = Result<Guard, PoisonError<Guard>>;
 <br>
 
 # In a nutshell
-A `Mutex` is very similar to `RwLock`, but slightly simpler. **Instead** of keeping track of the number of **shared** and **exclusive** borrows like an `RwLock`, it **only allows exclusive borrows**.<br>
+A `Mutex` is very similar to `RwLock`, but slightly simpler. **Instead** of keeping track of the number of **shared** and **exclusive** borrows like an `RwLock`, it **only allows exclusive borrows**. The job of **mutex** is to ensure threads have exclusive access to some data by **temporarily blocking** other threads that try to access it **at the same time**.<br>
+Unlike other languages, in Rust **mutex** `Mutex<T>` is a generic over type `T`, which is the type of the data the **mutex** is protecting. The data can only be accesse through the **mutex**.<br>
+Conceptually a **mutex** has only two states: **locked** and **unlocked**. When a thread attempts to **lock** an already locked mutex it will be blocked: the thread is put to sleep until mutex become **unlocked**.<br>
+**Unlocking** is only possible on locked mutex and must be done by the **same thread** that locked it. To ensure a locked mutex can only be unlocked by the thread that locked it, it **doesn't have** an `unlock()` method. **Instead**, its `lock()` method returns a special type called a `MutexGuard`. This type represents the **guarantee** that we have locked the mutex. It behaves like an exclusive reference through the `DerefMut` trait. Unlocking the mutex is done by **dropping the guard**: the `Drop` implementation of the **guard** will **unlock** the mutex.<br>
+
+> Note:<br>
+> Keep amount of time a mutex is locked **as short as possible**.<br>
 
 <br>
 
@@ -145,47 +153,59 @@ Due to **deref coercions** we can call `T`’s methods on the `MutexGuard<T>` in
 
 <br>
 
-## Poisoning
-If thread that helds the **mutex** is panicked then **mutex** becomes **poisoned** to **signal** other threads that the **wrapped value** might be in an **inconsistent** state.<br>
-Once lock is **poisoned** then *all future acquisitions* will return `PoisonError<T>`.<br>
-Both `lock()` and `try_lock()` return `PoisonError<T>` if the **mutex** was **poisoned**.<br>
-
-<br>
-
-## `Arc<Mutex<T>>`
-Wrapping a `Mutex<T>` in an `Arc` is a common pattern to **share mutable data across threads**.
-
-
-<br>
-
-# Examples
+## Example
 ```Rust
-use std::sync::{Arc, Mutex, MutexGuard};
+use std::{sync::Mutex, thread};
 
 fn main() {
-    let m: Mutex<u64> = Mutex::new(10u64);
-    let mut l: MutexGuard<'_, u64> = m.lock().unwrap();
-    *l += 10;
-    println!("new value {}", l);
+    let n = Mutex::new(0);
+    thread::scope(|s| {
+        for i in 1..=10 {
+            s.spawn(|| {
+                let mut guard = n.lock().unwrap();
+                for i in 1..=10 {
+                    *guard += 1;
+                }
+            });
+        }
+    });
+    assert_eq!(n.into_inner().unwrap(), 100);
 }
 ```
 
+In the example above, the var `guard` is of type `MutexGuard<i32>`.<br>
+
 <br>
 
+# Lock poisoning
+If thread **panics** while holding the lock then mutex becomes **poisoned**. **Lock poisoning** indicates other threads that the data that is protected by a mutex **potentially** is in an **inconsistent state**.<br>
+Any further attemt to lock poisoned mutex returns an `Err` to indicate it has been poisoned, in other words any calling `lock()` or `try_lock()` methods on **poisoned mutex** returns `PoisonError<T>`.<br>
+
+Calling `lock()` on a *poisoned mutex* **still locks** the *mutex*. The `Err` returned by `lock()` contains the `MutexGuard`, allowing us:
+- **correct** or **somehow process** an inconsistet state **if possible**;
+- **propagate panic**;
+
+
+<br>
+
+# `Arc<Mutex<T>>`
+Wrapping a `Mutex<T>` in an `Arc<T>` is a common pattern to **share mutable data across threads**.
+
+## Example
 ```Rust
 use std::thread::{self, JoinHandle};
 use std::sync::{Arc, Mutex};
 
 fn main() {
-    let shared_vector = Arc::new(Mutex::new(vec![100, 200, 300]));
+    let v = Arc::new(Mutex::new(vec![100, 200, 300]));
     let ids = [1, 2, 3];
     let mut threads = Vec::with_capacity(10);
     for id in ids {
-        let a = shared_vector.clone();
+        let v = v.clone();
         threads.push(
             thread::spawn(move || {
-                let a = &a;
-                let lock = a.lock();
+                let v = &v;
+                let lock = v.lock();
                 if lock.is_ok() {
                     let mut vsafe = lock.unwrap();
                     vsafe.push(id.clone());
@@ -202,4 +222,13 @@ fn main() {
         let r = thread.join();
     }
 }
+```
+
+<br>
+
+# Lifetime of the `MutexGuard`
+When we assign the name to the **guard** wtih a `let` then it will be dropped at the end of scope or explicitly by `drop(guard)` function.<br>
+But we can use **guard** without assigning it a name. For example, if you have a `Mutex<Vec<i32>>`, you can **lock** the mutex, **push** an item into the `Vec`, and **unlock** the mutex again, **in a single statement**:
+```rust
+list.lock().unwrap().push(1);
 ```
