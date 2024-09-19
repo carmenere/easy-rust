@@ -12,7 +12,6 @@
 |Smart pointer|URL|
 |:----|:------------|
 |`Atomic types`|[**std::sync::atomic**](https://doc.rust-lang.org/stable/std/sync/atomic/index.html)|
-|`Condition variables`|[**std::sync::Condvar**](https://doc.rust-lang.org/stable/std/sync/struct.Condvar.html)|
 
 <br>
 
