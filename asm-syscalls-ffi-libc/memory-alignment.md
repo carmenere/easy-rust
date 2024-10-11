@@ -17,7 +17,7 @@ If the **address** is *evenly divisible* by the number of **N** (**N** is the si
 
 <br>
 
-The **N-byte aligned address** means that the **data** this address points to are **aligned** on **N-byte boundary**.<br>
+The **N-byte aligned address** means that the **data** this address points to is **aligned** on **N-byte boundary**.<br>
 
 <br>
 
