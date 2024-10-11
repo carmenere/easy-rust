@@ -2,7 +2,7 @@
 **Alignment** refers to the arrangement of data in memory.<br>
 From the software's point of view, **memory** is just **array of bytes**.<br>
 However, CPU **does not** accesses memory **byte by byte**. Instead, it accesses memory by **units** and **unit** is **N bytes** long, **N** can be **1**, **2**, **4**, **8**.<br>
-it sees memory as **units**. So, CPU has its own **memory access granularity**.<br>
+From the CPU's point of view, **memory** is just **array of units** and therefore CPU has its own **memory access granularity**.<br>
 
 The **size** of *unit* **depends** on CPU **arch**:
 - **16-bit** CPU reads memory by **words** (1 WORD = **2 bytes**);
