@@ -62,7 +62,7 @@ The main idea:
 
 <br>
 
-**Spinlock** requires **hardware support** of **atomic operations**. But **Peterson's algorithm** alows to implement spinlock **without hardware support**.<br>
+**Spinlock** requires **hardware support** of **atomic operations**. But **Peterson's algorithm** alows to implement spinlock **without hardware support**. It is used in Linux - [link](https://elixir.bootlin.com/linux/v5.6.19/source/arch/arm/mach-tegra/sleep-tegra20.S#L126).<br>
 **Atomicity** means bus is locked until atomic instruction is done, this guarantees other cores/CPUs will not access to RAM during atomic instruction is being executed.<br>
 
 <br>

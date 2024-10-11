@@ -2,8 +2,8 @@
 - [Table of contents](#table-of-contents)
 - [Multiprocessor](#multiprocessor)
 - [Multitasking](#multitasking)
-    - [Use cases for concurrency](#use-cases-for-concurrency)
-- [Multitasking in OS](#multitasking-in-os)
+  - [Use cases for concurrency](#use-cases-for-concurrency)
+  - [Multitasking in OS](#multitasking-in-os)
 - [Scheduling](#scheduling)
   - [Preemptive scheduling](#preemptive-scheduling)
   - [Cooperative scheduling](#cooperative-scheduling)
@@ -40,13 +40,13 @@ Tasks **must** be able to **stop** and **resume** their **progress**. It means *
 
 <br>
 
-### Use cases for concurrency
+## Use cases for concurrency
 - instead of waiting response when performing I/O switch to another tasks;
 - prevent tasks from waiting too long by interrupting and resuming them;
 
 <br>
 
-# Multitasking in OS
+## Multitasking in OS
 In modern OS there are 2 approaches to achive multitasking: 
 1.	**Multiprocessing** (aka process level multitasking) – multitasking at OS **processes** level, i.e., os schedules its **processes**.
 2.	**Multithreading** (aka thread level multitasking) – multitasking at OS **threads** level, i.e., os schedules its **threads**.
