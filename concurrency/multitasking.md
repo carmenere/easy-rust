@@ -2,7 +2,6 @@
 - [Table of contents](#table-of-contents)
 - [Multiprocessor](#multiprocessor)
 - [Multitasking](#multitasking)
-  - [Use cases for concurrency](#use-cases-for-concurrency)
   - [Multitasking in OS](#multitasking-in-os)
 - [Scheduling](#scheduling)
   - [Preemptive scheduling](#preemptive-scheduling)
@@ -25,24 +24,23 @@
 <br>
 
 # Multitasking
-**Multitasking** is a form of *computing* based on the concept of **task**. A **task** is a **set of operations** that *requires* some *resources* *to progress*. In other words, a **task** is an abstraction of a **unit of work**. There are **2 ways** to achieve this:
-- **concurrency**: different **tasks** are executed **concurrently**, but **not** at the same time;
-- **task level parallelism**: different **tasks** are executed **simultaneously** at the same time on **different** CPUs (**true parallelism**);
+There are 2 fundamentally different types of computing:
+- **parallelism** (aka **parallel computing**) means **simultaneity** at the **physical level**;
+- **concurrency** (aka **concurrency computing**) means **simultaneity** at the **logical level**;
 
 <br>
+
+**Multitasking** is a form of **concurrency** based on the concept of **task**.<br>
+
+A **task** is a **set of operations** that *requires* some *resources* *to progress*. There are **2 ways** to make progress for tasks:
+- **concurrency**: different **tasks** are executed **concurrently**, but **not** at the same time;
+- **task level parallelism**: different **tasks** are executed **simultaneously** at the same time on **different** CPUs;
 
 Tasks **must** be able to **stop** and **resume** their **progress**. It means *tasks* must be **interruptible**.<br>
 
-<br>
-
-**Parallelism** (aka **parallel computing**) means **simultaneity** at the **physical level**.<br>
-**Concurrency** (aka **concurrency computing**) means **simultaneity** at the **logical level**.<br>
-
-<br>
-
-## Use cases for concurrency
-- instead of waiting response when performing I/O switch to another tasks;
-- prevent tasks from waiting too long by interrupting and resuming them;
+Use cases for *concurrency*:
+- to **prevent** CPU **idle** time by **I/O-bound tasks**: switch to another tasks to make some progress instead of waiting response when performing I/O;
+- to **prevent consume** all of the CPU time by **CPU-bound tasks**: scheduler periodically **interrupts** and **resumes** tasks;
 
 <br>
 
@@ -54,8 +52,14 @@ In modern OS there are 2 approaches to achive multitasking:
 <br>
 
 # Scheduling
-**Scheduling** is the action of assigning resources (workers) to perform tasks.<br>
-**Scheduler** is a component of execution environment that dispatches tasks to workers, e.g., OS is execution environment and CPU/cores are workers. <br>
+**Scheduler** is a component of execution environment that **dispatches tasks to workers**, e.g., OS is execution environment and CPU/cores are workers. <br>
+
+**Scheduling** is the action of **dispatching tasks to workers**.<br>
+
+**Dispatch** is the act of sending something somewhere, e.g.,
+- dispatch an event to a listener;
+- dispatch an interrupt to a handler;
+- dispatch a process to the CPU;
 
 <br>
 
@@ -66,13 +70,13 @@ There 2 different types of scheduling:
 <br>
 
 ## Preemptive scheduling
+All modern OS use **preemptive scheduling**.<br>
+
 In **preemtive scheduling** the **OS** is responsible for scheduling tasks (threads) and does this by switching contexts on the CPU.<br>
 
-**Preemptive scheduling** involves the use of an **interrupt mechanism** which suspends the currently executing process or thread and invokes a scheduler to determine which process should execute next.<br>
-Therefore, all processes/threads will get some amount of CPU time (**quantum**) at any given time.<br>
-The **time slice** or **quantum** is the period of time for which a process or thread is allowed to run in a preemptive multitasking system.<br>
+**Preemptive scheduling** involves the use of an **interrupt mechanism** which suspends the currently executing process or thread and invokes a scheduler to determine which process should execute next. Therefore, all processes/threads will get some amount of CPU time (**quantum**) at any given time.<br>
 
-All modern OS use **preemptive scheduling**.
+The **time slice** or **quantum** is the period of time for which a process or thread is allowed to run.<br>
 
 <br>
 
@@ -85,7 +89,7 @@ All modern OS use **preemptive scheduling**.
 <br>
 
 ## Cooperative scheduling
-In **cooperative scheduling** the **programmer** is **reponsible** to **yield control** back to **scheduler**.<br>
+In **cooperative scheduling** the **developper** is **reponsible** to **yield control** back to **scheduler**.<br>
 
 <br>
 
@@ -145,4 +149,4 @@ There are 3 kinds of **user-level threads**:
 
 **Differences**:
 - *Stackful coroutines* **can** *suspend* execution at any point. They use the same mechanisms as an OS, setting up a stack for each task (thread), saving and restoring CPU's registers at every context switch.<br>
-- *Stackless coroutines* **cannot** *suspend* execution at any point. *Stackless coroutines* have to yield at specific points and there is **no way** to **suspend** execution in the **middle** of a **stack frame**.<br>
+- *Stackless coroutines* **cannot** *suspend* execution at any point. *Stackless coroutines* have to **yield** *at specific points* and there is **no way** to **suspend execution** in the **middle** of a *stack frame*.<br>
