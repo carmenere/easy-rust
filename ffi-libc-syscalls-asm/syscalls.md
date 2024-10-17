@@ -36,8 +36,8 @@ use std::arch::asm;
 fn syscall(msg: String) {
     unsafe {
         asm!(
-            "mov x0, #1",
-            "mov w8, #64",
+            "mov x0, 1",
+            "mov w8, 64",
             "svc 0",
             in("x1") msg.as_ptr(),
             in("x2") msg.len(),
@@ -60,8 +60,8 @@ fn main() {
 |Code|Meaning|
 |:---|:------|
 |`#[inline(never)]`|Attribute ``#[inline(never)]`` asks the compiler don't inline function during optimization.|
-|`mov x0, #1`|Puts **fd** number of **stdin** (**1**) to register `x0`.|
-|`mov w8, #64`|Puts **fd** number of **syscall** (**64** for linux aarch64) to `w8` register. It changes from *OS to OS* and from *arch to arch*.|
+|`mov x0, 1`|Puts **fd** number of **stdin** (**1**) to register `x0`.|
+|`mov w8, 64`|Puts **fd** number of **syscall** (**64** for linux aarch64) to `w8` register. It changes from *OS to OS* and from *arch to arch*.|
 |`svc 0`|Calls **syscall instruction** which issues a **software interrupt** and passes control to CPU.|
 |`in("x1") msg.as_ptr()`|Puts **address of buffer** where string is stored to `x1` register.|
 |`in("x2") msg.len()`|Puts length of string in bytes to `x2` register.|
