@@ -13,7 +13,7 @@
 **Dispatch** is the act of sending something somewhere, e.g.,
 - dispatch an event to a listener;
 - dispatch an interrupt to a handler;
-- dispatch a process to the CPU.
+- dispatch a process to the CPU;
 
 **Dispatch** means the process of selecting which **implementation** of a **polymorphic** *function* or *method* to use.
 
