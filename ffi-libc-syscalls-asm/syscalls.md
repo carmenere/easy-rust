@@ -133,7 +133,7 @@ Rust *standard library* **wraps** the calls to the underlying OS for us, so **we
 
 # Example of macro that wraps any syscall
 Add `libc` to `[dependencies]` in `Cargo.toml`:
-```
+```toml
 [dependencies]
 libc = "0.2.150"
 ```
@@ -141,7 +141,7 @@ libc = "0.2.150"
 <br>
 
 The code:
-```
+```rust
 use std::ffi::CString;
 
 #[macro_export]
