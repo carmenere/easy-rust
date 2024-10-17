@@ -77,7 +77,7 @@ The next level of abstraction is the OS kernel API and ABI. Kernel ABI is about 
 
 Before call a **foreign function** you must specify what **calling convention** to use since there is no way for compiler to know it.<br>
 
-The **C calling convention** is the most common one.<br>
+The **C calling convention** (aka **C declaration**, **cdecl**) is the most common one.<br>
 
 The **calling convention** specifies:
 - how **arguments** are passing to function;
@@ -122,9 +122,51 @@ Explanations:
 |`#[link(name = "C")]`|This attribute should be applied to an `extern` block with non-Rust ABI. This tells the compiler to link to the **C library** on the system.|
 |`extern "C" {}`|This tells the compiler that we want to use **C calling convention** when calling the function `write` in the **C library** we're linking to.<br>This function must have the **exact same name** as in library we're linking to, but its parameters **don't** have to have the same name, but **must** be in the **same order**.<br>It can be written without `"C"`, because `"C"` is assumed if **nothing** is specified.|
 |`unsafe`|We must wrap calls to **foreign functions** in an `unsafe` blocks, because Rust **can't guarantee safety** when calling **external functions**.|
-|`io::Error::last_os_error()`|Returns an **error** representing the **last OS error** which occurred. This function reads the value of **errno** for the target platform and will return a corresponding instance of `Error` for the error code.|
-|`res == -1`|Syscalls often return the value `-1` it it **wasn't** successful.|
+|`io::Error::last_os_error()`|Returns an **error** representing the **last OS error** which occurred. This function reads the value of **errno** for the target platform and returns a corresponding instance of `Error` for the error code.|
+|`res == -1`|Syscalls often return the value `-1` on **error**.|
 
 <br>
 
 Rust *standard library* **wraps** the calls to the underlying OS for us, so **we don't have to care about kernel API and ABI**.<br>
+
+<br>
+
+# Example of macro that wraps any syscall
+Add `libc` to `[dependencies]` in `Cargo.toml`:
+```
+[dependencies]
+libc = "0.2.150"
+```
+
+<br>
+
+The code:
+```
+use std::ffi::CString;
+
+#[macro_export]
+macro_rules! syscall {
+    (
+        $fn: ident ( $($arg: expr),* $(,)* ) 
+    ) => 
+    {
+        {
+            let res = unsafe { libc::$fn($($arg, )*) };
+            if res == -1 {
+                Err(std::io::Error::last_os_error())
+            } else {
+                Ok(res)
+            }
+        }
+    };
+}
+
+pub fn create_file(path: CString) {
+    let fd = syscall!(open(path.as_ptr() as *const i8, libc::O_CREAT));
+    let _ = syscall!(close(fd.unwrap()));
+}
+
+fn main() {
+    create_file(CString::new("/tmp/testfile").unwrap());
+}
+```
