@@ -28,16 +28,20 @@ extern "C" {
     pub fn epoll_wait(epfd: i32, events: *mut Event, maxevents: i32, timeout: i32) -> i32;
 }
 
-/// The `Event` struct is used to communicate to the OS in `epoll_ctl` and the OS uses the same struct to return data back to application.
+/// The `Event` struct is used to communicate to the OS.
+/// 
+/// Fields:
+/// - `events`: bitmask we pass to OS in `epoll_ctl` and receive from OS in `epoll_wait`;
+/// - `data`: some data we pass to OS in `epoll_ctl` and receive from OS in `epoll_wait`;
 #[derive(Debug)]
 #[repr(C, packed)]
 pub struct Event {
     pub(crate) events: u32,
-    pub(crate) epoll_data: usize,
+    pub(crate) data: usize,
 }
 
 impl Event {
     pub fn token(&self) -> usize {
-        self.epoll_data
+        self.data
     }
 }
