@@ -1,5 +1,5 @@
-//! There are many types of sources of events. In general source of events is specific to ech platform.<br>
-//! The `mio` solves this by having `Registry::register` accept an object implementing the `Source` trait that `mio` defines.<br>
+//! There are many types of sources of events. In general source of events is specific to each platform.<br>
+//! The `mio` solves this by having `Registry::register` which accepts an object implementing the `Source` trait that `mio` defines.<br>
 //! As long as you implemet this trait for the source, you can use the event queue to track events on it.<br>
 //! For simplicity we'll implement event queue only for one events sources, for `TcpStream`.<br>
 //! There are 2 main abstractions over `epoll`. One is a structure called `Poll` and the other is called `Registry`.
@@ -87,21 +87,21 @@ fn main() -> Result<()>{
         poll.registry().register(&stream, i, ffi::EPOLLIN|ffi::EPOLLET)?;
 
         streams.push(stream);
+    }
 
-        let mut handled_events = 0;
+    let mut handled_events = 0;
 
-        while handled_events < n_events {
-            let mut events = Vec::with_capacity(16);
+    while handled_events < n_events {
+        let mut events = Vec::with_capacity(16);
 
-            poll.poll(&mut events, None);
+        poll.poll(&mut events, None);
 
-            if events.is_empty() {
-                print!("Timeout or spurious event notification.");
-                continue;
-            }
-
-            handled_events += handle_events(&events, &mut streams)?;
+        if events.is_empty() {
+            print!("Timeout or spurious event notification.");
+            continue;
         }
+
+        handled_events += handle_events(&events, &mut streams)?;
     }
 
     println!("Finished.");
