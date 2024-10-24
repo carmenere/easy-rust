@@ -1,3 +1,15 @@
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [Synchronization](#synchronization)
+- [Сoncurrency control](#сoncurrency-control)
+  - [Shared memory communication](#shared-memory-communication)
+    - [Spinlock](#spinlock)
+      - [TAS based spinlock](#tas-based-spinlock)
+      - [CAS based spinlock](#cas-based-spinlock)
+  - [Message passing communication](#message-passing-communication)
+
+<br>
+
 # Synchronization
 In general **shared resources** are
 - data in RAM/HDD;

@@ -3,3 +3,8 @@
 
 # IDE
 .vscode/
+
+
+# Cargo
+**/target
+**/Cargo.lock

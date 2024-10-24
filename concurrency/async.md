@@ -1,3 +1,15 @@
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [Async](#async)
+- [I/O models in different OS](#io-models-in-different-os)
+  - [Blocking I/O](#blocking-io)
+  - [Non-blocking I/O](#non-blocking-io)
+  - [Event queues (aka I/O multiplexing)](#event-queues-aka-io-multiplexing)
+    - [Typycal using event queue kernel API](#typycal-using-event-queue-kernel-api)
+- [Example: enable non-blocking mode in linux](#example-enable-non-blocking-mode-in-linux)
+
+<br>
+
 # Async
 *Multitasking*, *concurrency*, *parallelism* and *async programming* are **closely related** to each other.<br>
 
@@ -65,30 +77,3 @@ To put `fd` into **non-blocking mode** it is needed add `O_NONBLOCK` to the set 
 int flags = fcntl(fd, F_GETFL, 0);
 fcntl(fd, F_SETFL, flags | O_NONBLOCK);
 ```
-
-<br>
-
-# Epoll
-`epoll()` supports 2 modes:
-- **level triggered**;
-- **edge triggered**.
-
-<br>
-
-### Level triggered
-- `fd` was added to `epoll` with `EPOLLIN` flag;
-- `epoll_wait()` is blocked until new data will be written to `fd` buffer;
-- write to file 19 bytes;
-- `epoll_wait()` is unblocked with `EPOLLIN`;
-- do nothing with data;
-- `epoll_wait()` is unblocked with `EPOLLIN` again;
-
-<br>
-
-### Edge triggered
-- `fd` was added to `epoll` with `EPOLLIN` flag;
-- `epoll_wait()` is blocked until new data will be writeen to `fd` buffer;
-- write to file 19 bytes;
-- `epoll_wait()` is unblocked with `EPOLLIN`;
-- do nothing with data;
-- `epoll_wait()` is blocked until new data will be written to `fd` buffer;

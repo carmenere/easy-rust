@@ -127,6 +127,12 @@ Explanations:
 
 <br>
 
+## `errno.h`
+- [errno-base.h](https://github.com/torvalds/linux/blob/master/include/uapi/asm-generic/errno-base.h)
+- [errno.h](https://github.com/torvalds/linux/blob/master/include/uapi/asm-generic/errno.h)
+
+<br>
+
 Rust *standard library* **wraps** the calls to the underlying OS for us, so **we don't have to care about kernel API and ABI**.<br>
 
 <br>
