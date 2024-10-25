@@ -1,38 +1,57 @@
 # Table of contents
 - [Table of contents](#table-of-contents)
-- [Support for `async` in Rust](#support-for-async-in-rust)
-  - [Enum `Poll`](#enum-poll)
+- [Stackles coroutines and generators](#stackles-coroutines-and-generators)
+  - [In a nutshell](#in-a-nutshell)
+  - [Underlying state machime](#underlying-state-machime)
+- [Async runtime in Rust](#async-runtime-in-rust)
+- [Rust API for async runtimes](#rust-api-for-async-runtimes)
   - [Trait `Future`](#trait-future)
-    - [Leaf futures](#leaf-futures)
-    - [Non-leaf futures](#non-leaf-futures)
+  - [Enum `Poll`](#enum-poll)
   - [Struct `Context`](#struct-context)
+  - [Leaf futures](#leaf-futures)
+  - [Non-leaf futures](#non-leaf-futures)
   - [`async` keyword](#async-keyword)
   - [`.await` keyword](#await-keyword)
-- [Executor/Reactor pattern](#executorreactor-pattern)
-- [`Future` life cycle](#future-life-cycle)
-    - [Spawning](#spawning)
-    - [Polling](#polling)
-    - [Waiting](#waiting)
-    - [Waking](#waking)
-- [Waker API](#waker-api)
-  - [Ways to implement `wake()`](#ways-to-implement-wake)
-    - [Using task id](#using-task-id)
-    - [Using reference counter](#using-reference-counter)
-- [Pinning](#pinning)
 
 <br>
 
-# Support for `async` in Rust
+# Stackles coroutines and generators
+## In a nutshell
+An **asynchronous task** represents **deferred computation**, i.e. some operation that will be completed in the future.<br>
+
+An **asynchronous task** can be implemented in a 2 different ways:
+- as a **stackful coroutine**;
+- as a **stackles coroutine**;
+
+<br>
+
+**Stackful coroutines** (aka **fibers**/**green threads**) is a way of representing a **resumable tasks** without any limitations: they **can be interrupted at any arbitrary points**. It is very similar how OS schedules threads. It is possible because they all have **stack** where they **store** its **state**.<br>
+
+**Stackles coroutines** is a way of representing a **resumable tasks**, but **with limitations**.<br>
+A *stackles coroutine* **doesn't** store its state on **stack**, instead it stores its state in some **data structue** and this data structure has a **set of states** it can be. Each state represents a possible yield/resume point.<br>
+In other words, *stackles coroutines* is a **state machine** that **store** its **states** on some **data structure**.<br>
+That's why *stackles coroutines* can be interrupted **only** at the **pre-defined points** (**yield points**) and **only** when they **explicitly yield control** to the **caller** (*another coroutine* or *scheduler*) **on they own**.<br>
+
+**Generators** are very similar to *stackles coroutine*, but they also allow to **receive values** at the r**esume points**.<br>
+
+Both **stackles coroutines** and **generators** represent the same underlying mechanism for creating **resumable tasks**.<br>
+
+<br>
+
+## Underlying state machime
+
+<br>
+
+# Async runtime in Rust
+Rust uses **stackles coroutines** to implement **asynchronous tasks**.<br>
+In Rust **stackles coroutine** is called **future**.<br>
+
 What **async runtime** does?<br>
 
-**Async runtime** in Rust uses **poll-based approach** in which an **asynchronous task** (aka **future**, `Future` type) wil have three phases:
+**Async runtime** in Rust uses **poll-based approach** in which a **future**  has **3 phases**:
 - **poll phase**: **future** makes progress until it completes or reaches a point where it can no longer make progress;
 - **wait phase**: reactor registers a **future** and maps it with *event source* to be sure that it can wake the **future** when that event is ready;
 - **wake phase**: the **future** is woken up when the event happens, executor schedule the **future** to be polled again to make further progress;
-
-<br>
-
-A **future** represents **deferred computation**, i.e. some operation that will be completed in the future.<br>
 
 <br>
 
@@ -48,43 +67,29 @@ Rust **only** provides:
 <br>
 
 There are several popular crates that implement **async runtime** for Rust:
-- `tokio`
-- `async-std`
-- `smol`
+- `tokio`;
+- `async-std`;
+- `smol`;
 
 <br>
 
-A fully working **async runtime** in Rust can be divided into **3 parts**:
-- **Reactor** (responsible for notifying about **I/O events**);
-- **Executor** (scheduler);
-- **Future** (a task that can **stop** and **resume** at specific points);
+A fully working **async runtime** in Rust consists of:
+- **reactor** (responsible for notifying about **I/O events**);
+- **executor** (aka **scheduler**);
+- **future** (a **resumable task**);
 
 <br>
 
-## Enum `Poll`
-Future’s `poll()` method returns **enum** `Poll`, whose variants are
-- `Ready<T>`  if `Future` is **ready** to return value, once `Future` has returned variant `Ready(T)` it will **never** be polled again.
-- `Pending` if `Future` is **not** ready yet;
-
-<br>
-
-```rust
-pub enum Poll<T> {
-    Ready(T),
-    Pending,
-}
-```
+# Rust API for async runtimes
+In Rust **future** is anything that implements a `Future` trait.<br>
 
 <br>
 
 ## Trait `Future`
-A `Future` type represents **deferred computation**, i.e. some operation that will be completed in the future.<br>
-
-<br>
-
 ```rust
 pub trait Future {
     type Output;
+
     fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output>;
 }
 ```
@@ -92,30 +97,18 @@ pub trait Future {
 <br>
 
 Future’s `poll()` method always returns **immediately** one of `Poll` variant:
-- `Poll::Ready(T)`
-- `Poll::Pending`
+- `Poll::Ready(T)`: means `Future` is **ready** to return value, once `Future` has returned variant `Ready(T)` it will **never** be polled again;
+- `Poll::Pending`: means `Future` is **not** ready yet;
 
 <br>
 
-### Leaf futures
-**Runtimes** create **leaf futures**.<br>
-**Leaf future** represents a **resource** such as a **socket**, in other words it acts like **subscriber** on some system **I/O operation**.<br>
-
-Example:
+## Enum `Poll`
 ```rust
-let mut stream = tokio::net::TcpStream::connect("127.0.0.1:8080");
+pub enum Poll<T> {
+    Ready(T),
+    Pending,
+}
 ```
-
-<br>
-
-### Non-leaf futures
-**Non-leaf futures** are futures that we as users of a runtime write ourselves using `async` keyword.<br>
-**Non-leaf futures** represent a **task** that can be run on the **executor**, they **don't** represent an I/O resource.<br>
-
-**Non-leaf** `Future` contains `.await` calls to **nested non-leaf** `Futures`. The **last** `Future` in this chain is a **leaf** `Future`.<br>
-
-The code between `await` runs in the **same thread** where **executor** runs. Any **CPU-intensive** tasks can **block** executor from handling new requests.<br>
-More executors provide `spawn_blocking` to solve this problem. These method send the task to a **thread pool** created by the runtime where you can run **CPU-intensive** tasks.
 
 <br>
 
@@ -132,7 +125,34 @@ pub struct Context<'a>{
 
 <br>
 
+## Leaf futures
+**Runtimes** create **leaf futures**.<br>
+**Leaf future** represents a **resource** such as a **socket**, in other words it acts like **subscriber** on some system **I/O operation**.<br>
+
+Example:
+```rust
+let mut stream = tokio::net::TcpStream::connect("127.0.0.1:8080");
+```
+
+<br>
+
+## Non-leaf futures
+**Non-leaf futures** are futures that we as users of a runtime write ourselves using `async` keyword.<br>
+**Non-leaf futures** represent a **task** that can be run on the **executor**, they **don't** represent an I/O resource.<br>
+
+**Non-leaf** `Future` contains `.await` calls to **nested non-leaf** `Futures`. The **last** `Future` in this chain is a **leaf** `Future`.<br>
+
+The code between `await` runs in the **same thread** where **executor** runs. Any **CPU-intensive** tasks can **block** executor from handling new requests.<br>
+More executors provide `spawn_blocking` to solve this problem. These method send the task to a **thread pool** created by the runtime where you can run **CPU-intensive** tasks.
+
+<br>
+
 ## `async` keyword
+`async` keyword transforms *function* or *block of code* into some **data structure** which implements `Future` trait.<br>
+This **data structure** actually implements **state machine** inside `poll` method of `Future` trait.<br>
+
+<br>
+
 `async` keyword defines **async block** or **async function**:
 - **async function**:
 ```rust
@@ -151,58 +171,31 @@ async move {
 }
 ```
 
-This code:
+<br>
+
+**This code**:
 ```rust
-async fn async_function() -> String {
-    "ABCDEF".to_string()
-}
-```
-
-is equal to:
-```rust
-use std::future::Future;
-
-fn async_function() -> impl Future<Output = String> {
-    async {
-        "ABCDEF".to_string()
-    }
-}
-
-#[tokio::main]
-async fn main() {
-    let result = async_function().await;
-    println!("{}", result);
-}
-```
-
-`async` keyword transforms block of code into **state machine** that implement `trait Future`.<br>
-
-This code:
-```rust
-async fn my_future(i: i32) -> i32 {
+async fn afunc(i: i32) -> i32 {
     i
 }
 
 #[tokio::main]
 async fn main() {
-    let result = my_future(10).await;
+    let result = afunc(10).await;
     println!("{}", result);
 }
 ```
-
-<br>
-
-will be desugared to:
+**will be desugared to**:
 ```rust
 use std::future::Future;
 use std::pin::Pin;
 use std::task::{Context, Poll};
 
-struct MyFuture {
+struct AFunc {
     i: i32,
 }
 
-impl Future for MyFuture {
+impl Future for AFunc {
     type Output = i32;
 
     fn poll(self: Pin<&mut Self>, cx: &mut Context) -> Poll<i32> {
@@ -212,14 +205,18 @@ impl Future for MyFuture {
 
 #[tokio::main]
 async fn main() {
-    let my_future = MyFuture{ i: 100};
+    let afunc = AFunc{ i: 100};
     // let result = block_on(my_fut);
-    let result = my_future.await;
+    let result = afunc.await;
     println!("{}", result);
 }
 ```
 
-So, Rust implicitly treats `async fn f() { } -> T` as function that returns `Future` type: `impl Future<Output = T>`.<br>
+Under the hood `afunc` is represented as **data structure** `AFunc`.<br>
+
+<br>
+
+So, Rust implicitly converts `async fn f() { } -> T` in `Future` type: `impl Future<Output = T>`.<br>
 The future’s specific type `impl Future<Output = T>` is generated **automatically** by the compiler, based on the function’s body and arguments.<br>
 
 <br>
@@ -241,115 +238,3 @@ async fn main() {
     println!("{}", result);
 }
 ```
-
-<br>
-
-# Executor/Reactor pattern
-At the **top** of the program is the **Executor**. The **Executor** is just a **scheduling algorithm** that executes the `Futures` by calling `poll()` on them.<br>
-- **Executer** provides special API called **spawner**: spawner produces new tasks and puts them into *Executor's* **task queue**;
-- **Executor** provides the runtime that iterates over its **task queue** and calls `poll()` on `Futures` until `Futures` return the `Ready` state;
-
-<br>
-
-At the **bottom** of the program is **Reactor** (aka **source of system IO events**).<br>
-The **Reactor** notifies the **Executor** which task is ready to continue executing.<br>
-**Reactor** is an **interface** between **Executor** and **OS**.<br>
-
-**Reactor** provides **subscription API** for **external events**:
-- IO events;
-- IPC;
-- timers;
-- interrupts;
-
-<br>
-
-In async runtime, **subscribers** are `Futures` requesting **low level IO operations**, i.e., **read from socket**, **write to socket** and so on.<br>
-
-<br>
-
-So:
-- *Executor* **schedules** `Futures` that are **ready to be polled**.
-- *Reactor* **waits** **IO events** and **wakes** `Futures` that are bound to events **when events happen**.
-- **Event loop** = **Executor** + **Reactor**.
-
-<br>
-
-# `Future` life cycle
-Every `Future` transits through different phases during its life cycle.<br>
-
-### Spawning
-**Spawning** is registering a **non-leaf** `Future` at the **Executor**.<br>
-
-### Polling
-**Executor** fetches `Future` from its **task queue** and call `poll(cx)` method on it where `cx` is `Context`.<br>
-`Context` is **wrapper** for `Waker` and just contains a reference to a `Waker`.<br>
-The result of the `poll(cx)` method represents the the state of the `Future`.<br>
-
-### Waiting
-When the **Executor** calls `poll()` on a `Future`, that `Future` will return either `Ready` or `Pending`:
-- If `Future` returns `Ready(T)` then the `.await` will return `T` and the **Executor** removes it from the **task queue**.
-- If `Future` returns `Pending` then the **Executor** removes it from the **task queue**, but **Reactor** will notify **Executor** when particular `Future` will become ready to be polled again. This is where the **Waker API** comes in.
-
-### Waking
-The **reactor** stores a **copy** of the `Waker` that the **executor** passed to the future when it polled it.<br>
-The **reactor** tracks events on I/O source.<br>
-When the **reactor** gets a notification that an **event has happened** on one of the **tracked source**, it locates the `Waker` associated with that source and calls `Waker::wake` on it.<br>
-This in turn puts `Future` that is bound to this event into *Executor's* **task queue**.<br>
-
-<br>
-
-# Waker API
-The **Waker API** connects *Executor* and *Reactor*.<br>
-Every time **Executor** calls `poll(cx)` method it passes a `Context` to it. `Context` provides access to a `Waker`, i.e., it wraps `Waker`.<br>
-The reason `poll()` takes `Context` instead `Waker` is to has ability add other things to `Context` in future.<br>
-
-Requirements to `Waker` type:
-- the `Waker` type cannot be Generic because it is need to be passed through arbitrary `Futures`;
-- the `Waker` type must implement `.wake()` method;
-- the `Waker` type must implement `Clone` trait;
-
-<br>
-
-`Futures` can be **nested** and `Waker` object is passed along chain of nested `Futures` until it reaches the **source of event** (**Reactor**), then `Waker` is being registered in **Reactor**.<br>
-
-If `Future` returns `Poll::Pending` then `Waker`, that was passed inside `Context`, is registered in **Reactor** and bound to **event id** (e.g. **file descriptor**).<br>
-When event occurs **Reactor** calls `wake()`.
-
-To poll `Futures` it is necessary to create a `Waker`. `Waker` is responsible for scheduling a task to be polled again once `wake()` is called.<br>
-The easiest way to create a new `Waker` is by implementing the `ArcWake` trait and then using the `waker_ref()` or `into_waker()` functions to turn an `Arc<impl ArcWake>` into a `Waker`.<br>
-
-<br>
-
-## Ways to implement `wake()`
-### Using task id
-In this approach the `Waker` is **Task id** and the *Executor’s* **task queue** is `Vec<Arc<Task>>`.<br>
-Also Executor stores set of Tasks as `HashMap<Task_id, Task>`.<br>
-When event occurs, **Reactor** calls `wake()` and it appends **Task** id to *Executor’s* **task queue**.<br>
-
-### Using reference counter
-In this approach the `Waker` is `Arc<Task>` and the *Executor’s* **task queue** is `Vec<Arc<Task>>`.<br>
-When event occurs, **Reactor** calls `wake()` and it push `Arc<Task>` to *Executor’s* **task queue**.<br>
-
-<br>
-
-# Pinning
-If **pointer** is wrapped into `Pin<P>`, it means the value pointer points to will **no longer move**.<br>
-`Pin` allows to create **immovable** `Futures`.<br>
-Also there is marker trait `Unpin` that **disable** such restirction.<br>
-
-The `poll()` method requires the future be passed as `Pin<&mut Self>` value.<br>
-So, you cannot poll future until you’ve constructed a `Pin` wrapper for it, and once you have done that, the future can’t be moved.<br>
-This restrictions for `Pin` type are implemented in code-generated `Future` implementation.
-
-Pin type:
-```rust
-pub struct Pin<P> {
-    pointer: P,
-}
-```
-
-<br>
-
-There is `Box::pin(value: T)` constructor to **make reference pinned**: it takes ownership of value of type `T` and returns `Pin<Box<T>>`.<br>
-`Pin<Box<T>>` implements `From<Box<T>>`, so `Pin::from(value: T)` takes ownership of value of type `T` and returns `Pin<Box<T>>`.
-
