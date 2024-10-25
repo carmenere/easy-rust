@@ -3,6 +3,8 @@
 - [Support for `async` in Rust](#support-for-async-in-rust)
   - [Enum `Poll`](#enum-poll)
   - [Trait `Future`](#trait-future)
+    - [Leaf futures](#leaf-futures)
+    - [Non-leaf futures](#non-leaf-futures)
   - [Struct `Context`](#struct-context)
   - [`async` keyword](#async-keyword)
   - [`.await` keyword](#await-keyword)
@@ -21,10 +23,16 @@
 <br>
 
 # Support for `async` in Rust
-What **async runtime** does? **Async runtime**:
-- **execute** async code;
-- **processes** on IO events;
-- **spawns** tasks;
+What **async runtime** does?<br>
+
+**Async runtime** in Rust uses **poll-based approach** in which an **asynchronous task** (aka **future**, `Future` type) wil have three phases:
+- **poll phase**: **future** makes progress until it completes or reaches a point where it can no longer make progress;
+- **wait phase**: reactor registers a **future** and maps it with *event source* to be sure that it can wake the **future** when that event is ready;
+- **wake phase**: the **future** is woken up when the event happens, executor schedule the **future** to be polled again to make further progress;
+
+<br>
+
+A **future** represents **deferred computation**, i.e. some operation that will be completed in the future.<br>
 
 <br>
 
@@ -46,6 +54,13 @@ There are several popular crates that implement **async runtime** for Rust:
 
 <br>
 
+A fully working **async runtime** in Rust can be divided into **3 parts**:
+- **Reactor** (responsible for notifying about **I/O events**);
+- **Executor** (scheduler);
+- **Future** (a task that can **stop** and **resume** at specific points);
+
+<br>
+
 ## Enum `Poll`
 Future’s `poll()` method returns **enum** `Poll`, whose variants are
 - `Ready<T>`  if `Future` is **ready** to return value, once `Future` has returned variant `Ready(T)` it will **never** be polled again.
@@ -63,7 +78,9 @@ pub enum Poll<T> {
 <br>
 
 ## Trait `Future`
-`Future` type represents **deferred computation**, i.e., result is ready at some point in the future.<br>
+A `Future` type represents **deferred computation**, i.e. some operation that will be completed in the future.<br>
+
+<br>
 
 ```rust
 pub trait Future {
@@ -74,10 +91,31 @@ pub trait Future {
 
 <br>
 
-`Output` is associate type of Future’s result.<br>
 Future’s `poll()` method always returns **immediately** one of `Poll` variant:
 - `Poll::Ready(T)`
 - `Poll::Pending`
+
+<br>
+
+### Leaf futures
+**Runtimes** create **leaf futures**.<br>
+**Leaf future** represents a **resource** such as a **socket**, in other words it acts like **subscriber** on some system **I/O operation**.<br>
+
+Example:
+```rust
+let mut stream = tokio::net::TcpStream::connect("127.0.0.1:8080");
+```
+
+<br>
+
+### Non-leaf futures
+**Non-leaf futures** are futures that we as users of a runtime write ourselves using `async` keyword.<br>
+**Non-leaf futures** represent a **task** that can be run on the **executor**, they **don't** represent an I/O resource.<br>
+
+**Non-leaf** `Future` contains `.await` calls to **nested non-leaf** `Futures`. The **last** `Future` in this chain is a **leaf** `Future`.<br>
+
+The code between `await` runs in the **same thread** where **executor** runs. Any **CPU-intensive** tasks can **block** executor from handling new requests.<br>
+More executors provide `spawn_blocking` to solve this problem. These method send the task to a **thread pool** created by the runtime where you can run **CPU-intensive** tasks.
 
 <br>
 
@@ -240,9 +278,7 @@ So:
 Every `Future` transits through different phases during its life cycle.<br>
 
 ### Spawning
-**Spawning** is registering a **top-level** `Future` at the **Executor**.<br>
-**Top-level** `Future` contains `.await` calls to **nested** `Futures` and such **nested** `.await` calls form **chain** of `Futures`.<br>
-The **last** `Future` in this chain (aka **leaf** `Future`) is the `Future` that acts like **subscriber** on some system **IO operation**.<br>
+**Spawning** is registering a **non-leaf** `Future` at the **Executor**.<br>
 
 ### Polling
 **Executor** fetches `Future` from its **task queue** and call `poll(cx)` method on it where `cx` is `Context`.<br>
@@ -255,7 +291,10 @@ When the **Executor** calls `poll()` on a `Future`, that `Future` will return ei
 - If `Future` returns `Pending` then the **Executor** removes it from the **task queue**, but **Reactor** will notify **Executor** when particular `Future` will become ready to be polled again. This is where the **Waker API** comes in.
 
 ### Waking
-When event happens, **Reactor** calls `wake()` method on `Waker`, which puts `Future` that is bound to this event into *Executor's* **task queue**.<br>
+The **reactor** stores a **copy** of the `Waker` that the **executor** passed to the future when it polled it.<br>
+The **reactor** tracks events on I/O source.<br>
+When the **reactor** gets a notification that an **event has happened** on one of the **tracked source**, it locates the `Waker` associated with that source and calls `Waker::wake` on it.<br>
+This in turn puts `Future` that is bound to this event into *Executor's* **task queue**.<br>
 
 <br>
 
