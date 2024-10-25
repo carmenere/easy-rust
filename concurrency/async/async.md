@@ -1,8 +1,6 @@
 # Table of contents
 - [Table of contents](#table-of-contents)
 - [Stackles coroutines and generators](#stackles-coroutines-and-generators)
-  - [In a nutshell](#in-a-nutshell)
-  - [Underlying state machime](#underlying-state-machime)
 - [Async runtime in Rust](#async-runtime-in-rust)
 - [Rust API for async runtimes](#rust-api-for-async-runtimes)
   - [Trait `Future`](#trait-future)
@@ -12,11 +10,11 @@
   - [Non-leaf futures](#non-leaf-futures)
   - [`async` keyword](#async-keyword)
   - [`.await` keyword](#await-keyword)
+- [Stackles coroutines state machine](#stackles-coroutines-state-machine)
 
 <br>
 
 # Stackles coroutines and generators
-## In a nutshell
 An **asynchronous task** represents **deferred computation**, i.e. some operation that will be completed in the future.<br>
 
 An **asynchronous task** can be implemented in a 2 different ways:
@@ -35,10 +33,6 @@ That's why *stackles coroutines* can be interrupted **only** at the **pre-define
 **Generators** are very similar to *stackles coroutine*, but they also allow to **receive values** at the r**esume points**.<br>
 
 Both **stackles coroutines** and **generators** represent the same underlying mechanism for creating **resumable tasks**.<br>
-
-<br>
-
-## Underlying state machime
 
 <br>
 
@@ -238,3 +232,7 @@ async fn main() {
     println!("{}", result);
 }
 ```
+
+<br>
+
+# Stackles coroutines state machine
