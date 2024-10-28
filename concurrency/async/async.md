@@ -8,9 +8,13 @@
   - [Struct `Context`](#struct-context)
   - [Leaf futures](#leaf-futures)
   - [Non-leaf futures](#non-leaf-futures)
+  - [Top-level futures](#top-level-futures)
   - [`async` keyword](#async-keyword)
   - [`.await` keyword](#await-keyword)
-- [Stackles coroutines state machine](#stackles-coroutines-state-machine)
+- [Future as a state machine](#future-as-a-state-machine)
+  - [Hand made leaf futures](#hand-made-leaf-futures)
+  - [Compiler-generated state machines](#compiler-generated-state-machines)
+  - [Top-level futures (aka tasks)](#top-level-futures-aka-tasks)
 
 <br>
 
@@ -70,7 +74,6 @@ There are several popular crates that implement **async runtime** for Rust:
 A fully working **async runtime** in Rust consists of:
 - **reactor** (responsible for notifying about **I/O events**);
 - **executor** (aka **scheduler**);
-- **future** (a **resumable task**);
 
 <br>
 
@@ -120,7 +123,6 @@ pub struct Context<'a>{
 <br>
 
 ## Leaf futures
-**Runtimes** create **leaf futures**.<br>
 **Leaf future** represents a **resource** such as a **socket**, in other words it acts like **subscriber** on some system **I/O operation**.<br>
 
 Example:
@@ -141,8 +143,14 @@ More executors provide `spawn_blocking` to solve this problem. These method send
 
 <br>
 
+## Top-level futures
+**Top-level futures** are actually **tasks** that **executor schedules**.<br>
+
+<br>
+
 ## `async` keyword
-`async` keyword transforms *function* or *block of code* into some **data structure** which implements `Future` trait.<br>
+**Async functions** can call **normal functions**, but **normal functions** **can't** call **async function**.<br>
+The `async` keyword transforms *function* or *block of code* into some **data structure** which implements `Future` trait.<br>
 This **data structure** actually implements **state machine** inside `poll` method of `Future` trait.<br>
 
 <br>
@@ -175,7 +183,7 @@ async fn afunc(i: i32) -> i32 {
 
 #[tokio::main]
 async fn main() {
-    let result = afunc(10).await;
+    let result = afunc(100).await;
     println!("{}", result);
 }
 ```
@@ -200,7 +208,6 @@ impl Future for AFunc {
 #[tokio::main]
 async fn main() {
     let afunc = AFunc{ i: 100};
-    // let result = block_on(my_fut);
     let result = afunc.await;
     println!("{}", result);
 }
@@ -216,7 +223,9 @@ The future’s specific type `impl Future<Output = T>` is generated **automatica
 <br>
 
 ## `.await` keyword
-`.await` is special syntax called **await expression**. `.await` **polls** `Future`.<br>
+The `.await` is special syntax called **await expression**.<br>
+Only **futures** (instances of types that implement `Future` trait) can be polled with `.await`.<br>
+
 Switching from one async task to another happens only at `.await` when awaited `Future` returns `Pending`.<br>
 Pending `Future` **yields control** back, allowing other `Futures` to make progress.<br>
 
@@ -235,4 +244,283 @@ async fn main() {
 
 <br>
 
-# Stackles coroutines state machine
+# Future as a state machine
+## Hand made leaf futures
+Consider example.
+
+**Http**:
+```rust
+pub struct Http;
+
+impl Http {
+    pub fn get(req: Request) -> impl Future<Output = String> {
+        HttpFuture::new(req)
+    }
+}
+```
+
+The `Http` is a **http client**. Its `get()` methods returns `HttpFuture` which implements `Future`.
+
+<br>
+
+**HttpFuture**:
+```rust
+struct HttpFuture {
+    stream: Option<mio::net::TcpStream>,
+    buffer: Vec<u8>,
+    req: Request,
+}
+
+impl HttpFuture {
+    fn new(req: Request) -> Self {
+        Self {
+            stream: None,
+            buffer: vec![],
+            req: req,
+        }
+    }
+
+    fn write_request(&mut self) {
+        let stream = std::net::TcpStream::connect(self.req.host.clone()).unwrap();
+        stream.set_nonblocking(true);
+        let mut stream = mio::net::TcpStream::from_std(stream);
+        stream.write_all(self.req.get().as_bytes()).unwrap();
+        self.stream = Some(stream);
+    }
+}
+```
+
+<br>
+
+The `HttpFuture` is an example of a **leaf future**.<br>
+The `HttpFuture` has 2 methods:
+- `new()` which sets the initial state;
+- `write_request()` which sends the **GET** request to the server;
+
+<br>
+
+**impl Future for HttpFuture**:
+```rust
+impl Future for HttpFuture {
+    type Output = String;
+    
+    fn poll(&mut self) -> Poll<Self::Output> {
+        if self.stream.is_none() {
+            self.write_request();
+            self.stream.as_ref().map(|s| {
+                let _ = s.peer_addr().map(|v| {
+                    println!("Sending request to: {:?}", v)
+                });
+            });
+
+            return Poll::Pending;
+        }
+
+        let mut buff = vec![0u8; 4096];
+
+        loop {
+            match self.stream.as_mut().unwrap().read(&mut buff) {
+                Ok(0) => {
+                    let s = String::from_utf8_lossy(&self.buffer);
+                    break Poll::Ready(s.to_string())
+                }
+                Ok(n) => {
+                    self.buffer.extend(&buff[0..n]);
+                }
+                Err(e) if e.kind() == ErrorKind::WouldBlock => {
+                    break Poll::Pending;
+                }
+                Err(e) if e.kind() == ErrorKind::Interrupted => {
+                    continue;
+                }
+                Err(e) => panic!("{e:?}")
+            }
+        }
+    }
+    
+}
+```
+
+<br>
+
+On the **first poll** the `poll()` method returns `Poll::Pending`, so `HttpFuture` will be polled again at least one time.
+
+We can see that it is a very simple **state machine** with **3 states**:
+- **not started**, indicated by `self.stream` being `None`;
+- **pending**, indicated by `self.stream` being `Some` and `stream.read()` returning `WouldBlock`;
+- **resolved**, indicated by `self.stream` being `Some` and `stream.read()` returning `0` bytes;
+
+<br>
+
+## Compiler-generated state machines
+**Async function** is a function prefixed with `async` keyword.<br>
+Every **async function** will be **rewritten** *by compiler* to a **state machine**. The return type `T` of **async function** will be rewritten to `impl Future<Output = T>`.
+
+<br>
+
+Let's write some **async function**:
+```rust
+async fn main() {
+    println!("Starting");
+    let req = Request::new("/", "HTTP/1.1","ya.ru:80", "close");
+    let resp = Http::get(req).await;
+    println!("Response 1: {}", resp);
+    let req = Request::new("/", "HTTP/1.1","google.com:80", "close");
+    let resp = Http::get(req).await;
+    println!("Response 2: {}", resp);
+}
+```
+
+<br>
+
+The compiler will **rewrite** it into something like this:
+```rust
+struct MainCoroutine {
+    state: State,
+    req1: Request,
+    req2: Request,
+}
+
+enum State {
+    Start,
+    Wait1(Box<dyn Future<Output = String>>),
+    Wait2(Box<dyn Future<Output = String>>),
+    Resolved,
+}
+
+impl MainCoroutine {
+    fn new() -> Self {
+        Self {
+            state: State::Start,
+            req1: Request::new("/", "HTTP/1.1","ya.ru:80", "close"),
+            req2: Request::new("/", "HTTP/1.1","google.com:80", "close")
+        }
+    }
+}
+
+impl Future for MainCoroutine {
+    type Output = ();
+    
+    fn poll(&mut self) -> Poll<Self::Output> {
+        loop {
+            match self.state {
+                State::Start => {
+                    println!("Coroutine starting");
+                    let fut = Box::new(Http::get(self.req1.clone()));
+                    self.state = State::Wait1(fut);
+                },
+                State::Wait1(ref mut fut) => {
+                    match fut.poll() {
+                        Poll::Ready(resp) => {
+                            println!("Response 1: {}", resp);
+                            let fut = Box::new(Http::get(self.req2.clone()));
+                            self.state = State::Wait2(fut);
+                        },
+                        Poll::Pending => break Poll::Pending,
+                    }
+                },
+                State::Wait2(ref mut fut) => {
+                    match fut.poll() {
+                        Poll::Ready(resp) => {
+                            println!("Response 2: {}", resp);
+                            self.state = State::Resolved;
+                            break Poll::Ready(())
+                        },
+                        Poll::Pending => break Poll::Pending,
+                    }
+                },
+                State::Resolved => {
+                    panic!("The resolved future is polled!")
+                },
+            }
+        }
+    }
+}
+```
+
+<br>
+
+Every **async function** can be defined as a **struct** to store some **values** and **enum** to store **state**.<br>
+Compiler sets initial state for such state machine `state: State::Start`.<br>
+If the **future** returns `Poll::Pending` or `Poll::Ready` we bubble that up to the caller by breaking out of the loop.<br>
+
+<br>
+
+## Top-level futures (aka tasks)
+It is **not** possible to make `main` function `asyc`. The `main` function **must** be decorated by **runtime**: 
+```rust
+#[tokio::main]
+async fn main() {
+
+}
+```
+
+Under the hood the **runtime** rewrites the `main` function like this:
+```rust
+pub fn main() {
+    let mut future = MainCoroutine::new();
+
+    loop {
+        match future.poll() {
+            Poll::Ready(_) => break,
+            Poll::Pending => {
+                println!("Schedule other task");
+            },
+        }
+
+        println!("Sleep ... ");
+        thread::sleep(Duration::from_millis(100));
+        println!("Wake up ... ");
+    }
+}
+```
+
+<br>
+
+**To run futures concurrently** there is `join_all` function. It takes a **collection of futures** and polls them all **simultaneously**:
+```rust
+pub struct JoinAll<F: Future> {
+    futures: Vec<(bool, F)>,
+    finished_count: usize,
+}
+
+pub fn join_all<F: Future>(futures: Vec<F>) -> JoinAll<F> {
+    let futures = futures.into_iter().map(|f| (false, f)).collect();
+    JoinAll{
+        futures,
+        finished_count: 0
+    }
+}
+
+impl<F> Future for JoinAll<F>
+where F: Future {
+    type Output = ();
+
+    fn poll(&mut self) -> Poll<Self::Output> {
+        for (finished, fut) in self.futures.iter_mut() {
+            if *finished {
+                continue;
+            }
+
+            match fut.poll() {
+                Poll::Ready(_) => {
+                    *finished = true;
+                    self.finished_count += 1;
+                },
+                Poll::Pending => continue,
+            }
+        }
+
+        if self.finished_count == self.futures.len() {
+            Poll::Ready(())
+        } else {
+            Poll::Pending
+        }
+    }
+}
+```
+
+<br>
+
+In the example above we simply throw the value away.<br>
+Tokio's `join_all` implementation puts all the returned values in a `Vec<T>` and returns them all when the `JoinAll` futures is resolved.
