@@ -48,8 +48,8 @@ What **async runtime** does?<br>
 
 **Async runtime** in Rust uses **poll-based approach** in which a **future**  has **3 phases**:
 - **poll phase**: **future** makes progress until it completes or reaches a point where it can no longer make progress;
-- **wait phase**: reactor registers a **future** and maps it with *event source* to be sure that it can wake the **future** when that event is ready;
-- **wake phase**: the **future** is woken up when the event happens, executor schedule the **future** to be polled again to make further progress;
+- **wait phase**: **reactor** registers a **future** and maps it with *event source* to be sure that it can wake the **future** when that event is ready;
+- **wake phase**: the **future** is woken up when the event happens, **executor** schedules the **future** to be polled again to make further progress;
 
 <br>
 
@@ -60,7 +60,7 @@ Rust **only** provides:
 - the **fundamental types** (provided by `std` crate):
   - `enum Poll`;
   - `trait Future`;
-  - `struct Context<'a>`;
+  - **Waker API** and `struct Context<'a>`;
 
 <br>
 
@@ -68,12 +68,6 @@ There are several popular crates that implement **async runtime** for Rust:
 - `tokio`;
 - `async-std`;
 - `smol`;
-
-<br>
-
-A fully working **async runtime** in Rust consists of:
-- **reactor** (responsible for notifying about **I/O events**);
-- **executor** (aka **scheduler**);
 
 <br>
 
