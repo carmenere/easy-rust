@@ -1,15 +1,15 @@
 # Table of contents
 - [Table of contents](#table-of-contents)
 - [Executor/Reactor pattern](#executorreactor-pattern)
+- [Waker API](#waker-api)
+  - [Ways to implement `wake()`](#ways-to-implement-wake)
+    - [Using task id](#using-task-id)
+    - [Using reference counter](#using-reference-counter)
 - [`Future` life cycle](#future-life-cycle)
     - [Spawning](#spawning)
     - [Polling](#polling)
     - [Waiting](#waiting)
     - [Waking](#waking)
-- [Waker API](#waker-api)
-  - [Ways to implement `wake()`](#ways-to-implement-wake)
-    - [Using task id](#using-task-id)
-    - [Using reference counter](#using-reference-counter)
 
 <br>
 
@@ -29,7 +29,6 @@ The **executer** provides:
 <br>
 
 The **reactor** notifies the **executor** which task is ready to continue executing.<br>
-
 The **reactor** can track following **I/O events**:
 - IO events;
 - IPC;
@@ -74,30 +73,6 @@ We acheive a **loose coupling** between the *reactor* and *executor* we need an 
 
 <br>
 
-# `Future` life cycle
-Every `Future` transits through different phases during its life cycle.<br>
-
-### Spawning
-**Spawning** is registering a **top-level** `Future` at the **executor**.<br>
-
-### Polling
-The **executor** fetches `Future` from its **task queue** and call `poll(cx)` method on it where `cx` is `Context`.<br>
-`Context` is **wrapper** for `Waker` and just contains a reference to a `Waker`.<br>
-The result of the `poll(cx)` method represents the the state of the `Future`.<br>
-
-### Waiting
-When the **executor** calls `poll()` on a `Future`, that `Future` will return either `Ready` or `Pending`:
-- If `Future` returns `Ready(T)` then the `.await` will return `T` and the **executor** removes it from the **task queue**.
-- If `Future` returns `Pending` then the **executor** removes it from the **task queue**, but **Reactor** will notify **executor** when particular `Future` will become ready to be polled again. This is where the **Waker API** comes in.
-
-### Waking
-The **reactor** stores a **copy** of the `Waker` that the **executor** passed to the future when it polled it.<br>
-The **reactor** tracks events on I/O source.<br>
-When the **reactor** gets a notification that an **event has happened** on one of the **tracked source**, it locates the `Waker` associated with that source and calls `Waker::wake` on it.<br>
-This in turn puts `Future` that is bound to this event into *executor's* **task queue**.<br>
-
-<br>
-
 # Waker API
 The **Waker API** connects *executor* and *Reactor*.<br>
 Every time *executor* calls `poll(cx)` method it passes a `Context` to it. `Context` provides access to a `Waker`, i.e., it wraps `Waker`.<br>
@@ -129,3 +104,27 @@ When event occurs, **Reactor** calls `wake()` and it appends **Task** id to *exe
 ### Using reference counter
 In this approach the `Waker` is `Arc<Task>` and the *executor’s* **task queue** is `Vec<Arc<Task>>`.<br>
 When event occurs, **Reactor** calls `wake()` and it push `Arc<Task>` to *executor’s* **task queue**.<br>
+
+<br>
+
+# `Future` life cycle
+Every `Future` transits through different phases during its life cycle.<br>
+
+### Spawning
+**Spawning** is registering a **top-level** `Future` at the **executor**.<br>
+
+### Polling
+The **executor** fetches `Future` from its **task queue** and call `poll(cx)` method on it where `cx` is `Context`.<br>
+`Context` is **wrapper** for `Waker` and just contains a reference to a `Waker`.<br>
+The result of the `poll(cx)` method represents the the state of the `Future`.<br>
+
+### Waiting
+When the **executor** calls `poll()` on a `Future`, that `Future` will return either `Ready` or `Pending`:
+- If `Future` returns `Ready(T)` then the `.await` will return `T` and the **executor** removes it from the **task queue**.
+- If `Future` returns `Pending` then the **executor** removes it from the **task queue**, but **Reactor** will notify **executor** when particular `Future` will become ready to be polled again. This is where the **Waker API** comes in.
+
+### Waking
+The **reactor** stores a **copy** of the `Waker` that the **executor** passed to the future when it polled it.<br>
+The **reactor** tracks events on I/O source.<br>
+When the **reactor** gets a notification that an **event has happened** on one of the **tracked source**, it locates the `Waker` associated with that source and calls `Waker::wake` on it.<br>
+This in turn puts `Future` that is bound to this event into *executor's* **task queue**.<br>
