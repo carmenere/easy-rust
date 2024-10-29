@@ -14,17 +14,23 @@
 <br>
 
 # Executor/Reactor pattern
-At the **top** of the program is the **Executor**. The **Executor** is just a **scheduling algorithm** that executes the `Futures` by calling `poll()` on them.<br>
-- **Executer** provides special API called **spawner**: spawner produces new tasks and puts them into *Executor's* **task queue**;
-- **Executor** provides the runtime that iterates over its **task queue** and calls `poll()` on `Futures` until `Futures` return the `Ready` state;
+A fully working **async runtime** in Rust consists of 2 parts:
+- **reactor** (aka **event loop**): it **tracks events** we are waiting for and **notifies** about **I/O events**, in other words it **dispatches events to an executor**;
+- **executor** (aka **scheduler**): it **polls top-level futures** (aka **tasks**) that are ready, in other words it calls `poll()` method on the **tasks**;
 
 <br>
 
-At the **bottom** of the program is **Reactor** (aka **source of system IO events**).<br>
-The **Reactor** notifies the **Executor** which task is ready to continue executing.<br>
-**Reactor** is an **interface** between **Executor** and **OS**.<br>
+The **executer** provides:
+- special API called **spawner**: spawner produces **new tasks** and puts them into *executor's* **task queue**;
+- the **runtime** that
+  - iterates over its **task queue** and calls `poll()` on `Futures` until `Futures` return the `Ready` state;
+  - or sleep if **task queue** is empty;
 
-**Reactor** provides **subscription API** for **external events**:
+<br>
+
+The **reactor** notifies the **executor** which task is ready to continue executing.<br>
+
+The **reactor** can track following **I/O events**:
 - IO events;
 - IPC;
 - timers;
@@ -32,44 +38,70 @@ The **Reactor** notifies the **Executor** which task is ready to continue execut
 
 <br>
 
-In async runtime, **subscribers** are `Futures` requesting **low level IO operations**, i.e., **read from socket**, **write to socket** and so on.<br>
-
-<br>
-
 So:
-- *Executor* **schedules** `Futures` that are **ready to be polled**.
-- *Reactor* **waits** **IO events** and **wakes** `Futures` that are bound to events **when events happen**.
-- **Event loop** = **Executor** + **Reactor**.
+- *executor* **schedules** `Futures` that are **ready to be polled**;
+- *reactor* **tracks IO events** and **wakes** `Futures` that are **bound** to events when events happen;
+- 
+<br>
+
+The **loop** that **pools tasks** in the `main` function takes the role of the **executor**.<br>
+The **executor** calls `poll()` method on the **top level futures**, which in turn call the `poll()` method on its **child future**.<br>
+When some **future** is polled, it polls all its **child future** until it reaches a **leaf future**.<br>
+The **leaf future** represents something we are actually waiting on, other words, it polls an actual **event source** that is either **ready** or **not**.<br>
+If **leaf future** returns `Pending`, it is propagated up the chain of calls immediately.<br>
+The **future** will **not** return `Ready` **until** all its **child** futures have returned `Ready`.<br>
 
 <br>
+
+**Chain of futures**:
+![Chain of futures](/img/chain_of_futures.png)
+
+<br>
+
+To avoid continuous polling of **top-level futures** in `Pending` state we must exclude them from scheduling until they become ready.<br>
+We can reach this by using **mio**'s **registry** and **poll** abstractions. For example, *leaf future* register *top-level future*'s **id** in mio's registry.<br>
+Every time `block_on` function wakes up it iterates over events and **polls** *top level futures* that are **ready**.<br>
+
+<br>
+
+**Prototype** of **executor-reactor**:
+![Chain of futures](/img/prototype_of_executor_reactor.png)
+
+<br>
+
+But in above implementation *reactor* and *executor* are **tightly coupled** because both *executor* and *reactor* knows about `mio::Registry` and `mio::Poll`.<br>
+We acheive a **loose coupling** between the *reactor* and *executor* we need an interface to signal the *executor* that it should wake up and poll futures when appropriate events have occurred.<br>
+
+<br>
+
 
 # `Future` life cycle
 Every `Future` transits through different phases during its life cycle.<br>
 
 ### Spawning
-**Spawning** is registering a **top-level** `Future` at the **Executor**.<br>
+**Spawning** is registering a **top-level** `Future` at the **executor**.<br>
 
 ### Polling
-**Executor** fetches `Future` from its **task queue** and call `poll(cx)` method on it where `cx` is `Context`.<br>
+The **executor** fetches `Future` from its **task queue** and call `poll(cx)` method on it where `cx` is `Context`.<br>
 `Context` is **wrapper** for `Waker` and just contains a reference to a `Waker`.<br>
 The result of the `poll(cx)` method represents the the state of the `Future`.<br>
 
 ### Waiting
-When the **Executor** calls `poll()` on a `Future`, that `Future` will return either `Ready` or `Pending`:
-- If `Future` returns `Ready(T)` then the `.await` will return `T` and the **Executor** removes it from the **task queue**.
-- If `Future` returns `Pending` then the **Executor** removes it from the **task queue**, but **Reactor** will notify **Executor** when particular `Future` will become ready to be polled again. This is where the **Waker API** comes in.
+When the **executor** calls `poll()` on a `Future`, that `Future` will return either `Ready` or `Pending`:
+- If `Future` returns `Ready(T)` then the `.await` will return `T` and the **executor** removes it from the **task queue**.
+- If `Future` returns `Pending` then the **executor** removes it from the **task queue**, but **Reactor** will notify **executor** when particular `Future` will become ready to be polled again. This is where the **Waker API** comes in.
 
 ### Waking
 The **reactor** stores a **copy** of the `Waker` that the **executor** passed to the future when it polled it.<br>
 The **reactor** tracks events on I/O source.<br>
 When the **reactor** gets a notification that an **event has happened** on one of the **tracked source**, it locates the `Waker` associated with that source and calls `Waker::wake` on it.<br>
-This in turn puts `Future` that is bound to this event into *Executor's* **task queue**.<br>
+This in turn puts `Future` that is bound to this event into *executor's* **task queue**.<br>
 
 <br>
 
 # Waker API
-The **Waker API** connects *Executor* and *Reactor*.<br>
-Every time **Executor** calls `poll(cx)` method it passes a `Context` to it. `Context` provides access to a `Waker`, i.e., it wraps `Waker`.<br>
+The **Waker API** connects *executor* and *Reactor*.<br>
+Every time *executor* calls `poll(cx)` method it passes a `Context` to it. `Context` provides access to a `Waker`, i.e., it wraps `Waker`.<br>
 The reason `poll()` takes `Context` instead `Waker` is to has ability add other things to `Context` in future.<br>
 
 Requirements to `Waker` type:
@@ -79,7 +111,7 @@ Requirements to `Waker` type:
 
 <br>
 
-`Futures` can be **nested** and `Waker` object is passed along chain of nested `Futures` until it reaches the **source of event** (**Reactor**), then `Waker` is being registered in **Reactor**.<br>
+`Futures` can be **nested** and `Waker` object is passed along chain of nested `Futures` until it reaches the **source of event** (**reactor**), then `Waker` is being registered in **Reactor**.<br>
 
 If `Future` returns `Poll::Pending` then `Waker`, that was passed inside `Context`, is registered in **Reactor** and bound to **event id** (e.g. **file descriptor**).<br>
 When event occurs **Reactor** calls `wake()`.
@@ -91,10 +123,10 @@ The easiest way to create a new `Waker` is by implementing the `ArcWake` trait a
 
 ## Ways to implement `wake()`
 ### Using task id
-In this approach the `Waker` is **Task id** and the *Executor’s* **task queue** is `Vec<Arc<Task>>`.<br>
-Also Executor stores set of Tasks as `HashMap<Task_id, Task>`.<br>
-When event occurs, **Reactor** calls `wake()` and it appends **Task** id to *Executor’s* **task queue**.<br>
+In this approach the `Waker` is **Task id** and the *executor’s* **task queue** is `Vec<Arc<Task>>`.<br>
+Also *executor* stores set of Tasks as `HashMap<Task_id, Task>`.<br>
+When event occurs, **Reactor** calls `wake()` and it appends **Task** id to *executor’s* **task queue**.<br>
 
 ### Using reference counter
-In this approach the `Waker` is `Arc<Task>` and the *Executor’s* **task queue** is `Vec<Arc<Task>>`.<br>
-When event occurs, **Reactor** calls `wake()` and it push `Arc<Task>` to *Executor’s* **task queue**.<br>
+In this approach the `Waker` is `Arc<Task>` and the *executor’s* **task queue** is `Vec<Arc<Task>>`.<br>
+When event occurs, **Reactor** calls `wake()` and it push `Arc<Task>` to *executor’s* **task queue**.<br>
