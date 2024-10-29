@@ -41,7 +41,7 @@ The **reactor** can track following **I/O events**:
 So:
 - *executor* **schedules** `Futures` that are **ready to be polled**;
 - *reactor* **tracks IO events** and **wakes** `Futures` that are **bound** to events when events happen;
-- 
+
 <br>
 
 The **loop** that **pools tasks** in the `main` function takes the role of the **executor**.<br>
@@ -59,8 +59,8 @@ The **future** will **not** return `Ready` **until** all its **child** futures h
 <br>
 
 To avoid continuous polling of **top-level futures** in `Pending` state we must exclude them from scheduling until they become ready.<br>
-We can reach this by using **mio**'s **registry** and **poll** abstractions. For example, *leaf future* register *top-level future*'s **id** in mio's registry.<br>
-Every time `block_on` function wakes up it iterates over events and **polls** *top level futures* that are **ready**.<br>
+We can reach this by using `mio::Registry` and `mio::Poll` abstractions. For example, *leaf future* register *top-level future*'s **id** in mio's registry.<br>
+Every time `rt.run()` (see example `concurrency/examples/executor-reactor/no-waker`) wakes up then it iterates over events and **polls** *top level futures* that are **ready**.<br>
 
 <br>
 
@@ -70,10 +70,9 @@ Every time `block_on` function wakes up it iterates over events and **polls** *t
 <br>
 
 But in above implementation *reactor* and *executor* are **tightly coupled** because both *executor* and *reactor* knows about `mio::Registry` and `mio::Poll`.<br>
-We acheive a **loose coupling** between the *reactor* and *executor* we need an interface to signal the *executor* that it should wake up and poll futures when appropriate events have occurred.<br>
+We acheive a **loose coupling** between the *reactor* and *executor* we need an interface to signal the *executor* that it should wake up and poll futures when appropriate events have occurred. For this Rust  provides **Waker API**.<br>
 
 <br>
-
 
 # `Future` life cycle
 Every `Future` transits through different phases during its life cycle.<br>

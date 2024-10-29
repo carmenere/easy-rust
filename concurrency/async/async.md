@@ -60,7 +60,7 @@ Rust **only** provides:
 - the **fundamental types** (provided by `std` crate):
   - `enum Poll`;
   - `trait Future`;
-  - `struct Context<'a>`;
+  - **Waker API** and `struct Context<'a>`;
 
 <br>
 
