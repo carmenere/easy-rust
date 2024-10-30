@@ -42,9 +42,11 @@ The **reactor** can track following **I/O events**:
 <br>
 
 ## Work stealing
-There are 2 ways to implement executor:
-1. When *all executors* share the **global** task queue and can **steal work** from each other;
-2. When *every executor* has its **thread local** task queue in this case executors **can't** *steal work* from each other (**no work-stealing**);
+There are 3 ways to implement executor:
+1. **One** executor in single thread;
+2. **Many** executors each in separate thread:
+   1. When *all executors* share the **global** task queue and can **steal work** from each other;
+   2. When *every executor* has its **thread local** task queue in this case executors **can't** *steal work* from each other (**no work-stealing**);
 
 <br>
 

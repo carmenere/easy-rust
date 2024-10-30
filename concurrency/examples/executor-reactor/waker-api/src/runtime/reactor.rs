@@ -44,7 +44,12 @@ pub fn event_loop(mut poll: Poll, wakers: Wakers) {
         for e in events.iter() {
             let Token(id) = e.token();
             let wakers = wakers.lock().unwrap();
-            wakers.get(&id).map(|w| {w.wake()});
+
+            // fetch waker by its id from wakers queue
+            wakers.get(&id).map(|waker| {
+                // wake up executor thread
+                waker.wake()
+            });
         }
     }
 }
