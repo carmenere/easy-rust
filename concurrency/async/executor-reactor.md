@@ -85,6 +85,12 @@ But in above implementation *reactor* and *executor* are **tightly coupled** bec
 
 # Waker API
 We can acheive a **loose coupling** between the *reactor* and *executor* if we add additional layer of abstraction between them. This level of abstraction is called **Waker API**.<br>
+
+Loosely coupled reactor and excutor:<br>
+![Chain of futures](/img/loosely_coupled_runtime.png)
+
+<br>
+
 The **Waker API** connects *executor* and *reactor*:
 - **executor** pass **waker** in top call of `poll()` and **waker** it spreads further **down** until **leaf future**;
 - if **leaf future** returns `Poll::Pending` then it registers **waker**, that was passed inside `Context`, in a **reactor** and bound to **event id** (e.g. **file descriptor**);
