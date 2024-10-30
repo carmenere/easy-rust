@@ -15,7 +15,8 @@ pub struct Waker {
 
 impl Waker {
     pub fn wake(&self) {
-        // put task id to ready queue
+        // self.id is an id of task
+        // the code below puts task id to ready queue
         self.ready_queue.lock().map(|mut q| q.push(self.id)).unwrap();
         // then wake up
         self.thread.unpark();

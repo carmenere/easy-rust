@@ -46,6 +46,7 @@ struct HttpFuture {
 
 impl HttpFuture {
     fn new(req: Request) -> Self {
+        // get new id for leaf future, then this id is passed to reactor().register() method
         let id = reactor().next_id();
         Self {
             stream: None,
@@ -72,17 +73,17 @@ impl Future for HttpFuture {
     fn poll(&mut self, waker: &Waker) -> Poll<Self::Output> {
         println!("First poll of HttpFuture.");
         if self.stream.is_none() {
+            println!("call connect(\"{}\")", self.req.host);
             let stream: Result<std::net::TcpStream, std::io::Error> = std::net::TcpStream::connect(self.req.host.clone());
 
             if stream.is_err() {
                 let _ = stream.as_ref().map_err(|e| {
-                    println!("Host: {}, Error: {:?}", self.req.host, e);
+                    println!("Error: {:?}", e);
                 });
                 return Poll::Ready("NO ANSWER".to_owned())
             }
 
             let _ = stream.map(|stream| {
-                println!("Host: {}.", self.req.host);
                 self.write_request(stream);
             });
 
@@ -112,7 +113,6 @@ impl Future for HttpFuture {
                     self.buffer.extend(&buff[0..n]);
                 }
                 Err(e) if e.kind() == ErrorKind::WouldBlock => {
-
                     // the Waker from the most recent call should be scheduled to wake up
                     // the reason is that the future could have moved to a different executor in between calls, and we need to wake up the correct one
                     reactor().add_waker(waker, self.id);
@@ -120,6 +120,12 @@ impl Future for HttpFuture {
                 }
                 Err(e) if e.kind() == ErrorKind::Interrupted => {
                     continue;
+                }
+                Err(e) if e.kind() == ErrorKind::TimedOut => {
+                    break Poll::Ready("ErrorKind::TimedOut".to_owned());
+                }
+                Err(e) if e.kind() == ErrorKind::ConnectionReset => {
+                    break Poll::Ready("ErrorKind::ConnectionReset".to_owned());
                 }
                 Err(e) => panic!("{e:?}")
             }
