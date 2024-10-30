@@ -91,14 +91,14 @@ impl Executor {
             }
 
             let pending_tasks = self.count_tasks();
-            let tid = thread::current().name().unwrap().to_string();
+            let tid = thread::current().id();
 
             if pending_tasks > 0 {
-                println!("Thread {tid} has {pending_tasks} pending tasks. Sleep until new events.");
+                println!("Thread {tid:?} has {pending_tasks} pending tasks. Sleep until new events.");
                 thread::park();
             }
             else {
-                println!("Thread {tid} has 0 pending tasks. All task ar finished.");
+                println!("Thread {tid:?} has 0 pending tasks. All task ar finished.");
                 break;
             }
         }
