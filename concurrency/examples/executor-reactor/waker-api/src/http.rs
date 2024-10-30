@@ -1,7 +1,8 @@
 use std::io::{ErrorKind, Write, Read};
 use mio::{Interest,Token};
-use crate::runtime;
+use crate::runtime::{self, reactor};
 use super::future::{Future,Poll};
+use crate::runtime::{waker::Waker, reactor::reactor};
 
 #[derive(Clone)]
 pub struct Request {
@@ -40,20 +41,23 @@ struct HttpFuture {
     stream: Option<mio::net::TcpStream>,
     buffer: Vec<u8>,
     req: Request,
+    id: usize,
 }
 
 impl HttpFuture {
     fn new(req: Request) -> Self {
+        let id = reactor().next_id();
         Self {
             stream: None,
             buffer: vec![],
             req: req,
+            id
         }
     }
 
     fn write_request(&mut self) {
         let stream = std::net::TcpStream::connect(self.req.host.clone()).unwrap();
-        stream.set_nonblocking(true);
+        stream.set_nonblocking(true).unwrap();
         let mut stream = mio::net::TcpStream::from_std(stream);
         stream.write_all(self.req.get().as_bytes()).unwrap();
         self.stream = Some(stream);
@@ -64,7 +68,7 @@ impl HttpFuture {
 impl Future for HttpFuture {
     type Output = String;
     
-    fn poll(&mut self, fut_id: usize) -> Poll<Self::Output> {
+    fn poll(&mut self, waker: &Waker) -> Poll<Self::Output> {
         if self.stream.is_none() {
             self.write_request();
             self.stream.as_ref().map(|s| {
@@ -73,9 +77,10 @@ impl Future for HttpFuture {
                 });
             });
 
-            let _ = runtime::registry()
-                .register(self.stream.as_mut().unwrap(), Token(fut_id), Interest::READABLE);
+            reactor()
+                .register(self.stream.as_mut().unwrap(), Interest::READABLE, self.id);
 
+            reactor().add_waker(waker, self.id);
             return Poll::Pending;
         }
 
@@ -85,13 +90,17 @@ impl Future for HttpFuture {
             match self.stream.as_mut().unwrap().read(&mut buff) {
                 Ok(0) => {
                     let s = String::from_utf8_lossy(&self.buffer);
-                    let _ = runtime::registry().deregister(self.stream.as_mut().unwrap());
+                    let _ = reactor().deregister(self.stream.as_mut().unwrap(), self.id);
                     break Poll::Ready(s.to_string())
                 }
                 Ok(n) => {
                     self.buffer.extend(&buff[0..n]);
                 }
                 Err(e) if e.kind() == ErrorKind::WouldBlock => {
+
+                    // the Waker from the most recent call should be scheduled to wake up
+                    // the reason is that the future could have moved to a different executor in between calls, and we need to wake up the correct one
+                    reactor().add_waker(waker, self.id);
                     break Poll::Pending;
                 }
                 Err(e) if e.kind() == ErrorKind::Interrupted => {

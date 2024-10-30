@@ -1,5 +1,6 @@
 use super::http::{Http, Request};
 use super::future::{Future, Poll} ;
+use crate::runtime::waker::Waker;
 
 pub struct RequestFuture {
     state: State,
@@ -24,7 +25,7 @@ impl RequestFuture {
 impl Future for RequestFuture {
     type Output = String;
     
-    fn poll(&mut self, fut_id: usize) -> Poll<Self::Output> {
+    fn poll(&mut self, waker: &Waker) -> Poll<Self::Output> {
         loop {
             match self.state {
                 State::Start => {
@@ -33,7 +34,7 @@ impl Future for RequestFuture {
                     self.state = State::Wait(fut);
                 },
                 State::Wait(ref mut fut) => {
-                    match fut.poll(fut_id) {
+                    match fut.poll(waker) {
                         Poll::Ready(resp) => {
                             self.state = State::Resolved;
                             break Poll::Ready(resp)

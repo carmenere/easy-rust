@@ -1,11 +1,13 @@
 # Table of contents
 - [Table of contents](#table-of-contents)
 - [Executor/Reactor pattern](#executorreactor-pattern)
+  - [Work stealing](#work-stealing)
+  - [Chain of futures](#chain-of-futures)
 - [Without Waker API](#without-waker-api)
 - [Waker API](#waker-api)
   - [Ways to implement `wake()`](#ways-to-implement-wake)
     - [Using `task id`](#using-task-id)
-    - [Using `task itself`](#using-task-itself)
+    - [Using shared reference to the task itself](#using-shared-reference-to-the-task-itself)
 
 <br>
 
@@ -39,6 +41,18 @@ The **reactor** can track following **I/O events**:
 
 <br>
 
+## Work stealing
+There are 2 ways to implement executor:
+1. When *all executors* share the **global** task queue and can **steal work** from each other;
+2. When *every executor* has its **thread local** task queue in this case executors **can't** *steal work* from each other (**no work-stealing**);
+
+<br>
+
+The design of **work-stealing executor** is **more complex**, because everything must be `Send` + `Sync`.<br>
+
+<br>
+
+## Chain of futures
 The **loop** that **pools tasks** in the `main` function takes the role of the **executor**.<br>
 The **executor** calls `poll()` method on the **top level futures**, which in turn call the `poll()` method on its **child future**.<br>
 When some **future** is polled, it polls all its **child future** until it reaches a **leaf future**.<br>
@@ -103,12 +117,12 @@ The easiest way to create a new `Waker` is by implementing the `ArcWake` trait a
 <br>
 
 ### Using `task id`
-In this approach the `Waker` is **Task id** and the *executor’s* **task queue** is `Vec<Arc<Task>>`.<br>
+In this approach the `Waker` stores the **task id** and the reference to *executor’s* **ready queue** is `Vec<Arc<Task>>`.<br>
 Also *executor* stores set of Tasks as `HashMap<Task_id, Task>`.<br>
-When event occurs, **reactor** calls `wake()` and it appends **Task** id to *executor’s* **task queue**.<br>
+When event occurs, **reactor** calls `wake()` and it appends **task id** to *executor’s* **ready queue**.<br>
 
 <br>
 
-### Using `task itself`
-In this approach the `Waker` is `Arc<Task>` and the *executor’s* **task queue** is `Vec<Arc<Task>>`.<br>
-When event occurs, **reactor** calls `wake()` and it push `Arc<Task>` to *executor’s* **task queue**.<br>
+### Using shared reference to the task itself
+In this approach the `Waker` is `Arc<Task>` and the *executor’s* **ready queue** is `Vec<Arc<Task>>`.<br>
+When event occurs, **reactor** calls `wake()` and it push `Arc<Task>` to *executor’s* **ready queue**.<br>
