@@ -29,11 +29,12 @@ impl Future for RequestFuture {
         loop {
             match self.state {
                 State::Start => {
-                    println!("Future is started.");
+                    println!("First poll of RequestFuture.");
                     let fut = Box::new(Http::get(self.req.clone()));
                     self.state = State::Wait(fut);
                 },
                 State::Wait(ref mut fut) => {
+                    println!("Second poll of RequestFuture.");
                     match fut.poll(waker) {
                         Poll::Ready(resp) => {
                             self.state = State::Resolved;

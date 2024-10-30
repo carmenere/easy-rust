@@ -1,5 +1,5 @@
 use std::io::{ErrorKind, Write, Read};
-use mio::{Interest,Token};
+use mio::{net::{TcpListener, TcpStream}, Interest, Token};
 use crate::runtime::{self, reactor};
 use super::future::{Future,Poll};
 use crate::runtime::{waker::Waker, reactor::reactor};
@@ -55,22 +55,37 @@ impl HttpFuture {
         }
     }
 
-    fn write_request(&mut self) {
-        let stream = std::net::TcpStream::connect(self.req.host.clone()).unwrap();
+    fn write_request(&mut self, stream: std::net::TcpStream) {
+        println!("Enter write_request().");
         stream.set_nonblocking(true).unwrap();
         let mut stream = mio::net::TcpStream::from_std(stream);
         stream.write_all(self.req.get().as_bytes()).unwrap();
         self.stream = Some(stream);
+        println!("Exit write_request().");
+
     }
 }
-
 
 impl Future for HttpFuture {
     type Output = String;
     
     fn poll(&mut self, waker: &Waker) -> Poll<Self::Output> {
+        println!("First poll of HttpFuture.");
         if self.stream.is_none() {
-            self.write_request();
+            let stream: Result<std::net::TcpStream, std::io::Error> = std::net::TcpStream::connect(self.req.host.clone());
+
+            if stream.is_err() {
+                let _ = stream.as_ref().map_err(|e| {
+                    println!("Host: {}, Error: {:?}", self.req.host, e);
+                });
+                return Poll::Ready("NO ANSWER".to_owned())
+            }
+
+            let _ = stream.map(|stream| {
+                println!("Host: {}.", self.req.host);
+                self.write_request(stream);
+            });
+
             self.stream.as_ref().map(|s| {
                 let _ = s.peer_addr().map(|v| {
                     println!("Sending request to: {:?}", v)
