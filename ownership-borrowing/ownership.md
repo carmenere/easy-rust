@@ -19,7 +19,9 @@
   - [Terms](#terms)
 - [Primitive and non-primitive types](#primitive-and-non-primitive-types)
   - [Example: `Vec`](#example-vec)
+    - [Move](#move)
   - [Example: `integer`](#example-integer)
+    - [Copy](#copy)
   - [Atomic primitive types](#atomic-primitive-types)
   - [Composite primitive types](#composite-primitive-types)
   - [Complex types](#complex-types)
@@ -270,18 +272,25 @@ For example, consider a `Vec` type. A `Vec` consists of 2 parts:
 <br>
 
 **Bitwise copying** of *static part* of `Vec` duplicates the *static part*, but the **buffer** on the **heap** stays **intact**.<br>
-After **bitwise copying** two *static parts* of `Vec` are **not** *completely independent copy* and both points to the **same buffer** of `Vec`:
+**After** *bitwise copying* two *static parts* of `Vec` are **not** *completely independent copy* and both points to the **same buffer** of `Vec`:
 ![Bitwise-copy](/img/bitwise_copy.png)
 
 <br>
 
-Consider 2 variables of a `Vec` type: `v` and `v1`. When the variable `v` is **moved** to `v1`, the **static part** of `Vec` on the **stack** is **bitwise copied** and the **original** variable `v` is **invalidated** and thus Rust ignores all its pointers to the heap.<br>
+### Move
+Consider 2 variables of a `Vec` type: `v` and `v1`. When the variable `v` is **assigned** to `v1` the variable `v` is **moved** to `v1`, it means the **static part** of `Vec` on the **stack** is **bitwise copied** and the **original** variable `v` is **invalidated** and thus Rust ignores all its pointers to the heap.<br>
 
 <br>
 
 ## Example: `integer`
-Consider 2 variables of a `u32` type: `v` and `v1`. The values are contained entirely in the stack and don't have any point to somewhere. They are *completely independent* values. For such types **original** value **can** be used **after** copying. Such types are called **Copy types**. They implement the `Copy` marker trait.<br>
-When the variable `v` is **copied** to `v1`, the **static part** of `Vec` on the **stack** is **bitwise copied** and the **original** variable `v` is **invalidated** and thus Rust ignores all its pointers to the heap.<br>
+For example, consider a `u32` type. The value of `u32` is stored entirely in the **stack** and **don't** have any pointers to anywhere.<br>
+So, **bitwise copying** of value of `u32` creates *completely independent copy*.<br>
+Such types are called **Copy types**. They implement the `Copy` marker trait.<br>
+
+<br>
+
+### Copy
+Consider 2 variables of a `u32` type: `v` and `v1`. When the variable `v` is **assigned** to `v1` the variable `v` is **copied** to `v1`, it means they both can be used **independently**.<br>
 
 <br>
 
