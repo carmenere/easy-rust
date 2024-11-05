@@ -269,8 +269,8 @@ For example, consider a `Vec` type. A `Vec` consists of 2 parts:
 
 <br>
 
-**Bitwise copying** of *static part* of `Vec` duplicates the *static part* which points to the **same buffer** of `Vec`.<br>
-After **bitwise copying** two *static parts* of `Vec` are **not** *completely independent copy*:
+**Bitwise copying** of *static part* of `Vec` duplicates the *static part*, but the **buffer** on the **heap** stays **intact**.<br>
+After **bitwise copying** two *static parts* of `Vec` are **not** *completely independent copy* and both points to the **same buffer** of `Vec`:
 ![Bitwise-copy](/img/bitwise_copy.png)
 
 <br>
