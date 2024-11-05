@@ -77,7 +77,7 @@ Every time `rt.run()` (see example `concurrency/examples/executor-reactor/no-wak
 <br>
 
 **Executor-reactor** without Waker API:
-![Chain of futures](/img/prototype_of_executor_reactor.png)
+![Executor-reactor without Waker API](/img/prototype_of_executor_reactor.png)
 
 <br>
 
@@ -88,8 +88,8 @@ But in above implementation *reactor* and *executor* are **tightly coupled** bec
 # Waker API
 We can acheive a **loose coupling** between the *reactor* and *executor* if we add additional layer of abstraction between them. This level of abstraction is called **Waker API**.<br>
 
-Loosely coupled reactor and excutor:<br>
-![Chain of futures](/img/loosely_coupled_runtime.png)
+Loosely coupled reactor and executor reactor and executor:<br>
+![Loosely coupled reactor and executor](/img/loosely_coupled_runtime.png)
 
 <br>
 
@@ -102,7 +102,7 @@ The **Waker API** connects *executor* and *reactor*:
 <br>
 
 **Executor-reactor** using **Waker API**:
-![Chain of futures](/img/waker_api.png)
+![Executor-reactor using Waker API](/img/waker_api.png)
 
 <br>
 
