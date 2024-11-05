@@ -145,15 +145,15 @@ Both **move** and **copy** operations do the **exact same thing**, they **both**
 - *move* **transfer ownership** and **invalidates** the **original** identifier;
 - *copy* **doesn’t transfer ownership** and **keeps** the **original** identifier **valid**;
 
-But **clone** operation performs **deep copy**.<br>
+The **clone** operation is similar *copy* but it performs **deep copy**.<br>
 
 <br>
 
 |Operation|Ownership|Original|Under the hood|
 |:--------|:--------|:-------|:-------------|
-|**Copy**|**Doesn’t transfer ownership** to another identifier after operation.|**Original** identifier **remains valid** after operation and **can be used further**.|**Bitwise copy**|
+|**Copy**|**Doesn’t** *transfer ownership* to another identifier after operation.|**Original** identifier **remains valid** after operation and **can be used further**.|**Bitwise copy**|
 |**Move**|**Transfers ownership** to another identifier after operation.|**Original** identifier **becomes invalidated** after operation, i.e., it **no longer valid**  and **cannot be used further**.|**Bitwise copy**|
-|**Clone**|**Doesn’t transfer ownership** to another identifier after operation.|**Original** identifier **remains valid** after operation and **can be used further**.|**Deep copy**|
+|**Clone**|**Doesn’t** *transfer ownership* to another identifier after operation.|**Original** identifier **remains valid** after operation and **can be used further**.|**Deep copy**|
 
 <br>
 
