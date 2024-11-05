@@ -1,45 +1,116 @@
 # Table of contents
 - [Table of contents](#table-of-contents)
-- [Ownership](#ownership)
-  - [Basic terms](#basic-terms)
+- [Stack vs. Heap](#stack-vs-heap)
+  - [Stack](#stack)
+  - [Heap](#heap)
+- [Approaches to memory management](#approaches-to-memory-management)
+- [Bitwise copy vs. Semantic copy](#bitwise-copy-vs-semantic-copy)
+  - [Blittable types](#blittable-types)
+  - [Non-blittable types](#non-blittable-types)
+- [Ownership concept](#ownership-concept)
   - [Variable scope](#variable-scope)
   - [Ownership rules](#ownership-rules)
-  - [Blittable and Non-blittable types](#blittable-and-non-blittable-types)
-  - [Copy and move semantics](#copy-and-move-semantics)
+  - [Move vs. Copy vs. Clone](#move-vs-copy-vs-clone)
   - [Examples of copy and move semantics](#examples-of-copy-and-move-semantics)
     - [Move semantics in assignment](#move-semantics-in-assignment)
     - [Copy semantics in assignment](#copy-semantics-in-assignment)
     - [Semantics when passing values to function](#semantics-when-passing-values-to-function)
     - [Semantics when returning values from function:](#semantics-when-returning-values-from-function)
+  - [Terms](#terms)
+- [Primitive and non-primitive types](#primitive-and-non-primitive-types)
+  - [Example: `Vec`](#example-vec)
+  - [Example: `integer`](#example-integer)
+  - [Atomic primitive types](#atomic-primitive-types)
+  - [Composite primitive types](#composite-primitive-types)
+  - [Complex types](#complex-types)
+- [Traits](#traits)
   - [Clone trait](#clone-trait)
   - [Copy trait](#copy-trait)
   - [Deriving Copy and Clone traits](#deriving-copy-and-clone-traits)
   - [Why does Copy require Clone?](#why-does-copy-require-clone)
   - [Drop trait](#drop-trait)
+  - [Explicit drop](#explicit-drop)
     - [Double free problem](#double-free-problem)
     - [Drop flags](#drop-flags)
-  - [Primitive and Non-primitive types](#primitive-and-non-primitive-types)
-    - [Atomic primitive types](#atomic-primitive-types)
-    - [Composite primitive types](#composite-primitive-types)
-    - [Complex types](#complex-types)
 
 <br>
 
-# Ownership
-## Basic terms
-|Term|Meaning|
-|:---|:------|
-|**Type**|Is a *set of* 1) **allowed values**; 2) **memory layout** for values; 3) **allowed operations** for values.|
-|**Owner**|Identifier that is owning value.|
-|**Bind**|Associate identifier with a value.|
-|**Copy**|Associate identifier with **bitwise copied** value and **keep the original identifier valid**.|
-|**Move**|Associate identifier with **bitwise copied** value and **invalidate the original identifier**.|
-|**Clone**|Associate identifier with **completely independed duplicate** of value and **keep the original identifier valid**.|
-|**Mutate**|Change the value associated with a mutable identifier. By default, Rust data is immutable - it can't be changed.|
-|**Borrowing**|The **action of creating a reference**. Reference is a named pointer to some value.|
+# Stack vs. Heap
+There are two sections of a program’s memory space:
+1. **Stack section** (aka **stack memory**): for values that have **fixed** sizes **known** *at compile time*;
+2. **Heap section** (aka **heap memory**): for values that have **dynamic** sizes determined *at runtime*.
+
+*Stack memory* and *heap memory* **differ** in several ways.<br>
 
 <br>
 
+## Stack
+1. **Easy** to manage. *Stack* is a **continuous** area of memory that **follows function calls**:
+   - when a **function is called**, a new stack memory is *allocated* **automatically** to store *all* **arguments** that were passed to function and *all* its **local variabels**;
+   - when the **function is finished**, the stack memory is *deallocated* **automatically**, and the program returns to the previous point of execution;
+2. **Avoids** memory leaks due to **automatic** allocating and deallocating, **automatic** means it is managed **by compiler**;
+2. **Faster** access than *heap*.
+   - *stack* is **arranged** in **LIFO** data structure, meaning that the **most recently added** item is the **first to be removed**;
+   - *stack* has **great memory locality** due to its architecture;
+3. Used for **small** and **simple** data structures.
+
+<br>
+
+## Heap
+1. More **challenging** to manage: some book-keeping needed.
+2. Slightly **slower** than the *stack*.
+3. The data in heap is **not** arranged in any specific structure, unlike *stack*. 
+4. The data in heap can be reached in **any order**.
+5. **No guarantee** of memory locality.
+6. Used for **large**, **complex** data structures.
+
+<br>
+
+# Approaches to memory management
+Traditionally, languages have fallen into two broad categories:
+1. **Full control** via **manual** *memory management*:
+   - programmer decides when to allocate or free heap memory;
+   - programmer must determine whether a pointer still points to valid memory;
+   - examples: C, C++;
+2. **Full safety** via **automatic** *memory management* **at runtime**:
+   - all such languages need **garbage collector**;
+   - examples: Java, Python, Go, Haskell;
+
+<br>
+
+Rust offers a new mix:<br>
+**Full control** and **full safety** via **compile time enforcement** of correct *memory management*. It does this with an **explicit ownership concept**.<br>
+
+<br>
+
+# Bitwise copy vs. Semantic copy
+**Completely independent copy** of object is such copy that can be safely used separately to the origin one.<br>
+
+Types of copying:
+- **Bitwise copy** (aka **shallow copy**) is **type-independed logic** to duplicate values, in other words, **bitwise copy** copies contiguous block of memory bit-by-bit (byte-by-byte) to another location. For example, syscall `memcpy()` implements **bitwise copy**.
+- **Semantic copy** (aka **deep copy**) requires **custom logic** to duplicate values safely.
+
+**bitblt**/**bit blit**/**blit** are contractions for **bit block transfer**.
+
+<br>
+
+## Blittable types
+Objects of **blittable types** occupy exactly **one** *contiguous block* of memory and **don't** have *references to itself* (e.g. one field of struct has reference to another value in the same struct).<br>
+*Bitwise copy* **can** create *completely independent copy* of object of *blittable type*.<br>
+
+<br>
+
+## Non-blittable types
+Objects of **non-blittable types**:
+- occupy exactly **one** *contiguous block* of memory **with** *references to itself* (e.g. when one field of struct has reference to another value in the same struct);
+- occupy **more** than one **not** adjacent *contiguous blocks* of memory;
+
+*Bitwise copy* **cannot** create *completely independent copy* of object of *non-blittable type*.<br>
+To create *completely independent copy* of object of non-blittable type **deep copy** **must** be used.<br>
+
+<br>
+
+# Ownership concept
 ## Variable scope
 **Scope** (or **variable scope**) is the **range** within a program for which a variable is **valid**.<br>
 **Lexical scope** has **explicit boundaries**: **opening** curly bracket `{` and **closing** curly bracket `}`.<br>
@@ -58,7 +129,7 @@ In Rust variable is valid from the point at which it was declared by `let` keywo
 <br>
 
 ## Ownership rules
-**Ownership** enables Rust to make **memory safety guarantees** without needing GC.
+**Ownership** enables Rust to make **memory safety guarantees** without needing GC and in many cases, get the performance of C.<br>
 
 Ownership rules:
 1. **Each value** in Rust **has** an **identifier** that’s called its **owner**.
@@ -69,45 +140,34 @@ In C++ this **pattern of deallocating resources at the end of variable lifetime*
 
 <br>
 
-## Blittable and Non-blittable types
-**Completely independent copy** of object is such copy that can be safely used separately to the origin one.<br>
+## Move vs. Copy vs. Clone
+Both **move** and **copy** operations do the **exact same thing**, they **both** *implicitly* perform **bitwise copy** (**shallow copy**), but they are **differ**:
+- *move* **transfer ownership** and **invalidates** the **original** identifier;
+- *copy* **doesn’t transfer ownership** and **keeps** the **original** identifier **valid**;
 
-Types of copying:
-- **Bitwise copy** (aka **shallow copy**/**bit block transfer**) is **type-independed logic** to duplicate values, in other words, **bitwise copy** copies contiguous block of memory bit-by-bit (byte-by-byte) to another location. **Bitwise copy** is implemented in syscall `memcpy()`.
-- **Semantic copy** (aka **deep copy**) requires **type-specific logic** to duplicate values safely.
-
-**bitblt**/**bit blit**/**blit** are contractions for **bit block transfer**.
-
-|Type|Layout in memory|Type of copying|
-|:---|:---------------|:---|
-|**Blittable type**|Object of blittable type occupies exactly one contiguous block of memory.|**Bitwise copy** *can* create completely independent copy of object of blittable type.|
-|**Non-blittable type**|Object of non-blittable type occupies more than one not adjacent contiguous blocks of memory.|**Bitwise copy** *cannot* create completely independent copy of object of non-blittable type. To create completely independent copy of object of non-blittable type **semantic copy** must be used.|
+But **clone** operation performs **deep copy**.<br>
 
 <br>
 
-## Copy and move semantics
-Any value in Rust has either **Move type** or **Copy type**.
+|Operation|Ownership|Original|Under the hood|
+|:--------|:--------|:-------|:-------------|
+|**Copy**|**Doesn’t transfer ownership** to another identifier after operation.|**Original** identifier **remains valid** after operation and **can be used further**.|**Bitwise copy**|
+|**Move**|**Transfers ownership** to another identifier after operation.|**Original** identifier **becomes invalidated** after operation, i.e., it **no longer valid**  and **cannot be used further**.|**Bitwise copy**|
+|**Clone**|**Doesn’t transfer ownership** to another identifier after operation.|**Original** identifier **remains valid** after operation and **can be used further**.|**Deep copy**|
 
-Types:
+<br>
+
+Relationships between **Move**/**Copy**/**Clone**:
 1.	**Move types** are types that **don't** *implement* the **Copy trait**. 
     - If type is the **Move type** it *may* implement or *may not* implement **Clone trait**.
 2.	**Copy types** are types that *implement* the **Copy trait**. 
     - **Clone trait** is a supertrait of **Copy trait**, if type is the **Copy type** it also must implement **Clone trait**.
 3.	**Clone types** are types that implement the **Clone trait**.
 
-Following operations in Rust **assignment**/**passing a value to function**/**returning a value from function** have **semantics**. <br>
-
+Following operations in Rust **assignment**/**passing** a value to function and **returning** a value from function have **semantics**.<br>
 **Semantics of operation** is determined by **semantics of type**:
-- *Copy types* have **copy semantics**.
-- *Move types* have **move semantics**.
-
-In Rust language: **copy semantics** and a **move semantics** are **mechanically the same** – they **both** implicitly **use bitwise copy**, e.g., `memcpy()`.<br>
-
-**Copy semantics** and a **move semantics** are differ in ownership:
-|**Type’s semantics**|**Ownership**|**Original (source) identifier**|
-|:---------------|:--------|:---------------------------|
-|**Copy semantics**|**Doesn’t transfer ownership** to another identifier after operation.|Original identifier **remains valid** after operation and **can be used further**.|
-|**Move semantics**|**Transfers ownership** to another identifier after operation.|Original identifier **becomes invalidated** after operation, i.e., it **no longer valid**  and **cannot be used further**.|
+- *Copy types* have **copy semantics**, i.e. Rust **copies** values if they are of *Copy types*;
+- *Move types* have **move semantics**, i.e. Rust **moves** values if they are of *Move types*;
 
 <br>
 
@@ -168,19 +228,113 @@ fn returns_ownership() -> String { 	// gives_ownership will move its return valu
 
 <br>
 
+## Terms
+|Term|Meaning|
+|:---|:------|
+|**Type**|Is a *set of* 1) **allowed values**; 2) **memory layout** for values; 3) **allowed operations** for values.|
+|**Owner**|**Identifier** (or **variable**) that is owning value.|
+|**Bind**|Associate identifier with a value.|
+|**Copy**|Associate identifier with **bitwise copied** value and **keep the original identifier valid**.|
+|**Move**|Associate identifier with **bitwise copied** value and **invalidate the original identifier**.|
+|**Clone**|Associate identifier with **completely independed duplicate** of value and **keep the original identifier valid**.|
+|**Mutate**|Change the value associated with a mutable identifier. By default, Rust data is immutable - it can't be changed.|
+|**Borrowing**|The **action of creating a reference**. Reference is a named pointer to some value.|
+
+<br>
+
+# Primitive and non-primitive types
+In Rust language:
+1. If type has a **known size** *at compile time* (**fixed size**) it is called **primitive type**.
+   - all **primitive types** are stored entirely on the **stack**;
+2. If type has an **unknown size** *at compile time* it is called **complex type**.
+   - **static part** (aka **control part**) of complex type is stored entirely on the **stack**, it is used to manage **dynamic part**;
+   - **dynamic part** of complex type is **dynamically changed** *at run time*, it is stored in the **heap**;
+
+All **primitive types** implement **Copy trait** and have **Copy semantics**.<br>
+All **complex types** have **Move semantics**.<br>
+
+Examples:
+- `&str` **type** (**string literal**), e.g., `let s: &str = "ABC"`, has **known size** *at compile time*. So the text is **hardcoded directly into the executable**.  
+- `String` **type**, e.g., `String::from("ABC")`, has **unknown size** *at compile time*. It is growable piece of text. Memory for `String` is **requested** and **dynamically changed** *at run time*.
+
+<br>
+
+## Example: `Vec`
+For example, consider a `Vec` type. A `Vec` consists of 2 parts:
+- a **static part** that is allocated on the **stack**, it contains
+  - a **pointer** to the **buffer** on the heap;
+  - the **capacity** (max length) of the buffer;
+  - the **length** (current length);
+- a **buffer** that is allocated on the **heap** and contains the actual elements of the `Vec`;
+
+<br>
+
+**Bitwise copying** of *static part* of `Vec` duplicates the *static part* which points to the **same buffer** of `Vec`.<br>
+After **bitwise copying** two *static parts* of `Vec` are **not** *completely independent copy*:
+![Bitwise-copy](/img/bitwise_copy.png)
+
+<br>
+
+Consider 2 variables of a `Vec` type: `v` and `v1`. When the variable `v` is **moved** to `v1`, the **static part** of `Vec` on the **stack** is **bitwise copied** and the **original** variable `v` is **invalidated** and thus Rust ignores all its pointers to the heap.<br>
+
+<br>
+
+## Example: `integer`
+Consider 2 variables of a `u32` type: `v` and `v1`. The values are contained entirely in the stack and don't have any point to somewhere. They are *completely independent* values. For such types **original** value **can** be used **after** copying. Such types are called **Copy types**. They implement the `Copy` marker trait.<br>
+When the variable `v` is **copied** to `v1`, the **static part** of `Vec` on the **stack** is **bitwise copied** and the **original** variable `v` is **invalidated** and thus Rust ignores all its pointers to the heap.<br>
+
+<br>
+
+## Atomic primitive types
+**Atomic primitive types** are defined by the compiler and cannot be customized by the user.
+
+|**Type**|**Description**|
+|:-------|:--------------|
+|**Bool**|The `bool` type has two values: `true` and `false`.|
+|**Machine-independent integer**|**Signed** integers:`i8`, `i16`, `i32`, `i64`.<br>**Unsigned** integers: `u8`, `u16`, `u32`, `u64`.|
+|**Machine-dependent integer**|**Signed** integers: `isize`.<br>**Unsigned** integers: `usize`.|
+|**Floating point**|32-bit floating point: `f32`. <br>64-bit floating point: `f64`|
+|Textual types|`char`: contains a Unicode scalar value in 4 bytes.<br>`&str`: **string literal**, contains a Unicode string (a sequence of Unicode scalar values).|
+
+<br>
+
+## Composite primitive types
+|**Type**|**Description**|
+|:-------|:--------------|
+|**Arrays** and **slices**|Array `[T; N]` contains `N` elements of the type `T`.|
+|**Tuples**|The tuple type `(T1, T2, ..., Tn)` contains a sequence of elements where each element may be of a different type.|
+
+Composite primitive types automatically implement the **Copy trait** if all their constituent types implement the **Copy trait**.
+
+<br>
+
+## Complex types
+- `Vec<T>`
+- `String`
+- `Map<T>`
+- `Set<T>`
+
+<br>
+
+# Traits
 ## Clone trait
-**Clone trait** is used to implement **deep copy** in `clone()` method.
-**Deep copy** in Rust **is always explicit action**: `x.clone()`.<br>
-Rust **will never automatically** create deep copies of your data.<br>
+**Deep copy** in Rust **is always explicit action**: `x.clone()`. Rust **will never automatically** create deep copies of your data.<br>
+The [**Clone trait**](https://doc.rust-lang.org/std/clone/trait.Clone.html) is used to implement **deep copy** in `clone()` method.<br>
+
+**Deep copy** creates *completely independent copy* of objects.<br>
+
+Consider 2 variables of a `Vec` type: `v` and `v1`. When the variable `v` is **cloned** to `v1`, the **static part** of `Vec` on the **stack** is **bitwise copied** and the **new buffer** is **allocated** and all its **values** are **clonned** too. The variables `v` and `v1` are *completely independent*.<br>
+
+![Deep-copy](/img/deep_copy.png)
 
 <br>
 
 ## Copy trait
-**Copy trait** is **marker trait**.<br>
+The [**Copy trait**](https://doc.rust-lang.org/std/marker/trait.Copy.html) is **marker trait**.<br>
 **Copy trait** is implemented in Rust language on:
 - the **atomic primitive types**;
 - the **composite primitive types** if all their constituent types implement the **Copy trait**;
-- **shared references**.
+- **shared references**;
 
 <br>
 
@@ -263,11 +417,23 @@ cargo run
 <br>
 
 ## Drop trait
-A **resource management** in Rust is **scope based**.
-**Drop trait** is used to implement **destructors** for types.<br>
-If type implements the **Drop trait** it cannot implement **Copy trait**, because **Copy trait** imply **shallow copy** and if we drop
-one of such shallow copies, another copy becomes broken immediately.<br>
-So, if type implements the **Drop trait** it implies that this type is also **Move type**.
+A **resource management** in Rust is **scope based**. The [**Drop trait**](https://doc.rust-lang.org/std/ops/trait.Drop.html) is used to implement **destructors** for types.<br>
+If type implements the **Drop trait** it **cannot** implement **Copy trait**, because this implies that **deallocating** values of this type is **more complex** than simply moving a stack pointer.<br>
+So, if type **implements** the **Drop trait** it implies that this type is also **Move type**.<br>
+
+<br>
+
+## Explicit drop
+Note that `std::mem::drop` is **not** the same as `std::ops::Drop::drop`.<br>
+The `std::mem::drop` is just an **empty function** that takes **any value**: 
+```rust
+pub fn drop<T>(_x: T) {}
+```
+
+It **takes ownership** of the value, so at the end of its scope it gets dropped. This makes it a convenient way to **explicitly** drop values **before** end of scope. This can be useful for objects that *do some work on drop*: **releasing locks**, **closing files**, etc.<br>
+
+Why doesn't `std::ops::Drop` take `self`?  If it did, `std::mem::drop` would be called at the end of the block, resulting in another call to `Drop::drop`, and a **stack overflow**!<br>
+Compiler calls `std::mem::drop` to drop each value at the end of scope. If `T` implements `Drop`, the compiler automatically inserts a call to `Drop::drop(_x)` at the end of the function.<br>
 
 <br>
 
@@ -308,49 +474,4 @@ else {
 
 <br>
 
-## Primitive and Non-primitive types
-In Rust language:
-1. If type has a **known size** *at compile time* (**fixed size**) it is called **primitive type**.
-   - all **primitive types** implement **Copy trait** and have **copy semantics**.
-   - all **primitive types** are stored entirely on the **stack**.
-2. If type has an **unknown size** *at compile time* it is called **complex type**. 
-   - **complex types** have **move semantics**.
-   - **static part** (aka **control part**) of complex type is stored entirely on the **stack**, it is used to manage **dynamic part**.
-   - **dynamic part** of complex type is **dynamically changed** *at run time*, it is stored in the **heap**.
 
-So, in Rust language **Copy type** is **primitive type**.
-
-Examples:
-- `&str` **type** (**string literal**), e.g., `let s: &str = "ABC"`, has **known size** *at compile time*. So the text is **hardcoded directly into the executable**.  
-- `String` **type**, e.g., `String::from("ABC")`, has **unknown size** *at compile time*. It is growable piece of text. Memory for `String` is **requested** and **dynamically changed** *at run time*.
-
-<br>
-
-### Atomic primitive types
-**Atomic primitive types** are defined by the compiler and cannot be customized by the user.
-
-|**Type**|**Description**|
-|:-------|:--------------|
-|**Bool**|The `bool` type has two values: `true` and `false`.|
-|**Machine-independent integer**|**Signed** integers:`i8`, `i16`, `i32`, `i64`.<br>**Unsigned** integers: `u8`, `u16`, `u32`, `u64`.|
-|**Machine-dependent integer**|**Signed** integers: `isize`.<br>**Unsigned** integers: `usize`.|
-|**Floating point**|32-bit floating point: `f32`. <br>64-bit floating point: `f64`|
-|Textual types|`char`: contains a Unicode scalar value in 4 bytes.<br>`&str`: **string literal**, contains a Unicode string (a sequence of Unicode scalar values).|
-
-<br>
-
-### Composite primitive types
-|**Type**|**Description**|
-|:-------|:--------------|
-|**Arrays** and **slices**|Array `[T; N]` contains `N` elements of the type `T`.|
-|**Tuples**|The tuple type `(T1, T2, ..., Tn)` contains a sequence of elements where each element may be of a different type.|
-
-Composite primitive types automatically implement the **Copy trait** if all their constituent types implement the **Copy trait**.
-
-<br>
-
-### Complex types
-- `Vec<T>`
-- `String`
-- `Map<T>`
-- `Set<T>`
