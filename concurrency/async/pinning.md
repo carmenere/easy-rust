@@ -22,8 +22,6 @@ After **self-referential type** is **moved** to another location in memory, the 
 **Moving** a **self-referential type**:
 ![Moving a self-referential type](/img/moving_self_referential_struct.png)
 
-<br>
-
 Since the *pointer* was **not** updated **after** the instance of **self-referential type** was **moved**, it **still** *points* to the **old** location, which can cause problems.
 
 <br>
