@@ -407,4 +407,4 @@ fn main() {
 }
 ```
 
-**This code doesn't compile**. And compiler prints: `error[E0277]: PhantomPinned cannot be unpinned`.<br>
+**This code doesn't compile** as expected. And compiler prints: `error[E0277]: PhantomPinned cannot be unpinned`.<br>
