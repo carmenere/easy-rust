@@ -317,7 +317,7 @@ In our example `foo1` and `foo2` are **accessed directly** in `std::mem::swap` f
 
 <br>
 
-To access the values **only** through `Pin` we must **shadow** the variable names with variables of `Pin` type, in order to **limit ourselves**.<br>
+To access the values **only** through `Pin` we must **shadow** the variable names with variables of `Pin` type, in order to **limit ourselves**: after shadow we **don’t** have access to the **original** variables. The Rust **std** provides macro `pin!` for this.<br>
 
 Add following fix to example above:
 ```rust
