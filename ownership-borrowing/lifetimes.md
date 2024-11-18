@@ -153,8 +153,8 @@ Static objects are **not** located in **stack** or **heap**. They are **located*
 }
 ```
 The compiler tries to associate a lifetime `'a` with reference `r` that satisfies the follow inequalities:
-rule 1: `​scope(r)` ⊆ `'a`
-rule 2: `​'a` ⊆ `scope(x)`
+- rule 1: `​scope(r)` ⊆ `'a`;
+- rule 2: `​'a` ⊆ `scope(x)`;
 ​​ 
 ​<br>
 
@@ -185,8 +185,8 @@ In this example, lifetime `'a` is associated with both `rs1` and `rs2`. The comp
 - `​scope(rs1)` ⊆ `'a` ⊆ `scope(s1)`;
 - `​scope(rs2)` ⊆ `'a` ⊆ `scope(s2)`;
 - `​scope(result)` ⊆ `'a`;
-- `scope(result)` satisfies these inequalities, so `'a` could be;
-- `scope(result)`, and the compiler passes the check;
+
+And `scope(result)` satisfies these inequalities, so `'a` could be `scope(result)`, and the compiler passes the check;
 
 <br>
 
