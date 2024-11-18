@@ -39,7 +39,7 @@ There are **2 kinds of references** in Rust:
 &T
 &'a T   // with lifetime
 ```
-1. **Mutable reference**:
+2. **Mutable reference**:
 ```Rust
 &mut T
 &'a mut T   // with lifetime
@@ -50,6 +50,7 @@ There are **2 kinds of references** in Rust:
 **Borrowing** is the action of **creating a reference** to some value, called **lender**.<br>
 **Borrower** is an **identifier** (**variable**) which **owns** some **reference**.<br>
 Both, **immutable** and **mutable** **borrowers** can contain **mutable** or **immutable** **references**.<br>
+If an **identifier** (**variable**) declared as **immutable**, it **isn’t possible** to assign a **mutable reference** to **it**.<br>
 
 <br>
 
@@ -59,13 +60,11 @@ So, there are **2 kinds of borrowers** in Rust:
 let b: &T;
 let b: &mut T;
 ```
-1. **Mutable borrower** `b`:
+2. **Mutable borrower** `b`:
 ```Rust
 let mut b: &T;
 let mut b: &mut T;
 ```
-
-If an **identifier** (**variable**) declared as **immutable**, it **isn’t possible** get a **mutable reference** to **it**.<br>
 
 <br>
 
@@ -139,7 +138,7 @@ for i in &v {
 <br>
 
 # Lifetimes
-Every **variable** in Rust has **LL** which **begins** when it is **created** by `let` keyword and **ends** when it is **destroyed** (closing curly bracket `}).
+Every **variable** in Rust has **LL** which **begins** when it is **created** by `let` keyword and **ends** when it is **destroyed** (closing curly bracket `}`).
 Every **reference** in Rust has **NLL** which **begins** when it is **created** by `let` keyword and **ends** when it is **used last time**.<br>
 
 But, the **reference** must be **valid** until the **lender** is **destroyed**. So, **lifetimes** and **scopes** (**NLL** and **LL**) are **not** the same.<br>
