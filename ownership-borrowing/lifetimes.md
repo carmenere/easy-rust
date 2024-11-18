@@ -114,7 +114,7 @@ In other words: a lifetime associated with a reference is a **subset** of the sc
 3. **Assignment rule**: `x: &'a S = y: &'b T` ⇒ `'a` ⊆ `'b`. Here `x` and `y` are both references.
 In other words: the lifetime associated with the assignee is a **subset** of the lifetime associated with the assigner.
 
-4. **Struct reference rule**: given a struct struct `S<'a> { x: &'a T }`, then `s: &'b S<'a>` ⇒ `'b` ⊆ `'a`.
+4. **Struct reference rule**: given a struct `S<'a> { x: &'a T }`, then `s: &'b S<'a>` ⇒ `'b` ⊆ `'a`.
 In other words: the lifetime associated with a struct reference is a **subset** of the lifetime associated with the struct member.
 
 *Proof*.
@@ -127,16 +127,18 @@ In other words: the lifetime associated with a struct reference is a **subset** 
 So, `'b: 'a`.
 
 5. **Double reference rule**:
-`x: &'b &'a T` ⇒ `'b ⊆ 'a`
+- `x: &'b &'a T` ⇒ `'b ⊆ 'a`
 
 6. **Lifetime bound**:
-`'a: 'b` ⇔ `'b ⊆ 'a`
+- `'b: 'a` ⇔ `'a ⊆ 'b`
 
 7. **Static scope**:
-`'a` ⇒ `'a ⊆ 'static`
+- `'a` ⇒ `'a ⊆ 'static`
 
 Only **static objects** have **static scopes**.
 Static objects are **not** located in **stack** or **heap**. They are **located** in **data segments** or **code segments** that are mapped to the process memory.
+
+<br>
 
 ## Examples
 ### Example 1
@@ -447,7 +449,7 @@ We are using the bound `T: 'static` to restrict `SomeType<'a>` to `SomeType<'sta
 <br>
 
 ### `std::thread::spawn`
-The move values between threads with `std::thread::spawn` thier types need to implement `Send`, but they also need to **not** contain any **dynamic references** (the `'static` lifetime bound).
+To move values between threads with `std::thread::spawn` thier types need to implement `Send`, but they also need to **not** contain any **dynamic references** (the `'static` lifetime bound).
 
 <br>
 
