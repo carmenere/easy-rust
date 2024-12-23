@@ -10,7 +10,16 @@
 - [Alternate registries](#alternate-registries)
     - [Example](#example)
 - [Source replacement](#source-replacement)
-    - [Example](#example-1)
+- [Example](#example-1)
+  - [`.cargo/config.toml`](#cargoconfigtoml)
+  - [Source replacement: `source.panamax`](#source-replacement-sourcepanamax)
+    - [Download index](#download-index)
+    - [Print out `config.json`](#print-out-configjson)
+  - [Example of full URL to download `atomic-waker` from `source.panamax`](#example-of-full-url-to-download-atomic-waker-from-sourcepanamax)
+  - [Alternate registry: `registries.mirror01`](#alternate-registry-registriesmirror01)
+    - [Download index](#download-index-1)
+    - [Print out `config.json`](#print-out-configjson-1)
+  - [Example of full URL to download `some_crate` from `registries.mirror01`](#example-of-full-url-to-download-some_crate-from-registriesmirror01)
 - [Merge rules for `.cargo/config.toml` files](#merge-rules-for-cargoconfigtoml-files)
 
 <br>
@@ -94,10 +103,19 @@ Example of `config.json`:<br>
 }
 ```
 where:
-- `dl` is the **download endpoint**, i.e. it is the URL for downloading crates listed in the index;
+- `dl` is the **download endpoint**, i.e. it is the URL for downloading crates listed in the index. 
 - `api` is the URL of web API for the registry;
 - `auth-required` indicates whether this is a **private registry** that requires all operations to be authenticated (crate downloads, API requests and so on).
   - If `auth-required` is set to `true`, then `cargo` must pass **auth token** in the `Authorization` header in all **download** requests and all requests to the **web API**.
+
+The value of `dl` may have the following **markers** which will be replaced with their corresponding value:
+  - `{crate}`: the **name** of crate;
+  - `{version}`: the crate **version**;
+  - `{prefix}`: a directory **prefix** computed from the crate name, for example, a crate named **cargo** has a prefix of **ca/rg**;
+  - `{lowerprefix}`: lowercase variant of `{prefix}`;
+  - `{sha256-checksum}`: the crate’s **sha256 checksum**;
+
+If **none** of the markers are present, then the value `/{crate}/{version}/download` is appended to the end of `dl` **by default**.<br>
 
 <br>
 
@@ -204,13 +222,82 @@ Configuration of **source replacement** is done through `source.<name>.replace-w
 
 <br>
 
-### Example
+# Example
+## `.cargo/config.toml`
 ```toml
-[source.my-source]
-registry = "https://example.com/path/to/index"
+[source.panamax]
+registry = "http://mirror01/git/crates.io-index"
+
+[registries.mirror01]
+index = "http://mirror01/repository/crates/index"
 
 [source.crates-io]
-replace-with = "my-source"
+# To use sparse index, change "panamax" to "panamax-sparse".
+replace-with = "panamax"
+
+[net]
+git-fetch-with-cli = true
+```
+
+<br>
+
+To **download index** use `git clone`.<br>
+
+<br>
+
+## Source replacement: `source.panamax`
+### Download index
+```bash
+git clone http://mirror01/git/crates.io-index
+```
+
+<br>
+
+### Print out `config.json`
+```bash
+$ cat crates.io-index/config.json | jq '.'
+{
+  "dl": "http://mirror01/crates/{prefix}/{crate}/{version}/{crate}-{version}.crate",
+  "api": "http://mirror01/crates"
+}
+$
+```
+
+<br>
+
+## Example of full URL to download `atomic-waker` from `source.panamax`
+```bash
+curl -o atomic-waker-1.0.0.crate -v -X GET http://mirror01/crates/at/om/atomic-waker/1.0.0/atomic-waker-1.0.0.crate
+```
+
+<br>
+
+## Alternate registry: `registries.mirror01`
+### Download index
+```bash
+git clone http://mirror01/repository/crates/index
+```
+
+<br>
+
+### Print out `config.json`
+```bash
+$ cat index/config.json | jq '.'
+{
+  "dl": "http://mirror01/repository/crates/api/v1/crates",
+  "api": "http://mirror01/repository/crates",
+  "auth-required": false,
+  "allowed-registries": [
+    "https://github.com/rust-lang/crates.io-index"
+  ]
+}
+```
+
+<br>
+
+## Example of full URL to download `some_crate` from `registries.mirror01`
+```bash
+curl -o some_crate-1.2.0.crate -v -X GET http://mirror01/repository/crates/api/v1/crates/some_crate/1.2.0/download
 ```
 
 <br>
