@@ -6,6 +6,8 @@
   - [Types of libraries](#types-of-libraries)
   - [`*-sys` packages](#-sys-packages)
   - [The manifest `links = %name%` key](#the-manifest-links--name-key)
+- [C standard library](#c-standard-library)
+- [C runtime (CRT)](#c-runtime-crt)
   - [Static and dynamic C runtimes](#static-and-dynamic-c-runtimes)
 - [Examples](#examples)
   - [Building C code as part of a package](#building-c-code-as-part-of-a-package)
@@ -142,6 +144,7 @@ There are **several types of libraries**:
 <br>
 
 ## `*-sys` packages
+**C library** (aka **system library**, **native library**).
 A **native dependency** is any dependency that requires compilation of `C++`/`C` code.<br>
 **Packages** that link to **system libraries** (**C libraries**) are also called **native dependencies**.<br>
 **Native dependencies** have a **naming convention** of having a `-sys` **suffix**.<br>
@@ -170,19 +173,82 @@ This states that the package links to the `libfoo` **native library**.<br>
 
 <br>
 
+# C standard library
+The **C standard library** (aka **ISO C library** or **libc**) is the **standard library** for the **C programming language**, as specified in the **ISO C standard**.<br>
+Some of the popular **implementations** of *C standard library*:
+- **BSD libc**;
+- **glibc** (GNU C Library);
+- **musl** (**lightweight** implementation of **libc** for Linux systems);
+
+<br>
+
+# C runtime (CRT)
+**CRT** stands for **C runtime**.<br>
+
+There is a very important difference between **C standard library** and **CRT**:
+- the **C standard library** defines functions that are (always) available to the programmer;
+- **CRT** is a thin layer of code compiled in binary that contains **startup routine** and **error handling** code;
+
+<br>
+
+When an executable is loaded in the memory, then OS calls `_start` **entrypoint** of the binary, **not** `main`. This `_start` **entrypoint** runs some **setup code** required **before** calling the `main` function and some **cleanup** code required **after** main returns. This **program startup code** is implemented in the **CRT**.<br>
+
+<br>
+
+The **CRT** is an **object file**, **not** library. For example, you could write a program which **does not** use the **C standard library** but you always need the **CRT** because otherwise, your program could **not** be executed. So, **CRT** is automatically linked into your program by the compiler.<br>
+
+The **CRT** comes in two flavors:
+- **CRT1** is used on systems that support **constructors** (functions called before `main`) and **destructors** (functions called after `exit`). In this case `main` is treated like a normal function call;
+- **CRT0** is used on systems that do **not** support constructors/destructors (the **zero** (**0**) stands for **the very beginning**);
+
+<br>
+
+The **CRT** is shipped as part of the **compiler** or **OS** and usually reside in the `crt0.o` or `crt1.o` **object file**:
+```bash
+anton@zinfandel-x86:~/Projects/foo$ ls -hal /lib/x86_64-linux-gnu/ | grep crt
+-rw-r--r--   1 root root  1.8K Aug  8 17:47 crt1.o
+-rw-r--r--   1 root root  1.2K Aug  8 17:47 crti.o
+-rw-r--r--   1 root root   760 Aug  8 17:47 crtn.o
+-rw-r--r--   1 root root  2.5K Aug  8 17:47 gcrt1.o
+-rw-r--r--   1 root root  2.3K Aug  8 17:47 grcrt1.o
+-rw-r--r--   1 root root   608 Aug  8 17:47 Mcrt1.o
+-rw-r--r--   1 root root  1.7K Aug  8 17:47 rcrt1.o
+-rw-r--r--   1 root root  1.7K Aug  8 17:47 Scrt1.o
+```
+
+<br>
+
+The work performed by **CRT** depends on the **language**, **compiler**, OS and **C standard library** implementation. Ususally **CRT** performs following work:
+- **before** calling the `main`:
+  - initializes the **stack**;
+  - pushes `argc` and `argv` onto the **stack**;
+  - initializes the `.bss` section to zero;
+  - initializes the `heap`;
+  - **call** the `main()`;
+- **after** `main` returns:
+  - pops `argc` and `argv` from the **stack**;
+  - stores the **return code** from `main()` in `eax`;
+  - calls `exit()`;
+
+<br>
+
+In a **typical** Rust **binary** that links the **standard library**, **execution starts** in a **CRT**. This creates a stack and places the arguments in the right registers. Then **crt0** invokes the [**entry point**](https://github.com/rust-lang/rust/blob/bb4d1491466d8239a7a5fd68bd605e3276e97afb/src/libstd/rt.rs#L32-L73) of the **Rust runtime**, which is marked by the [**start**](https://github.com/rust-lang/rust/blob/bb4d1491466d8239a7a5fd68bd605e3276e97afb/src/libstd/rt.rs#L31) *language item*.<br>
+
+<br>
+
 ## Static and dynamic C runtimes
-In a **typical** Rust **binary** that links the **standard library**, **execution starts** in a **crt0** (**C runtime zero**). This creates a stack and places the arguments in the right registers. Then **crt0** invokes the [**entry point**](https://github.com/rust-lang/rust/blob/bb4d1491466d8239a7a5fd68bd605e3276e97afb/src/libstd/rt.rs#L32-L73) of the **Rust runtime**, which is marked by the [**start**](https://github.com/rust-lang/rust/blob/bb4d1491466d8239a7a5fd68bd605e3276e97afb/src/libstd/rt.rs#L31) *language item*.<br>
+All targets in the compiler have a **default mode** of **linking** to the **C runtime library**. Here, **C runtime library** means **not** only **CRT**, but also **implementation** of *C standard library*, for eample, **glibc** or **musl**. Typically targets are linked **dynamically** by default, e.g. `aarch64-apple-darwin` or `x86_64-unknown-linux-gnu`. But there are **exceptions** which are linked **statically** by default, e.g. `x86_64-unknown-linux-musl`.<br>
 
-The standard library in general strives to support both **statically** linked and **dynamically** linked **C runtimes** for targets. All targets in the compiler have a **default mode** of linking to the **C runtime**.<br>
-Typically targets are linked **dynamically** *by default*.<br>
+<br>
 
-The `crt-static` **feature** of `target-feature` **codegen option** configure **linkage** of the *C runtime*:
+The `crt-static` **feature** of `target-feature` **codegen option** configure **linkage** of the **C runtime library**:
 - `-C target-feature=+crt-static` instructs the Rust compiler to **statically** link to **C runtime library**;
 - `-C target-feature=-crt-static` instructs the Rust compiler to **dynamically** link to **C runtime library**;
 
 It's recommended to **inspect the resulting binary** to ensure that it's linked as you would expect after the compiler succeeds.<br>
 
-For example, **alpine** libraries link **dynamically** to **musl libc**, while `rustc` **statically** links to **musl libc** *by default*.<br>
+> **Note**:<br>
+> **Alpine** libraries link **dynamically** to **musl libc**, while `rustc` **statically** links to **musl libc** *by default*.<br>
 
 <br>
 

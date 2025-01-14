@@ -1,97 +1,31 @@
 # Table of contents
 - [Table of contents](#table-of-contents)
 - [Registry](#registry)
-- [Workspace, Packages and Crates](#workspace-packages-and-crates)
-- [Targets](#targets)
 - [Crate’s module tree](#crates-module-tree)
 - [Crate auto-discovery](#crate-auto-discovery)
-- [The `[package]` section settings](#the-package-section-settings)
-    - [The `include`/`exclude` keys](#the-includeexclude-keys)
-- [Targets settings](#targets-settings)
+- [Packages and Crates](#packages-and-crates)
+  - [The `Cargo.toml` layout](#the-cargotoml-layout)
+  - [Platform-specific dependencies](#platform-specific-dependencies)
+  - [The `[package]` section settings](#the-package-section-settings)
+  - [The `include`/`exclude` keys](#the-includeexclude-keys)
+  - [The \[lints\] section](#the-lints-section)
+- [Targets](#targets)
+  - [Target selection cli optons](#target-selection-cli-optons)
+  - [Targets settings](#targets-settings)
   - [Example](#example)
-- [Specifying dependencies](#specifying-dependencies)
-  - [Specifying dependencies from crates.io](#specifying-dependencies-from-cratesio)
-  - [Specifying dependencies from other registries](#specifying-dependencies-from-other-registries)
-  - [Specifying dependencies from git repositories](#specifying-dependencies-from-git-repositories)
-  - [Specifying path dependencies](#specifying-path-dependencies)
-  - [Inheriting a dependency from a workspace](#inheriting-a-dependency-from-a-workspace)
-- [Dependency resolution](#dependency-resolution)
-  - [Dependency updates](#dependency-updates)
+- [Profiles](#profiles)
+  - [The `[profile.*]` section settings](#the-profile-section-settings)
+- [Workspaces](#workspaces)
+  - [The `[workspace]` section settings](#the-workspace-section-settings)
+  - [Package selection](#package-selection)
 
 <br>
 
 # Registry
-A **registry** is a storage for **packages**, i.e., it is a central location that serves as permanent storage for versions of a crate over time.<br>
+A **registry** is a storage for **packages**.<br>
 The *crates.io* is the Rust community’s **package registry**.<br>
 Each package can be published on https://crates.io independently.<br>
 Each package can be fetched from https://crates.io.<br>
-
-<br>
-
-# Workspace, Packages and Crates
-A **package** is a *collection* of **crates**.  
-A **workspace** is a collection of **packages**, called **workspace members**, that are **managed together**.
-
-Every **package** has `Cargo.toml` file. The `Cargo.toml` file for each package is called its **manifest**. <br>
-**Directory** with `Cargo.toml` file is called **package root**.<br>
-
-- `Cargo.toml` file contains **settings for package**.
-- `Cargo.toml` file is written in the **TOML format**. 
-
-Every `Cargo.toml` file consists of the following sections:
-
-|Section|Description|
-|:------|:----------|
-|`[workspace]`|Workspace settings.|
-|`[package]`|Package settings.|
-|`[features]`|**Conditional compilation** features.|
-|`[lib]`|**Library crate** settings.|
-|`[[bin]]`|**Binary crate** settings.|
-|`[dependencies]`|Package dependencies.|
-|`[dev-dependencies]`|Dependencies for **examples**, **tests**, and **benchmarks**.|
-|`[build-dependencies]`|Dependencies for build scripts.|
-|`[target]`|Platform-specific dependencies.|
-|`[profile.*]`|Compiler settings and **optimizations**.|
-|`[lints]`|Configure **linters** for this package.|
-
-<br>
-
-Cargo has 4 **built-in profiles**:
-- `profile.dev`;
-- `profile.release`;
-- `profile.test`;
-- `profile.bench`.
-
-<br>
-
-The profile is *automatically chosen* if a profile is **not** specified on the cli by `--profile <PROFILE-NAME>` option.<br>
-In addition to the *built-in profiles*, additional **custom profiles** can be defined.<br>
-
-More details here: https://doc.rust-lang.org/cargo/reference/manifest.html.
-
-<br>
-
-# Targets
-Cargo packages consist of targets which correspond to source files which can be compiled into a crate.<br>
-Packages can have **library**, **binary**, **example**, **test** and **benchmark** targets. The list of targets can be configured in the` Cargo.toml` manifest or **inferred automatically** by the **directory layout** of the source files.<br>
-
-`[lib]`, `[[bin]]`, `[[example]]`, `[[test]]` and `[[bench]]` sections are also called **target tables** (aka **targets**).
-
-Every **target** describes **settings for some crate**.
-
-There are **2 types** of **crates**:
-- **binary crate**: defined in `[[bin]]`.
-- **library crate**: defined in `[lib]`. 
-
-The **double-bracket section** like `[[bin]]` is an **array-of-tables**. It means you can write **more than one** `[[bin]]` section to describe several crates in 1 package.<br>
-So,
-- every **package** contains **at least 1 crate**;
-- there can be **only one** library crate within a package; 
-- there can be **more than one** binary crate within a package.
-
-Compiler will produce **executable** for *binary crate* and **library** for *library crate*.
-
-So, **crate** is an **independent compilation unit** within package.
 
 <br>
 
@@ -123,31 +57,97 @@ Cargo uses the **automatic target discovery** by default. *Automatic target disc
 
 <br>
 
-# The `[package]` section settings
-[Configurable fields](https://doc.rust-lang.org/cargo/reference/manifest.html) of `[package]` section.<br>
+# Packages and Crates
+A **package** is a *collection* of **crates**.<br>
 
-Fields `name` and `version` are **required**.<br>
+Every **package** has `Cargo.toml` file. The `Cargo.toml` file for each package is called its **manifest**. <br>
+**Directory** with `Cargo.toml` file is called **package root**.<br>
+
+- `Cargo.toml` file contains **settings for package**.
+- `Cargo.toml` file is written in the **TOML format**. 
+
+<br>
+
+## The `Cargo.toml` layout
+Every `Cargo.toml` file consists of the following **sections**:<br>
+|Section|Description|
+|:------|:----------|
+|`[[bin]]`|**Binary crate** settings.|
+|`[build-dependencies]`|Dependencies for build scripts.|
+|`[dependencies]`|Package dependencies.|
+|`[dev-dependencies]`|Dependencies for **examples**, **tests**, and **benchmarks**.|
+|`[features]`|**Conditional compilation** features.|
+|`[lib]`|**Library crate** settings.|
+|`[lints]`|Configure **linters** for this package.|
+|`[package]`|Package settings.|
+|`[profile.*]`|Compiler settings and optimizations.|
+|`[target.*.dependencies]`|**Platform-specific** dependencies.|
+|`[workspace]`|Workspace settings.|
+
+<br>
+
+## Platform-specific dependencies
+Example of specifying **platform-specific dependencies**:
+```toml
+[target.'cfg(target_os = "linux")'.dependencies]
+conntrack = { workspace = true }
+```
+
+<br>
+
+## The `[package]` section settings
+[**The Manifest Format**](https://doc.rust-lang.org/cargo/reference/manifest.html) of `[package]` section.<br>
+
+Fields `name` and `version` are **required**, other fields are **optional**.<br>
 **Any hyphens** in the **package name** are **replaced** with **underscores**.<br>
 
+- `authors` specifies the **authors** of the package;
+- `autobenches = true|false` enables/disables **bench** *auto discovery*;
+- `autobins = true|false` enables/disables **binary** *auto discovery*;
+- `autoexamples = true|false` enables/disables **example** *auto discovery*;
+- `autolib = true|false` enables/disables **library** *auto discovery*;
+- `autotests = true|false` enables/disables **test** *auto discovery*;
+- `build` specifies path to the **package build script**;
+  - the **default** is `build.rs` in the **package root**;
+- `default-run` specifies a **default binary** picked by `cargo run` when there are more then one binary crate in package;
+  - **example**: when there are `src/main.rs`, `src/bin/a.rs` and `src/bin/b.rs` set `default-run = "a"`;
+- `description` specifies **description** of the package;
+- `documentation` specifies URL of the **package documentation**;
+- `edition` specifies the **Rust edition**;
+- `exclude` is used to **explicitly specify** which **files** are **excluded** from package to registry;
+- `homepage` specifies URL of the **package homepage**;
+- `include` is used to **explicitly specify** which **files** are **included** before publishing package to registry;
+- `keywords` specifies an array of strings that describe this package;
+  - **crates.io** allows a **maximum** of **5** keywords, each keyword must
+    - be **ASCII text**;
+    - have at most **20** characters, **start** with an **alphanumeric character**;
+    - contain **letters**, **numbers**, **_**, **-** or **+**;
+- `license` specifies the **name of the software license** that the package is released under and the **name** must be in a **SPDX license expressions**;
+  - **example**: `license = "MIT OR Apache-2.0"`
+  - **if** a package is using a **nonstandard license**, then the `license-file` field may be specified:
+    - **example**: `license-file = "LICENSE.txt"`
+- `links = %name%` informs Cargo that current package is linked with the **system library** (**C library**) `%name%`;
+  - `links` is only **informational** and it does **not** actually link to anything;
+  - name `%name%` of **C library** must be without any **prefix**/**suffix** (e.g. `links = "z"`, **not** `"libz.so"`);
 - `name` specifies a **package name**;
   - the **package name** is like **identifier** used to refer to the package;
   - **by default**, the **package name** is used as **name** for *auto discovered crate*: **binary** (`src/main.rs`) and/or **library** (`src/lib.rs`);
-- `version` specifies the **version** of the package;
-- `authors` specifies the **authors** of the package;
-- `edition` specifies the **Rust edition**;
-- `rust-version` specifies the **minimal supported Rust version**;
-- `description` specifies **description** of the package;
-- `documentation` specifies URL of the **package documentation**;
+- `publish` specifies array of **registries names** the package may be published to;
+  - **example**: `publish = ["some-registry-name"]`;
+  - to prevent a package from being published to a registry (like **crates.io**) by mistake you can disable publishing by `publish = false`;
 - `readme` specifies path to the package’s `README` file;
-- `homepage` specifies URL of the **package homepage**;
 - `repository` specifies URL of the **package source repository**;
+  - **example**: `repository = "https://github.com/rust-lang/cargo"`;
+- `resolver` sets the **dependency resolver** to use;
+- `rust-version` specifies the **minimal supported Rust version**;
+- `version` specifies the **version** of the package;
 - `workspace` specifies path to the **workspace for the package**;
-- `default-run` specifies a **default binary** picked by `cargo run`;
-- `build` specifies a file in the *package root* which is a **build script** for **building native code**;
-  - the default is `build.rs`, which loads the script from a file named `build.rs` in the **root of the package**;
-- `links = %name%` informs Cargo that current crate links with the given **C library** (aka **system library**, **native library**);
-  - `links` is only **informational** and it does **not** actually link to anything;
-  - name `%name%` of **C library** must be without any **prefix**/**suffix** (e.g. `links = "z"`, **not** `"libz.so"`);
+
+<br>
+
+## The `include`/`exclude` keys
+The `include`/`exclude` list is also used for change **tracking** in some situations. If the package has a **build script** that does not emit any `rerun-if-*` directives, then the `include`/`exclude` list is used for tracking if the **build script** should be **re-run** if any of those files change.<br>
+
 - the `exclude` and `include` fields can be used to **explicitly specify** which **files** are **included** when packaging a project to be published, run `cargo package --list` to verify which files will be included in the package;
   - **if** `include` is **not** specified, then the **following** files will be **excluded**:
     - **if** the package is **in** a *git repository*, any files that are ignored by the `.gitignore` rules of the repository and **global** git configuration will be **skipped**;
@@ -155,26 +155,71 @@ Fields `name` and `version` are **required**.<br>
   - the following files are **always included**:
     - the `Cargo.toml` file of the package itself is **always included**, it does not need to be listed in include;
     - **if** a `license-file` is **specified**, it is **always included**;
-- `resolver` sets the **dependency resolver** to use;
-- `repository` field should be a URL to the source repository for your package:
-  - example: `repository = "https://github.com/rust-lang/cargo"`;
 - `license` specifies the **name of the software license** that the package is released under and the **name** must be in a **SPDX license expressions**:
-  - example: `license = "MIT OR Apache-2.0"`
-  - **if** a package is using a **nonstandard license**, then the `license-file` field may be specified:
-    - example: `license-file = "LICENSE.txt"`
-- `autobins = true|false` enables/disables **binary** *auto discovery*;
-- `autoexamples = true|false` enables/disables **example** *auto discovery*;
-- `autotests = true|false` enables/disables **test** *auto discovery*;
-- `autobenches = true|false` enables/disables **bench** *auto discovery*;
+
 
 <br>
 
-### The `include`/`exclude` keys
-The `include`/`exclude` list is also used for change **tracking** in some situations. If the package has a **build script** that does not emit any `rerun-if-*` directives, then the `include`/`exclude` list is used for tracking if the **build script** should be **re-run** if any of those files change.<br>
+## The [lints] section
+Example:<br>
+```toml
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+enum_glob_use = "deny"
+```
 
 <br>
 
-# Targets settings
+Cargo only applies these to the **current package** and **not** to dependencies.<br>
+
+<br>
+
+# Targets
+Cargo packages consist of targets which correspond to source files which can be compiled into a crate.<br>
+Packages can have **library**, **binary**, **example**, **test** and **benchmark** targets. The list of targets can be configured in the` Cargo.toml` manifest or **inferred automatically** by the **directory layout** of the source files.<br>
+
+`[lib]`, `[[bin]]`, `[[example]]`, `[[test]]` and `[[bench]]` sections are also called **target tables** (aka **targets**).
+
+Every **target** describes **settings for some crate**.
+
+There are **2 types** of **crates**:
+- **binary crate**: defined in `[[bin]]`.
+- **library crate**: defined in `[lib]`. 
+
+The **double-bracket section** like `[[bin]]` is an **array-of-tables**. It means you can write **more than one** `[[bin]]` section to describe several crates in 1 package.<br>
+So,
+- every **package** contains **at least 1 crate**;
+- there can be **only one** library crate within a package; 
+- there can be **more than one** binary crate within a package.
+
+Compiler will produce **executable** for *binary crate* and **library** for *library crate*.
+
+So, **crate** is an **independent compilation unit** within package.
+
+<br>
+
+## Target selection cli optons
+`--lib`               Build only this package's library
+`--bins`              Build all binaries
+`--bin [<NAME>]`      Build only the specified binary
+`--examples`          Build all examples
+`--example [<NAME>]`  Build only the specified example
+`--tests`             Build all test targets
+`--test [<NAME>]`     Build only the specified test target
+`--benches`           Build all bench targets
+`--bench [<NAME>]`    Build only the specified bench target
+`--all-targets`       Build all targets
+
+<br>
+
+When **no** target selection options are given, cargo build will build **all** **binary** and **library** targets of the selected packages:
+`--lib --bins`.<br>
+
+<br>
+
+## Targets settings
 All targets (`[lib]`, `[[bin]]`, `[[example]]`, `[[test]]`, `[[bench]]`) have the same [configurable fields](https://doc.rust-lang.org/cargo/reference/cargo-targets.html#configuring-a-target):
 - `path` specifies path to **root module**, *relative* to the **package root**.
 - `name` specifies the **name of the crate**;
@@ -203,111 +248,139 @@ name = "bar"
 
 <br>
 
+# Profiles
+Cargo has 4 **built-in profiles**:
+- `profile.dev`;
+- `profile.release`;
+- `profile.test`;
+- `profile.bench`;
 
-# Specifying dependencies
-## Specifying dependencies from crates.io
+<br>
+
+The profile is *automatically chosen* if a profile is **not** specified on the cli by `--profile <PROFILE-NAME>` option.<br>
+In addition to the *built-in profiles*, additional **custom profiles** can be defined.<br>
+
+More details here: https://doc.rust-lang.org/cargo/reference/manifest.html.
+
+<br>
+
+The **default** settings for the **dev** profile are:
 ```toml
-[dependencies]
-time = "0.1.12"
-```
-
-The string `0.1.12` is a **version requirement**. Although it looks like a specific version of the time crate, it actually specifies a **range of versions** (aka **compatibility range**) and allows SemVer compatible updates.<br>
-
-Cargo uses **SemVer** (`major`.`minor`.`patch`) for specifying version numbers. **Versions** are considered **compatible** if their **left-most non-zero component**  is the **same**. This convention also applies to versions with **leading zeros**.<br>
-For example:
-- `1.0.3` and `1.1.0` are **compatible**, but `1.1.0` to `2.0.0` are **not**;
-- `0.1.0` and `0.1.2` are **compatible**, but `0.1.0` and `0.2.0` are **not**;
-
-<br>
-
-The **version requirement syntax**: 
-- **caret requirement** is the **default** version requirement strategy;
-  - example: `"^1.2.3"` or just `1.2.3`, appropriate **compatibility range** is `[1.2.3, 2.0.0)`;
-- **tilde requirement** specifies a minimal version with some ability to update;
-  - example: `"~1.2"`, its appropriate **compatibility range** is `[1.2.0, 1.3.0)`;
-- **wildcard requirement** allows for any version where the wildcard `*` is positioned;
-  - example: `"1.*"`, its appropriate **compatibility range** is `[1.0.0, 2.0.0)`;
-- **equal requirement** specifies exact version only;
-  - example: `"=1.2.3"`, its appropriate **compatibility range** is `[1.2.3, 1.2.3]`;
-- **compound requirement** allows multiple version requirements separated with a comma:
-  - example: `">=1.2, <1.5"`, its appropriate **compatibility range** is `[1.2.0, 1.5.0)`;
-
-<br>
-
-More examples:
-```
-1.2.3  =>  [1.2.3, 2.0.0)
-1.2    =>  [1.2.0, 2.0.0)
-1      =>  [1.0.0, 2.0.0)
-0.2.3  =>  [0.2.3, 0.3.0)
-0.2    =>  [0.2.0, 0.3.0)
-0.0.3  =>  [0.0.3, 0.0.4)
-0.0    =>  [0.0.0, 0.1.0)
-0      =>  [0.0.0, 1.0.0)
-
-~1.2.3  => [1.2.3, 1.3.0)
-~1.2    => [1.2.0, 1.3.0)
-~1      => [1.0.0, 2.0.0)
-
-*       => [0.0.0, +∞)
-1.*     => [1.0.0, 2.0.0)
-1.2.*   => [1.2.0, 1.3.0)
+[profile.dev]
+opt-level = 0
+debug = true
+split-debuginfo = '...'  # Platform-specific.
+strip = "none"
+debug-assertions = true
+overflow-checks = true
+lto = false
+panic = 'unwind'
+incremental = true
+codegen-units = 256
+rpath = false
 ```
 
 <br>
 
-## Specifying dependencies from other registries
+The **default** settings for the **release** profile are:
 ```toml
-[dependencies]
-some-crate = { version = "1.0", registry = "my-registry" }
+[profile.release]
+opt-level = 3
+debug = false
+split-debuginfo = '...'  # Platform-specific.
+strip = "none"
+debug-assertions = false
+overflow-checks = false
+lto = false
+panic = 'unwind'
+incremental = false
+codegen-units = 16
+rpath = false
 ```
 
 <br>
 
-## Specifying dependencies from git repositories
-```toml
-[dependencies]
-regex = { git = "https://github.com/rust-lang/regex.git" }
-```
-
-Cargo assumes that we intend to use the **latest commit** on the **default branch** to build our package if we only specify the repo URL.<br>
-You can combine the `git` key with the `rev`, `tag`, or `branch` keys to be more specific about which **commit to use**. Anything that is **not** a `branch` or a `tag` falls under `rev` key. This can be a **commit hash** like `rev = "4c59b707"`.<br>
-
-```toml
-# a commit with a particular tag
-regex = { git = "https://github.com/rust-lang/regex.git", tag = "1.10.3" }
-
-# a commit by its SHA1 hash
-regex = { git = "https://github.com/rust-lang/regex.git", rev = "0c0990399270277832fbb5b91a1fa118e6f63dba" }
-```
+The **test** profile inherits the settings from the **dev** profile.<br>
+The **bench** profile inherits the settings from the **release** profile.<br>
 
 <br>
 
-## Specifying path dependencies
-```toml
-[dependencies]
-foo = { path = "../foo_dir" }
-```
-
-This tells Cargo that we **depend on** a crate called `foo` which is found in the `../foo_dir` folder, **relative** to the `Cargo.toml` file it’s written in.<br>
+## The `[profile.*]` section settings
+- `opt-level` setting controls the `-C opt-level` flag which controls the **level of optimization**;
+  - the valid options are:
+    - `0`: **no** optimizations;
+    - `1`: basic optimizations;
+    - `2`: some optimizations;
+    - `3`: **all** optimizations;
+- `debug` setting controls the `-C debuginfo` flag which controls the amount of debug information included in the compiled binary.
+  - the valid options are:
+    - `0`, `false`, or `none`: **no** debug info at all, **default** for **release**;
+    - `1` or `limited`: debug info without type or variable-level information;
+    - `2`, `true`, or `full`: **full** debug info, **default** for **dev**;
+- `strip` option controls the `-C strip` flag, which directs rustc to strip either **symbols** or **debuginfo** from a binary;
+  - the default is `none`;
+  - the valid options are:
+    - `none`;
+    - `debuginfo`;
+    - `symbols`;
+- `overflow-checks` setting controls the `-C overflow-checks` flag which controls the behavior of **runtime integer overflow**; when `overflow-checks` are **enabled**, a panic will occur on overflow.
+  - the valid options are:
+    - `true`: enabled;
+    - `false`: disabled;
+- `lto` setting controls control LLVM’s link time optimizations;
+- `panic` setting controls the `-C panic` flag which controls which panic strategy to use;
+  - valid options are:
+    - `unwind`: **unwind** the stack upon panic;
+    - `abort`: **terminate** the process upon panic;
+- `rpath` setting controls the `-C rpath` flag which controls whether or not **rpath** is enabled.
+  - the valid options are:
+    - `y`, `yes`, `on`, `true`: **enable** rpath;
+    - `n`, `no`, `off` or `false`: **disable** rpath (the **default**);
 
 <br>
 
-## Inheriting a dependency from a workspace
-**Dependencies** can be **inherited** from a **workspace** by specifying the dependency in the workspace’s `[workspace.dependencies]` table. After that, add it to the `[dependencies]` table with `workspace = true`. Inherited dependencies also **can only** use `optional` and `features` keys, but they **cannot** use **any other** dependency key (such as `version` or `default-features`).
+# Workspaces
+A **workspace** is a collection of **packages**, called **workspace members**, that are **managed together**.<br>
+
+If the `[workspace]` section is added to a `Cargo.toml` that already defines a `[package]`, the package is the **root package** of the **workspace**.<br>
+Alternatively, a `Cargo.toml` file can be created with a `[workspace]` section but **without** a `[package]` section. This is called a **virtual manifest**.<br>
+
+The **workspace root** is the directory where the workspace’s C`argo.toml` is located.<br>
 
 <br>
 
-# Dependency resolution
-One of Cargo’s primary tasks is to **determine the versions of dependencies to use** based on the **version requirements** specified in each package. This process is called **dependency resolution** and is performed by the **resolver**. The **result** of the *resolution* is stored in the `Cargo.lock`.<br>
+## The `[workspace]` section settings
+The root `Cargo.toml` of a workspace supports the following **sections**:
+- `[workspace]` defines a workspace;
+- `[patch]` override dependencies;
+- `[profile]` compiler settings and optimizations;
+
+[**Workspaces settings**](https://doc.rust-lang.org/cargo/reference/workspaces.html).<br>
+
+- `resolver` sets the dependency resolver to use;
+- `members` specifies array of paths to packages to **include** in the **workspace**;
+  - paths are **relative** to the **workspace root**;
+  - the **members list** also supports **globs** like `*` and `?` to match multiple paths;
+- `exclude` packages to exclude from the **members list**;
+- `default-members` specifies array of paths of members to operate on when in the **workspace root** and the *package selection flags* are **not** used;
+- `package` package settings that can be inherited by members of a workspace;
+- `dependencies` dependencies to be inherited by members of a workspace;
+- `lints` lint configuration to be inherited by members of a workspace;
 
 <br>
 
-## Dependency updates
-1. `cargo build` **updates** versions in `Cargo.lock` if **new** *versions* of crates are considered **compatible** with **old**.
-2. `cargo build` will **avoid** automatically using **pre-releases** unless explicitly asked. **SemVer** has the concept of **pre-releases** with a dash in the version, such as `1.0.0-alpha`, or `1.0.0-beta`.
-3. If **version requirements** in `Cargo.toml` have been **modified**, then the **resolver** will select a **new version** for that dependency that matches the **new requirement**.
+## Package selection
+In a **workspace** `cargo build` can use the **package selection flags**:
+- `-p [<SPEC>]`, `--package [<SPEC>]`  packages to build;
+- `--workspace` build **all** packages in the workspace;
+- `--exclude <SPEC>` **exclude** packages from the build, can be used multiple times;
 
 <br>
 
-`cargo update` **without** any options updates **all packages** in the `Cargo.lock`. The `-p` **flag** can be used update for a **specific package**.
+The `SPEC` is **package specifier** or just **spec**. The `cargo help pkgid` prints additional info about **spec**.<br>
+A **fully qualified package specification** is a `url#name@version`, e.g. `https://github.com/rust-lang/cargo#crates-io@0.21.0`.<br>
+But **partial specs** are also allowed: `name` of package or `name@version`.<br>
+
+If neither of those flags are specified, Cargo will use the **package** in the **current working directory**.<br>
+However, if the *current directory* is a **workspace root**, the `default-members` will be used.<br>
+When a **root package** is present, you can only operate on it using `--package` and `--workspace` flags.<br>

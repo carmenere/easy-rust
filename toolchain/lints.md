@@ -16,6 +16,7 @@
     - [Via attribute in the source code](#via-attribute-in-the-source-code)
   - [Capping lints](#capping-lints)
 - [Some useful warnings](#some-useful-warnings)
+- [Clippy lints](#clippy-lints)
 
 <br>
 
@@ -183,9 +184,6 @@ Examples:
 <br>
 
 
-
-<br>
-
 # Some useful warnings
 Some usefull warnings:
 - `unused_variables`
@@ -195,3 +193,10 @@ Some usefull warnings:
 - `dead_code`
 - `unused_mut`
 - `non_camel_case_types`
+
+<br>
+
+# Clippy lints
+[**Clippy lints index**](https://rust-lang.github.io/rust-clippy/master/index.html).<br>
+
+To refer to clippy lint use prefix `clippy::`. Example: `#allow(clippy::enum_glob_use)`.<br>

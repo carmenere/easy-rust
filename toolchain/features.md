@@ -13,6 +13,8 @@
       - [Ways to disable **default feature**](#ways-to-disable-default-feature)
   - [Optional dependencies](#optional-dependencies)
       - [Example](#example-4)
+- [`rustc` `--cfg` flag](#rustc---cfg-flag)
+- [Feature unification](#feature-unification)
 - [More examples](#more-examples)
   - [1. Reference example](#1-reference-example)
   - [2. Enabling certain features of particular package inside ``[features]`` section and assigning aliases for them](#2-enabling-certain-features-of-particular-package-inside-features-section-and-assigning-aliases-for-them)
@@ -150,6 +152,39 @@ avif = ["dep:ravif", "dep:rgb"]
 
 In this example, the ``avif`` feature will enable the two listed dependencies.<br>
 This also avoids creating the implicit ``ravif`` and ``rgb`` features, since we don't want users to enable those individually as they are internal details to our crate.
+
+<br>
+
+# `rustc` `--cfg` flag
+Cargo sets **features** in the package using the rustc `--cfg` flag. If feature is set it is added to **configuration options** list:
+```bash
+rustc --cfg 'feature="foo"' --cfg 'feature="bar"' --print cfg | grep 'foo\|bar'
+feature="bar"
+feature="foo"
+```
+
+<br>
+
+# Feature unification
+[**Feature unification**](https://doc.rust-lang.org/cargo/reference/features.html#feature-unification).<br>
+
+Features are **unique** to the package that defines them. **Enabling** a feature on a package **does not** enable a feature of the same name on **other** packages.
+
+When a **dependency** is used by **multiple** packages, Cargo will use the **union** of all features enabled on that dependency when building it. This helps ensure that only a single copy of the dependency is used.<br>
+
+If some package depends on a package `foo` which enables the `fileapi` and `handleapi` features of `winapi`, and another dependency `bar` which enables the `std` and `winnt` features of `winapi`, then `winapi` will be built with all four of those features enabled.<br>
+
+A consequence of this is that **features should be additive**. That is, enabling a feature should **not** disable functionality, and it should usually be **safe** to enable **any combination** of features.<br>
+
+There are rare cases where features may be **mutually incompatible** with one another. This should be **avoided** if at all possible.<br>
+
+Consider adding a compile error to **detect** this scenario. For example:
+```rust
+#[cfg(all(feature = "foo", feature = "bar"))]
+compile_error!("feature \"foo\" and feature \"bar\" cannot be enabled at the same time");
+```
+
+<br>
 
 # More examples
 ## 1. Reference example

@@ -4,13 +4,14 @@
 - [Index](#index)
   - [The layout of Index](#the-layout-of-index)
   - [`config.json`](#configjson)
+  - [Example of file in index](#example-of-file-in-index)
 - [Publish and yank](#publish-and-yank)
   - [cargo yank](#cargo-yank)
   - [cargo publish](#cargo-publish)
+- [Source replacement](#source-replacement)
 - [Alternate registries](#alternate-registries)
     - [Example](#example)
-- [Source replacement](#source-replacement)
-- [Example](#example-1)
+- [Examples](#examples)
   - [`.cargo/config.toml`](#cargoconfigtoml)
   - [Source replacement: `source.panamax`](#source-replacement-sourcepanamax)
     - [Download index](#download-index)
@@ -20,13 +21,10 @@
     - [Download index](#download-index-1)
     - [Print out `config.json`](#print-out-configjson-1)
   - [Example of full URL to download `some_crate` from `registries.mirror01`](#example-of-full-url-to-download-some_crate-from-registriesmirror01)
-- [Merge rules for `.cargo/config.toml` files](#merge-rules-for-cargoconfigtoml-files)
 
 <br>
 
 # Registry
-The **default registry** is `crates.io`.<br>
-
 `cargo` fetches **packages** from a **registry**.<br>
 
 Cargo supports two protocols for remote registry: `git` and `sparse`:
@@ -37,16 +35,15 @@ Cargo supports two protocols for remote registry: `git` and `sparse`:
 
 A **registry** consists of **3 components**:
 - (*required*) **index** (aka **registry index**);
-- (*required*) **download endpoint** at the location defined in `config.json` which is used used by `cargo` to donwload `.crate` files created by `cargo package`:
-  - `GET $dl/$crate_name/$version/download` must return `.crate` file for appropriate crate;
-  - the **sha256sum** of the `.crate` file needs to match the the checksum in the index file for that version of the crate.
-- (*optional*) **web API** at the location defined in `config.json` to support actions listed below:
+- (*required*) **download endpoint** (`$dl`), i.e. it is the URL for downloading crates listed in the index:
+  - `GET $dl/{crate}/{version}/download`
+- (*optional*) **web API** (`$api`) to support actions:
   - **publish**:
     - `PUT $api/api/v1/crates/new`
   - **yank**:
-    - `DELETE $api/api/v1/crates/$crate_name/$version/yank`
+    - `DELETE $api/api/v1/crates/{crate}/{version}/yank`
   - **unyank**:
-    - `PUT $api/api/v1/crates/$crate_name/$version/unyank`
+    - `PUT $api/api/v1/crates/{crate}/{version}/unyank`
   - **search**:
     - `GET $api/api/v1/crates`
   - **login** (solely for the `cargo login`);
@@ -54,9 +51,10 @@ A **registry** consists of **3 components**:
 <br>
 
 # Index
+The **default registry** is `crates.io` and its **index** is `https://github.com/rust-lang/crates.io-index`.<br>
 Each **cargo registry** provides an **index**. **Index** is a **git repository** following a **particular layout**.<br>
-The **default index** is `https://github.com/rust-lang/crates.io-index`.<br>
-The purpose of the **index** is to provide an efficient method to **resolve the dependency graph** for a package, i.e. `cargo` uses **index** to figure out which packages it must to download to build crate. After resolution has been performed, `cargo`uses **download endpoint** to download packeges: `GET $dl/$crate_name/$version/download` returns `.crate` file for appropriate crate.
+The purpose of the **index** is to provide an efficient method to **resolve the dependency graph** for a package, i.e. `cargo` uses **index** to figure out which packages it must to download to build crate. After resolution has been performed, `cargo` uses **download endpoint** to download packeges.<br>
+
 **Index** contains **exactly one** file for each crate in the registry.<br>
 
 <br>
@@ -85,16 +83,16 @@ The purpose of the **index** is to provide an efficient method to **resolve the 
 └── config.json
 ```
 
-There are three **special directories**: `1`, `2` and `3` for crates with names 1, 2, and 3 characters in length.<br>
-The directories `1` and `2` simply have the crate files underneath them, while the directory `3` is sharded by the first letter of the crate name.<br>
+There are three **special directories**: `1`, `2` and `3` for crates which names are consisted of 1, 2, and 3 characters.<br>
+The directories `1` and `2` simply have the crate files underneath them, while the directory `3` is sharded by the **first** letter of the crate name.<br>
 
 <br>
 
 ## `config.json`
 **Index** must contain `config.json` file in its **root**.<br>
-`config.json` contains information used by `cargo` for accessing the **registry**.<br>
+the `config.json` contains information used by `cargo` for accessing the **registry**.<br>
 
-Example of `config.json`:<br>
+Example of `config.json`:
 ```json
 {
     "dl": "https://crates.io/api/v1/crates",
@@ -102,11 +100,14 @@ Example of `config.json`:<br>
     "auth-required": false
 }
 ```
+
 where:
-- `dl` is the **download endpoint**, i.e. it is the URL for downloading crates listed in the index. 
-- `api` is the URL of web API for the registry;
-- `auth-required` indicates whether this is a **private registry** that requires all operations to be authenticated (crate downloads, API requests and so on).
-  - If `auth-required` is set to `true`, then `cargo` must pass **auth token** in the `Authorization` header in all **download** requests and all requests to the **web API**.
+- `dl` defines the **download endpoint**, i.e. it is the URL for downloading crates listed in the index;
+- `api` is the URL of **web API** for the registry;
+- `auth-required` indicates whether this is a **private registry** that requires all operations to be authenticated (crate downloads, API requests and so on);
+  - if `auth-required` is set to `true`, then `cargo` must pass **auth token** in the `Authorization` header in all **download** requests and all requests to the **web API**;
+
+<br>
 
 The value of `dl` may have the following **markers** which will be replaced with their corresponding value:
   - `{crate}`: the **name** of crate;
@@ -115,10 +116,13 @@ The value of `dl` may have the following **markers** which will be replaced with
   - `{lowerprefix}`: lowercase variant of `{prefix}`;
   - `{sha256-checksum}`: the crate’s **sha256 checksum**;
 
-If **none** of the markers are present, then the value `/{crate}/{version}/download` is appended to the end of `dl` **by default**.<br>
+<br>
+
+If **none** of the markers are present, then the value `/{crate}/{version}/download` is appended to the end of `dl` **by default**, e.g. the `GET $dl/{crate}/{version}/download` must return `.crate` file for appropriate crate. The **sha256sum** of the `.crate` file needs to match the the checksum in the index file for that version of the crate.<br>
 
 <br>
 
+## Example of file in index
 Example of **file** in **index**:
 `https://github.com/rust-lang/crates.io-index/blob/master/ac/ti/actix-multipart`<br>
 
@@ -178,6 +182,24 @@ The `cargo publish` command performs the following steps:
 
 <br>
 
+# Source replacement
+A **source** (aka **registry source**) is one that is the same as `crates.io` itself. A **source** is a provider that contains crates. The `crates.io` is a **default** *source* and it is available under the name **crates-io**, e.g. `[source.crates-io]`.<br>
+The `[source]` table in `.cargo/config.toml` is used for specifying **registry sources**. It consists of a sub-tables `[source.<name>]` for each **named source**. Every such **named source** must define **one kind** of *source* (**directory**, **registry**, **local registry**, or **git**).<br>
+
+<br>
+
+There are **several kinds** of *sources* and every kind has **special key** to be set:
+- `source.<name>.directory` defines **path** to a **directory source**;
+- `source.<name>.registry` defines **URL** to a **registry source**, in other word it sets URL of **index** of **registry**, e.g. `https://example.com/path/to/index`;
+- `source.<name>.local-registry` defines **path** to a **local registry** source;
+- `source.<name>.git` defines **URL** of a **git repository** source;
+
+<br>
+
+Configuration of **source replacement** is done through `source.<name>.replace-with = <some-source>|<some-registry>` parameter. **If set**, it **replaces** *current source* `<name>` with the given **named source** (`<some-source>`) or **named registry** (`<some-registry>`).
+
+<br>
+
 # Alternate registries
 Configuration of **alternative registries** is done through `.cargo/config`.<br>
 The `[registries]` table is used for specifying **alternative registries**. It consists of a sub-tables `[registries.<name>]` for each **named registry**.<br>
@@ -204,25 +226,7 @@ The `[registry]` table controls the **default registry** used when one is not sp
 
 <br>
 
-# Source replacement
-A **source** (aka **registry source**) is one that is the same as `crates.io` itself. A **source** is a provider that contains crates. The `crates.io` is a **default** *source* and it is available under the name **crates-io**, e.g. `[source.crates-io]`.<br>
-The `[source]` table in `.cargo/config.toml` is used for specifying **registry sources**. It consists of a sub-tables `[source.<name>]` for each **named source**. Every such **named source** must define **one kind** of *source* (**directory**, **registry**, **local registry**, or **git**).<br>
-
-<br>
-
-There are **several kinds** of *sources* and every kind has **special key** to be set:
-- `source.<name>.directory` defines **path** to a **directory source**;
-- `source.<name>.registry` defines **URL** to a **registry source**, in other word it sets URL of **index** of **registry**, e.g. `https://example.com/path/to/index`;
-- `source.<name>.local-registry` defines **path** to a **local registry** source;
-- `source.<name>.git` defines **URL** of a **git repository** source;
-
-<br>
-
-Configuration of **source replacement** is done through `source.<name>.replace-with = <some-source>|<some-registry>` parameter. **If set**, it **replaces** *current source* `<name>` with the given **named source** (`<some-source>`) or **named registry** (`<some-registry>`).
-
-<br>
-
-# Example
+# Examples
 ## `.cargo/config.toml`
 ```toml
 [source.panamax]
@@ -299,22 +303,3 @@ $ cat index/config.json | jq '.'
 ```bash
 curl -o some_crate-1.2.0.crate -v -X GET http://mirror01/repository/crates/api/v1/crates/some_crate/1.2.0/download
 ```
-
-<br>
-
-# Merge rules for `.cargo/config.toml` files
-If, for example, `cargo` was invoked in `/projects/foo/bar/baz`, then it will read and merge `.cargo/config.toml` files in following order:<br>
-```sh
-/projects/foo/bar/baz/.cargo/config.toml
-/projects/foo/bar/.cargo/config.toml
-/projects/foo/.cargo/config.toml
-/projects/.cargo/config.toml
-/.cargo/config.toml
-$HOME/.cargo/config.toml
-```
-
-<br>
-
-If a **key** is specified in **multiple** `config.toml` files, the values will get **merged** together.<br>
-- `numbers`, `strings`, and `booleans` will use the value in the **deeper** config directory taking **precedence over ancestor directories**, where the **home directory** is the **lowest priority**;
-- `arrays` will be **joined together**;
