@@ -1,33 +1,52 @@
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [Dynamic linker](#dynamic-linker)
+  - [rpath](#rpath)
+  - [LD\_LIBRARY\_PATH](#ld_library_path)
+  - [/etc/ld.so.cache](#etcldsocache)
+- [`ldd`](#ldd)
+
+<br>
+
 # Dynamic linker
-`ld.so`, `ld-linux.so` are dynamic linkers.<br>
-The programs `ld.so` and `ld-linux.so*` find and load the **shared objects** (**shared libraries**) needed by a program, prepare the program to run, and then run it.<br>
+**Dynamic linker** finds and load the **shared objects** (**shared libraries**) needed by a binary, prepare the program to run, and then run it.<br>
 
 [**man**](https://man7.org/linux/man-pages/man8/ld.so.8.html).<br>
 
-The dynamic linker of the GNU C Library searches for shared libraries in the following locations in order:
-- the (colon-separated) paths in the `DT_RPATH` attribute of `.dynamic` section of the binary if present and the `DT_RUNPATH` attribute does **not** exist;
+The *dynamic linker* of the GNU C Library searches for shared libraries in the following locations in order:
+- the colon-separated paths in the `DT_RPATH` attribute of `.dynamic` section of the binary if present and the `DT_RUNPATH` attribute does **not** exist;
 - in directories listed in `LD_LIBRARY_PATH`;
-- the (colon-separated) paths in the `DT_RUNPATH` attribute of `.dynamic` section of the binary if present;
+- the colon-separated paths in the `DT_RUNPATH` attribute of `.dynamic` section of the binary if present;
 - in `/etc/ld.so.cache`;
-- in **default** directories `/lib` и `/usr/lib`;
+- in **default** directories
+  - `/lib` and `/usr/lib` for **32–bit** application;
+  - `/lib/64` and `/usr/lib/64` for **64–bit** applications;
 
-At run time, if the dynamic linker finds a `DT_RUNPATH` attribute, it **ignores** the value of the `DT_RPATH` attribute.
+At **run time**, if the *dynamic linker* finds a `DT_RUNPATH` attribute, it **ignores** the value of the `DT_RPATH` attribute.
 
 <br>
 
 ## rpath
-The **rpath** stands for the **run-time search path** hard-coded in an executable file or library.<br>
+The **rpath** (aka **run paths**) stands for **run-time search paths** hard-coded in an **executable** file or **library**.<br>
 
-It is possible to set a **run path** for executable file or library.<br>
+It is possible to add additional search path in object file directly. To record a runpath in an executable or shared object:
+`gcc hello.o -Wl,-rpath=. -o hello`<br>
+
+It is possible to set a **run path** for **executable** file or **library**.<br>
 The **run paths** are accessible through `DT_RPATH` and `DT_RUNPATH` attributes in the `.dynamic` section.<br>
 The difference between the two attributes is **when** they are used during the search for dependencies.<br>
+
 The `DT_RPATH` value is used **first**, before any other path. This is problematic since it does not allow the user to overwrite the value. Therefore `DT_RPATH` is **deprecated**.
 The `DT_RUNPATH` attribute must be used instead.<br>
 
 <br>
 
+Specialized objects can be built with the `-z nodefaultlib` option to suppress any search in **default** directories. Use of this option implies that all the dependencies of an object can be located using its runpaths. Without this option, no matter how you augment the runtime linker's search path, the last search paths used are always the default locations.
+
+<br>
+
 ## LD_LIBRARY_PATH
-`LD_LIBRARY_PATH` is a list of directories in which to search for ELF libraries at execution time.<br>
+`LD_LIBRARY_PATH` is a list of directories in which to search for **shared libraries** at **execution** time.<br>
 
 Example:
 ```bash
@@ -78,11 +97,11 @@ cat /etc/ld.so.conf.d/x86_64-linux-gnu.conf
 
 <br>
 
-# Shared libraries
+# `ldd`
+`ldd` and `otool` prints all **shared libraries** required by binary.<br>
+
 In MacOS: `otool -L <file>`.<br>
 In Linux: `ldd <file>`.<br>
-
-`ldd` prints all **shared libraries** required by each program or shared object specified on the command line.<br>
 
 <br>
 
@@ -105,3 +124,6 @@ ldd /bin/cat
 
 The **first enry** `linux-vdso.so.1` **doesn't** have corresponding file, it is the **vDSO** (virtual dynamic shared object).<br>
 The **last enry** contain only **abs path** and **address**.<br>
+
+<br>
+
