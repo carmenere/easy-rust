@@ -1,14 +1,39 @@
 # Table of contents
 - [Table of contents](#table-of-contents)
+- [ABI](#abi)
+  - [Calling convention](#calling-convention)
 - [Memory layout of process](#memory-layout-of-process)
 - [ELF](#elf)
   - [ELF Header](#elf-header)
   - [ELF sections](#elf-sections)
-    - [Initialization and termination Routines](#initialization-and-termination-routines)
+  - [Symbols](#symbols)
     - [Relocation entries](#relocation-entries)
   - [ELF segments](#elf-segments)
 - [`readelf` command](#readelf-command)
 - [`strip` command](#strip-command)
+
+<br>
+
+# ABI
+The **System V ABI** (**Application Binary Interface**) is a set of specifications that defines
+- calling conventions;
+- object file formats;
+- dynamic linking semantics;
+- memory layout
+- and much more;
+
+<br>
+
+## Calling convention
+The **calling convention** specifies:
+- how **arguments** are passing to function;
+- how function **returns** its result;
+- how **registers** are used;
+- how **stack** is set up;
+
+<br>
+
+The **C calling convention** (aka **C declaration**, **cdecl**) is the most common one.<br>
 
 <br>
 
@@ -70,6 +95,7 @@ Kernel segment is **kernel space** (1 GB). All other segments are **user space**
 
 # ELF
 The **ELF** (Executable and Linkable Format) is a common standard file format for **object files**: **executable files**, **libraries**, **core dumps**.<br>
+The **ELF** is specified in the **System V ABI**.<br>
 
 The **ELF** files are composed of 3 major components:
 - **ELF header**;
@@ -106,7 +132,7 @@ A **section header table** contains information about all sections in object fil
 
 |Section|Meaning|
 |:------|:------|
-|`.interp`|This section contains the **full path** to the needed **dynamic loader**.|
+|`.interp`|This section contains the **full path** to the appropriate **dynamic linker**, in other words every **dynamically linked** binary is linked against the **dynamic linker**.|
 |`.text`|This section holds the executable instructions for CPU.|
 |`.rodata`|This section holds **read-only data**.|
 |`.data`|This section holds **initialized** data.|
@@ -123,13 +149,12 @@ A **section header table** contains information about all sections in object fil
 
 <br>
 
-### Initialization and termination Routines
-Dynamic objects can supply code that provides for runtime **initialization** and **termination** processing.<br>
-The **initialization code** is executed **once** each time the dynamic object is loaded in a process.<br>
-The **termination code** is executed **once** each time the dynamic object is unloaded from a process or at process termination.<br>
-
-If an *binary or library* contains both `.init` and `.init_array` sections, the `.init` section is processed **before** the `.init_array` section.<br>
-If an *binary or library* contains both `.fini` and `.fini_array` sections, the `.fini_array` section is processed **before** the `.fini` section.<br>
+## Symbols
+A **symbol table** of a program is a list containing **all** the program's **symbols** (function names, variables names, etc).<br>
+The **debug symbols** is a special kind of symbols that attaches additional information needed for debugging.<br>
+**DWARF** is a widely used, standardized debugging data format. **Version 5** of the **DWARF** format was published in February **2017**.<br>
+**DWARF** uses a data structure called a **Debugging Information Entry** (**DIE**) to represent each variable, type, procedure, etc.<br>
+In ELF file **DWARF** has been divided into different sections like `.debug_info`, `.debug_frame`, etc.
 
 <br>
 
@@ -186,99 +211,165 @@ A common tool to quickly parse ELF files is the `readelf` utility from **GNU bin
 
 **ELF Header**:
 ```bash
-Magic:   7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00
-Class:                             ELF64
-Data:                              2's complement, little endian
-Version:                           1 (current)
-OS/ABI:                            UNIX - System V
-ABI Version:                       0
-Type:                              DYN (Position-Independent Executable file)
-Machine:                           Advanced Micro Devices X86-64
-Version:                           0x1
-Entry point address:               0x1080
-Start of program headers:          64 (bytes into file)
-Start of section headers:          15328 (bytes into file)
-Flags:                             0x0
-Size of this header:               64 (bytes)
-Size of program headers:           56 (bytes)
-Number of program headers:         13
-Size of section headers:           64 (bytes)
-Number of section headers:         37
-Section header string table index: 36
+readelf --file-header hello
+
+ELF Header:
+  Magic:   7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00
+  Class:                             ELF64
+  Data:                              2's complement, little endian
+  Version:                           1 (current)
+  OS/ABI:                            UNIX - System V
+  ABI Version:                       0
+  Type:                              DYN (Position-Independent Executable file)
+  Machine:                           Advanced Micro Devices X86-64
+  Version:                           0x1
+  Entry point address:               0x1080
+  Start of program headers:          64 (bytes into file)
+  Start of section headers:          14208 (bytes into file)
+  Flags:                             0x0
+  Size of this header:               64 (bytes)
+  Size of program headers:           56 (bytes)
+  Number of program headers:         13
+  Size of section headers:           64 (bytes)
+  Number of section headers:         31
+  Section header string table index: 30
 ```
 
 <br>
 
 **Sections**:
 ```bash
-.interp
-.note.ABI-tag
-.gnu.hash
-.dynsym
-.dynstr
-.gnu.version
-.rela.dyn
-.rela.plt
-.init
-.plt
-.plt.got
-.plt.sec
-.text
-.fini
-.rodata
-.eh_frame_hdr
-.eh_frame
-.init_array
-.fini_array
-.dynamic
-.got
-.data
-.bss
-.comment
-.debug_aranges
-.debug_info
-.debug_abbrev
-.debug_line
-.debug_str
-.debug_line_str
-.symtab
-.strtab
-.shstrtab
+readelf --sections hello
+
+There are 31 section headers, starting at offset 0x3780:
+Section Headers:
+  [Nr] Name              Type             Address           Offset
+       Size              EntSize          Flags  Link  Info  Align
+  [ 0]                   NULL             0000000000000000  00000000
+       0000000000000000  0000000000000000           0     0     0
+  [ 1] .interp           PROGBITS         0000000000000318  00000318
+       000000000000001c  0000000000000000   A       0     0     1
+  [ 2] .note.gnu.pr[...] NOTE             0000000000000338  00000338
+       0000000000000030  0000000000000000   A       0     0     8
+  [ 3] .note.gnu.bu[...] NOTE             0000000000000368  00000368
+       0000000000000024  0000000000000000   A       0     0     4
+  [ 4] .note.ABI-tag     NOTE             000000000000038c  0000038c
+       0000000000000020  0000000000000000   A       0     0     4
+  [ 5] .gnu.hash         GNU_HASH         00000000000003b0  000003b0
+       0000000000000024  0000000000000000   A       6     0     8
+  [ 6] .dynsym           DYNSYM           00000000000003d8  000003d8
+       00000000000000c0  0000000000000018   A       7     1     8
+  [ 7] .dynstr           STRTAB           0000000000000498  00000498
+       000000000000009d  0000000000000000   A       0     0     1
+  [ 8] .gnu.version      VERSYM           0000000000000536  00000536
+       0000000000000010  0000000000000002   A       6     0     2
+  [ 9] .gnu.version_r    VERNEED          0000000000000548  00000548
+       0000000000000030  0000000000000000   A       7     1     8
+  [10] .rela.dyn         RELA             0000000000000578  00000578
+       00000000000000f0  0000000000000018   A       6     0     8
+  [11] .rela.plt         RELA             0000000000000668  00000668
+       0000000000000030  0000000000000018  AI       6    24     8
+  [12] .init             PROGBITS         0000000000001000  00001000
+       000000000000001b  0000000000000000  AX       0     0     4
+  [13] .plt              PROGBITS         0000000000001020  00001020
+       0000000000000030  0000000000000010  AX       0     0     16
+  [14] .plt.got          PROGBITS         0000000000001050  00001050
+       0000000000000010  0000000000000010  AX       0     0     16
+  [15] .plt.sec          PROGBITS         0000000000001060  00001060
+       0000000000000020  0000000000000010  AX       0     0     16
+  [16] .text             PROGBITS         0000000000001080  00001080
+       00000000000001af  0000000000000000  AX       0     0     16
+  [17] .fini             PROGBITS         0000000000001230  00001230
+       000000000000000d  0000000000000000  AX       0     0     4
+  [18] .rodata           PROGBITS         0000000000002000  00002000
+       000000000000002e  0000000000000000   A       0     0     4
+  [19] .eh_frame_hdr     PROGBITS         0000000000002030  00002030
+       0000000000000044  0000000000000000   A       0     0     4
+  [20] .eh_frame         PROGBITS         0000000000002078  00002078
+       00000000000000ec  0000000000000000   A       0     0     8
+  [21] .init_array       INIT_ARRAY       0000000000003d90  00002d90
+       0000000000000010  0000000000000008  WA       0     0     8
+  [22] .fini_array       FINI_ARRAY       0000000000003da0  00002da0
+       0000000000000010  0000000000000008  WA       0     0     8
+  [23] .dynamic          DYNAMIC          0000000000003db0  00002db0
+       0000000000000200  0000000000000010  WA       7     0     8
+  [24] .got              PROGBITS         0000000000003fb0  00002fb0
+       0000000000000050  0000000000000008  WA       0     0     8
+  [25] .data             PROGBITS         0000000000004000  00003000
+       000000000000004c  0000000000000000  WA       0     0     32
+  [26] .bss              NOBITS           0000000000004060  0000304c
+       0000000000000048  0000000000000000  WA       0     0     32
+  [27] .comment          PROGBITS         0000000000000000  0000304c
+       000000000000002b  0000000000000001  MS       0     0     1
+  [28] .symtab           SYMTAB           0000000000000000  00003078
+       00000000000003f0  0000000000000018          29    19     8
+  [29] .strtab           STRTAB           0000000000000000  00003468
+       00000000000001fc  0000000000000000           0     0     1
+  [30] .shstrtab         STRTAB           0000000000000000  00003664
+       000000000000011a  0000000000000000           0     0     1
+Key to Flags:
+  W (write), A (alloc), X (execute), M (merge), S (strings), I (info),
+  L (link order), O (extra OS processing required), G (group), T (TLS),
+  C (compressed), x (unknown), o (OS specific), E (exclude),
+  D (mbind), l (large), p (processor specific)
 ```
 
 <br>
 
-**Program Headers**:
+**Program Headers** and Section to Segment mapping:
 ```bash
-Type           Offset             VirtAddr           PhysAddr
-               FileSiz            MemSiz              Flags  Align
-PHDR           0x0000000000000040 0x0000000000000040 0x0000000000000040
-               0x00000000000002d8 0x00000000000002d8  r      0x8
-INTERP         0x0000000000000318 0x0000000000000318 0x0r00000000000318
-               0x000000000000001c 0x000000000000001c  R      0x1
-     [Requesting program interpreter: /lib64/ld-linux-x86-64.so.2]
-LOAD           0x0000000000000000 0x0000000000000000 0x0000000000000000
-               0x0000000000000660 0x0000000000000660  R      0x1000
-LOAD           0x0000000000001000 0x0000000000001000 0x0000000000001000
-               0x000000000000023d 0x000000000000023d  R E    0x1000
-LOAD           0x0000000000002000 0x0000000000002000 0x0000000000002000
-               0x0000000000000164 0x0000000000000164  R      0x1000
-LOAD           0x0000000000002db0 0x0000000000003db0 0x0000000000003db0
-               0x000000000000029c 0x00000000000002f8  RW     0x1000
-DYNAMIC        0x0000000000002dc0 0x0000000000003dc0 0x0000000000003dc0
-               0x00000000000001f0 0x00000000000001f0  RW     0x8
-NOTE           0x0000000000000338 0x0000000000000338 0x0000000000000338
-               0x0000000000000030 0x0000000000000030  R      0x8
-NOTE           0x0000000000000368 0x0000000000000368 0x0000000000000368
-               0x0000000000000044 0x0000000000000044  R      0x4
-GNU_PROPERTY   0x0000000000000338 0x0000000000000338 0x0000000000000338
-               0x0000000000000030 0x0000000000000030  R      0x8
-GNU_EH_FRAME   0x0000000000002030 0x0000000000002030 0x0000000000002030
-               0x0000000000000044 0x0000000000000044  R      0x4
-GNU_STACK      0x0000000000000000 0x0000000000000000 0x0000000000000000
-               0x0000000000000000 0x0000000000000000  RW     0x10
-GNU_RELRO      0x0000000000002db0 0x0000000000003db0 0x0000000000003db0
-               0x0000000000000250 0x0000000000000250  R      0x1
+readelf --segments hello
+
+Elf file type is DYN (Position-Independent Executable file)
+Entry point 0x1080
+There are 13 program headers, starting at offset 64
+
+Program Headers:
+  Type           Offset             VirtAddr           PhysAddr
+                 FileSiz            MemSiz              Flags  Align
+  PHDR           0x0000000000000040 0x0000000000000040 0x0000000000000040
+                 0x00000000000002d8 0x00000000000002d8  R      0x8
+  INTERP         0x0000000000000318 0x0000000000000318 0x0000000000000318
+                 0x000000000000001c 0x000000000000001c  R      0x1
+      [Requesting program interpreter: /lib64/ld-linux-x86-64.so.2]
+  LOAD           0x0000000000000000 0x0000000000000000 0x0000000000000000
+                 0x0000000000000698 0x0000000000000698  R      0x1000
+  LOAD           0x0000000000001000 0x0000000000001000 0x0000000000001000
+                 0x000000000000023d 0x000000000000023d  R E    0x1000
+  LOAD           0x0000000000002000 0x0000000000002000 0x0000000000002000
+                 0x0000000000000164 0x0000000000000164  R      0x1000
+  LOAD           0x0000000000002d90 0x0000000000003d90 0x0000000000003d90
+                 0x00000000000002bc 0x0000000000000318  RW     0x1000
+  DYNAMIC        0x0000000000002db0 0x0000000000003db0 0x0000000000003db0
+                 0x0000000000000200 0x0000000000000200  RW     0x8
+  NOTE           0x0000000000000338 0x0000000000000338 0x0000000000000338
+                 0x0000000000000030 0x0000000000000030  R      0x8
+  NOTE           0x0000000000000368 0x0000000000000368 0x0000000000000368
+                 0x0000000000000044 0x0000000000000044  R      0x4
+  GNU_PROPERTY   0x0000000000000338 0x0000000000000338 0x0000000000000338
+                 0x0000000000000030 0x0000000000000030  R      0x8
+  GNU_EH_FRAME   0x0000000000002030 0x0000000000002030 0x0000000000002030
+                 0x0000000000000044 0x0000000000000044  R      0x4
+  GNU_STACK      0x0000000000000000 0x0000000000000000 0x0000000000000000
+                 0x0000000000000000 0x0000000000000000  RW     0x10
+  GNU_RELRO      0x0000000000002d90 0x0000000000003d90 0x0000000000003d90
+                 0x0000000000000270 0x0000000000000270  R      0x1
+
+Section to Segment mapping:
+  Segment Sections...
+   00
+   01     .interp
+   02     .interp .note.gnu.property .note.gnu.build-id .note.ABI-tag .gnu.hash .dynsym .dynstr .gnu.version .gnu.version_r .rela.dyn .rela.plt
+   03     .init .plt .plt.got .plt.sec .text .fini
+   04     .rodata .eh_frame_hdr .eh_frame
+   05     .init_array .fini_array .dynamic .got .data .bss
+   06     .dynamic
+   07     .note.gnu.property
+   08     .note.gnu.build-id .note.ABI-tag
+   09     .note.gnu.property
+   10     .eh_frame_hdr
+   11
+   12     .init_array .fini_array .dynamic .got
 ```
 
 <br>
@@ -289,29 +380,8 @@ GNU_RELRO      0x0000000000002db0 0x0000000000003db0 0x0000000000003db0
 
 <br>
 
-**Section to segment mapping**:
-```bash
-Segment Sections...
-00
-01     .interp
-02     .interp .note.gnu.property .note.gnu.build-id .note.ABI-tag .gnu.hash .dynsym .dynstr .gnu.version .gnu.version_r .rela.dyn .rela.plt
-03     .init .plt .plt.got .plt.sec .text .fini
-04     .rodata .eh_frame_hdr .eh_frame
-05     .init_array .fini_array .dynamic .got .data .bss
-06     .dynamic
-07     .note.gnu.property
-08     .note.gnu.build-id .note.ABI-tag
-09     .note.gnu.property
-10     .eh_frame_hdr
-11
-12     .init_array .fini_array .dynamic .got
-```
-
-<br>
-
 # `strip` command
-To delete **symbol table** and **debug symbol** from object file there is special command: `strip`.<br>
-The **debug symbol** is a special kind of symbol that attaches additional information to the symbol table.<br>
+To delete **symbols** (*symbol table* or/and *debug symbols*) from object file there is special command: `strip`.<br>
 
 **Example**:
 ```bash
@@ -321,6 +391,6 @@ strip -s hello
 <br>
 
 **Options**:
-- `-s`, `--strip-all` remove all symbols;
-- `-d`, `--strip-debug` remove debugging symbols only;
+- `-s`, `--strip-all` remove **all** symbols;
+- `-d`, `--strip-debug` remove **debugging symbols** only;
 - `-o <file>` put the stripped output in file `<file>`, rather than replacing the existing file;

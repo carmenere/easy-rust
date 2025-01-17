@@ -3,14 +3,16 @@
 - [Object files](#object-files)
 - [Compilation stages](#compilation-stages)
 - [Linking](#linking)
-- [Libraries](#libraries)
-  - [Static libraries](#static-libraries)
-  - [Shared libraries](#shared-libraries)
-- [`dl` library](#dl-library)
+  - [Binaries](#binaries)
+  - [Libraries](#libraries)
+    - [Static libraries](#static-libraries)
+    - [Shared libraries](#shared-libraries)
+- [`dl` library: dynamic linking at runtime](#dl-library-dynamic-linking-at-runtime)
 - [GCC search paths](#gcc-search-paths)
   - [Libraries search path](#libraries-search-path)
   - [Headers search path](#headers-search-path)
-- [PIC and lazy linking](#pic-and-lazy-linking)
+- [PIC](#pic)
+  - [Mitigations](#mitigations)
 
 <br>
 
@@ -85,10 +87,17 @@ There are 3 type of binding libraries to binary:
 
 <br>
 
-In **static linking**, the size of the executable becomes greater than in dynamic linking, as the library code is stored within the executable rather than in separate files.
-**Dynamically linked programs** require **dynamic linker** to be loaded.<br>
+## Binaries
+So, there are two types of binaries:
+- **statically linked** binaries, they are **self-contained** and do not depend on any external libraries;
+- **dynamically linked** binaries, they do not include a lot of functions, but rely on **system libraries** to provide a portion of the functionality;
 
-When the linker creates a **shared library**, it **doesn't** know in advance where it might be loaded. Shared libraries are loaded into **non-deterministic** addresses and **absolute** addresses used inside them **must** be **patched**.<br>
+The size of **statically linked** binary is greater than **dynamically linked** binary, as the library code is stored within the executable rather than in separate files.<br>
+The **dynamically linked** binaries require **dynamic linker** to be loaded.<br>
+
+When the linker creates a **shared library**, it **doesn't** know in advance where it might be loaded. Modern systems use **ASLR** feature (address space layout randomization) and load libraries at **different** locations on each program invocation. So, **shared libraries** are loaded into **non-deterministic** addresses and **absolute** addresses used inside them **must** be **updated** at load time.<br>
+
+<br>
 
 There are two main approaches to solve this problem in Linux ELF shared libraries:
 - **Load-time relocation**;
@@ -96,17 +105,13 @@ There are two main approaches to solve this problem in Linux ELF shared librarie
 
 <br>
 
-**Load-time relocation** has a couple of problems:
+**PIC** is the more common and nowadays-recommended solution because **load-time relocation** has a couple of problems:
+  - it requires to change the `.text` section and which makes using of the library **non-shareable**;
   - it takes time to perform, because **dynamic linker** performs **all** relocations **before** calling `_start` entrypoint;
-  - it makes the `.text` section of the library **non-shareable**;
 
 <br>
 
-**PIC** is the more common and nowadays-recommended solution.
-
-<br>
-
-# Libraries
+## Libraries
 There are 2 kind of libraries:
 - **static** libraries (aka **statically linked** libraries, `.a` files);
 - **shared** libraries (aka **dynamically linked** libraries, `.so` files);
@@ -115,7 +120,7 @@ There are 2 kind of libraries:
 
 <br>
 
-## Static libraries
+### Static libraries
 **Static library** () is a **set** of object files that are copied into a target application by a linker producing a **stand-alone executable**.<br>
 
 <br>
@@ -136,7 +141,7 @@ Produces file `libfoo.a` which will contain `f1.o` and `f2.o` files. To get comp
 
 <br>
 
-## Shared libraries
+### Shared libraries
 **Ordinary** *object files* are **not** suitable for *shared libraries*.<br>
 To create *object files* **suitable** for *shared libraries* there is option `-fPIC` in `gcc`, this option enables **PIC**.<br>
 
@@ -157,7 +162,7 @@ gcc -shared -o libfoo.so f1.o f2.o
 
 <br>
 
-# `dl` library
+# `dl` library: dynamic linking at runtime
 **Shared libraries** can be loaded **not** only loading time, but also **during runtime**. Special `dl` library provides functions `dlopen()`, `dlsym()` and `dlclose()` for doing this.
 
 <br>
@@ -202,100 +207,72 @@ Option `-I <dir>` (`-I<dir>`) adds the directory `<dir>` to the list of director
 
 <br>
 
-# PIC and lazy linking
-**PIC** is only applied to **shared library**.<br>
-The idea behind **PIC** is simple - add an additional level of indirection to all global data and function references in the code.<br>
+# PIC
+**PIC** uses the **Procedure Linkage Table** (**PLT**) and the **Global Offset Table** (**GOT**).<br>
 
-This is achieved by the **Procedure Linkage Table** (**PLT**) and the **Global Offset Table** (**GOT**).<br>
-
-The **GOT** holds entries of addresses of **global variables** and **external functions**.<br>
-The **PLT** consists of short entries of instructions (aka **trampolines**), used to reach external functions by redirecting control flow of execution to its corresponding **GOT** entry.<br>
-
-There are 2 approaches of relocating **GOT** entries:
-- **early binding**, **GOT** entries are relocated by the dynamic linker at **load-time**;
-- **lazy linking**, the **GOT** entries will be relocated on-demand **when they are called**;
-  - the GOT is populated dynamically as the program is running;
-  - the first time a shared function is called, the **GOT** contains a pointer back to the **PLT**, where the **dynamic linker** is called to find the actual location of the function;
-  - when the location found it is then written to the **GOT**;
-  - the second time a function is called, the **GOT** contains the known location of the function;
-
-**Lazy linking** can cause to security issues.<br>
+The **GOT** holds entries of addresses of **global variables** and **external functions**. A **GOT** is simply a **table of addresses**, residing in the **data** section.<br>
+The **PLT** consists of short entries of instructions (aka **trampolines**), used to reach **external** functions.<br>
 
 <br>
 
+The **runtime memory address**, also known as **absolute memory address** of variables and functions is **unknown** before the program is started and cannot be hardcoded during compilation. The **GOT** maps symbols to their corresponding **absolute memory addresses**.<br>
+
+<br>
+
+There are 2 approaches of relocating **GOT** entries:
+- **early binding**, when **GOT** entries are relocated by the **dynamic linker** at **load-time**;
+- **lazy linking**, when **GOT** entries are relocated on-demand **when they are called**, in other words, the **GOT** is populated **dynamically** as the program is running;
+
+<br>
+
+One of the key insights on which **PIC** relies is the **offset** between the **text** and **data** sections, **known** to the linker at **link-time**. When the linker combines several object files together, it collects their sections. Therefore, the linker knows both about the sizes of the sections and about their relative locations:<br>
 
 ![elf_got_code_data_offset](/img/elf_got_code_data_offset.png)
+
+<br>
+
+Suppose some instruction in the code section wants to refer to a **variable**. Instead of referring to it directly by absolute address, it refers to an entry in the **GOT**. Since the **GOT** is in a **known** place in the data section, this reference is **relative** and **known** to the linker. The **GOT** entry, in turn, will contain the **absolute address** of the variable.<br>
+
 ![elf_got_code_data](/img/elf_got_code_data.png)
+
+<br>
+
+Every time symbol `func` is called in code the compiler translates it to a call to `func@plt`, which is some **N-th** entry in the **PLT**. This entry contains jump to `GOT[n]` entry. When the shared library is first loaded, **all** entries in **GOT** point to **resolver routine**.<br>
+So, this `GOT[n]` entry points to resolver routine. Every time resolver is involved it performs resolution of the actual address of called symbol `func`, places its **actual address** into `GOT[n]` and calls `func`.<br>
+
+<br>
+
+**Before** the first call to `func` the `GOT[n]` points to to **resolver routine**:
 ![elf_plt_before](/img/elf_plt_before.png)
+
+<br>
+
+**After** the first call to `func` the `GOT[n]` points to `func`:
 ![elf_plt_after](/img/elf_plt_after.png)
 
 <br>
 
-GOT – это просто таблица с адресами, которая находится в секции data.
-Предположим, что какая-то инструкция в секции code хочет обратиться к переменной. Вместо того, чтобы обратится к ней через абсолютный адрес (который потребует релокации), она обращается к записи в GOT. Поскольку GOT имеет строго определённое место в секции data, и линкер знает о нём, это обращение тоже является относительным. А запись в GOT уже содержит абсолютный адрес переменной:
-Чтобы каждый раз подгружать абсолютно все функции в GOT, мы используем процедуру “ленивого связывания”, т.е. связывание функции из библиотеки с программой происходит при непосредственном вызове её. Помогает в этом механизм Procedure Linkage Table (PLT).
-
-PLT – это часть секции text в бинарнике, состоящая из набора элементов (один элемент на одну внешнюю функцию, которую вызывает библиотека). Каждый элемент в PLT – это небольшой кусок выполняемого машинного кода. Вместо вызова функции напрямую вызывается кусок кода из PLT, который уже сам вызывает функцию. Такой подход часто называют «трамплином». Каждый элемент из PLT имеет собственный элемент в GOT, который содержит реальное смещение для функции (конечно после того как загрузчик определит её).
-
-В коде вызывается функция func. Компилятор переводит этот вызов в вызов func@plt, который является одним из элементов PLT. После этого идет обращение в GOT, и с учетом того что функция вызывалась в первый раз – управление передаётся обратно PLT, где т. н. resolver устанавливает связь между названием функции и её кодом из библиотеки. После такого первого связывания схема будет выглядеть немного по-другому:
-
-Библиотека при этом абсолютно не зависит от адреса, по которому она будет загружена: ведь единственное место, где используется абсолютный адрес – это GOT, а она находится в секции data и будет релоцирована загрузчиком во время загрузки. Даже PLT не зависит от адреса загрузки, так что она может находиться в секции text, доступной только для чтения.
-
-
+The `.got.plt` section is used in conjunction with `.plt` in the **lazy** binding process:
+- `.got.plt` is a **runtime-writable** part of **GOT**: linker updates entires corresponding `.got.plt` section as they are accessed;
+- `.plt` is a part of **PLT** for **runtime-writable** part of **GOT**;
 
 <br>
 
-The Global Offset Table, or GOT, is a section of a computer program's (executables and shared libraries) memory used to enable computer program code compiled as an ELF file to run correctly, independent of the memory address where the program's code or data is loaded at runtime.[1]
-
-It maps symbols in programming code to their corresponding absolute memory addresses to facilitate Position Independent Code (PIC) and Position Independent Executables (PIE)[2] which are loaded[3] to a different memory address each time the program is started. The runtime memory address, also known as absolute memory address of variables and functions is unknown before the program is started when PIC or PIE code is run[4] so cannot be hardcoded during compilation by a compiler.
-
-The Global Offset Table is represented as the .got and .got.plt sections in an ELF file[5] which are loaded into the program's memory at startup.[5][6] The operating system's dynamic linker updates the global offset table relocations (symbol to absolute memory addresses) at program startup or as symbols are accessed.[7] It is the mechanism that allows shared libraries (.so) to be relocated to a different memory address at startup and avoid memory address conflicts with the main program or other shared libraries, and to harden computer program code from exploitation.[8]
+The `.got` section is used in conjunction with `.plt.got` in the **non-lazy** binding process:
+- `.got` is a **read-only** part of **GOT**: linker updates all entires corresponding `.got` section at **load-time**;
+- `.plt.got` is a part of **PLT** for **read-only** part of **GOT**;
 
 <br>
 
-Well, there’s two types of binaries on any system: statically linked and dynamically linked. Statically linked binaries are self-contained, containing all of the code necessary for them to run within the single file, and do not depend on any external libraries. Dynamically linked binaries (which are the default when you run gcc and most other compilers) do not include a lot of functions, but rely on system libraries to provide a portion of the functionality. For example, when your binary uses printf to print some data, the actual implementation of printf is part of the system C library. Typically, on current GNU/Linux systems, this is provided by libc.so.6, which is the name of the current GNU Libc library.
-
-In order to locate these functions, your program needs to know the address of printf to call it. While this could be written into the raw binary at compile time, there’s some problems with that strategy:
-
-Each time the library changes, the addresses of the functions within the library change, when libc is upgraded, you’d need to rebuild every binary on your system. While this might appeal to Gentoo users, the rest of us would find it an upgrade challenge to replace every binary every time libc received an update.
-Modern systems using ASLR (address space layout randomization feature ) load libraries at different locations on each program invocation. Hardcoding addresses would render this impossible.
-Consequently, a strategy was developed to allow looking up all of these addresses when the program was run and providing a mechanism to call these functions from libraries. This is known as relocation, and the hard work of doing this at runtime is performed by the linker, aka ld-linux.so. (Note that every dynamically linked program will be linked against the linker, this is actually set in a special ELF section called .interp.) The linker is actually run before any code from your program or libc, but this is completely abstracted from the user by the Linux kernel.
+## Mitigations
+**Lazy linking** can cause to security issues because it vulnarable to overwriting function pointers in `.got.plt`.<br>
+There is a mitigation technique called **RELRO** (aka **RELocations Read-Only**).<br>
 
 <br>
 
-The difference between .plt and .plt.got is that .plt uses lazy binding and .plt.got uses non-lazy binding.
-
-The difference is that .got.plt is runtime-writable, while .got is not if you enable a defense against GOT overwriting attacks called RELRO (relocations read-only). To enable RELRO, you use the ld option -z relro. RELRO places GOT entries that must be runtime-writable for lazy binding in .got.plt, and all others in the read-only .got section
-
-ELF binaries often contain a separate GOT section called .got.plt for use in conjunction with .plt in the lazy binding process
-
-
-Relocations
-Looking at an ELF file, you will discover that it has a number of sections, and it turns out that relocations require several of these sections. I’ll start by defining the sections, then discuss how they’re used in practice.
-
-.got
-This is the GOT, or Global Offset Table. This is the actual table of offsets as filled in by the linker for external symbols.
-.plt
-This is the PLT, or Procedure Linkage Table. These are stubs that look up the addresses in the .got.plt section, and either jump to the right address, or trigger the code in the linker to look up the address. (If the address has not been filled in to .got.plt yet.)
-.got.plt
-This is the GOT for the PLT. It contains the target addresses (after they have been looked up) or an address back in the .plt to trigger the lookup. Classically, this data was part of the .got section.
-.plt.got
-It seems like they wanted every combination of PLT and GOT! This just seems to contain code to jump to the first entry of the .got. I’m not actually sure what uses this. (If you know, please reach out and let me know! In testing a couple of programs, this code is not hit, but maybe there’s some obscure case for this.)
-
-<br>
-
-Mitigations
-So, since this exploit technique has been known for so long, surely someone has done something about it, right? Well, it turns out yes, there’s been a mitigation since 2004. Enter relocations read-only, or RELRO. It in fact has two levels of protection: partial and full RELRO.
-
-Partial RELRO (enabled with -Wl,-z,relro):
-
-Maps the .got section as read-only (but not .got.plt)
-Rearranges sections to reduce the likelihood of global variables overflowing into control structures.
-Full RELRO (enabled with -Wl,-z,relro,-z,now):
-
-Does the steps of Partial RELRO, plus:
-Causes the linker to resolve all symbols at link time (before starting execution) and then remove write permissions from .got.
-.got.plt is merged into .got with full RELRO, so you won’t see this section name.
-Only full RELRO protects against overwriting function pointers in .got.plt. It works by causing the linker to immediately look up every symbol in the PLT and update the addresses, then mprotect the page to no longer be writable.
-
-<br>
+**RELRO** gives **two** levels of protection:
+- **partial RELRO** enabled with `-Wl,-z,relro`:
+  - it sets memory regions corresponing to `.got` section as `read-only`;
+- **full RELRO** enabled with `-Wl,-z,relro,-z,now` and protects against overwriting function pointers in `.got.plt`:
+  - it causes the **dynamic linker** to **immediately** look up every symbol in the **PLT** and update the addresses;
+  - then it sets memory regions corresponing to `.got.plt` section as `read-only`;
