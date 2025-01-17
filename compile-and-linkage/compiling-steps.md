@@ -32,19 +32,29 @@ Types of object files:
 The `hello.c` file that will be used futher:
 ```c
 #include <stdio.h>
-void foo()
+__attribute__ ((constructor (101))) void foo()
+// void foo()
 {
         (void) printf("initializing: foo()\n");
 }
 
-void bar()
+__attribute__((destructor (101))) void bar()
+// void bar()
 {
         (void) printf("finalizing: bar()\n");
 }
 
-int main()
-{
-    printf("Hello, World!\n");
+int a[10]={0,1,2,3,4,5,6,7,8,9};
+int b[10];
+
+int main(int argc, char* argv[]){
+    int i;
+    static int k = 3;
+
+    for(i = 0; i < 10; i++) {
+        printf("%d\n",a[i]);
+        b[i] = k*a[i];
+    }
     return 0;
 }
 ```
