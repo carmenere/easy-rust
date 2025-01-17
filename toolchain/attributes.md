@@ -10,9 +10,14 @@
       - [Attributes with arguments](#attributes-with-arguments)
   - [Kinds of attributes](#kinds-of-attributes)
 - [Built-in attributes](#built-in-attributes)
+  - [Attr: `derive`](#attr-derive)
+  - [Attr: `path`](#attr-path)
+- [Conditional compilation](#conditional-compilation)
+  - [Configuration options](#configuration-options)
   - [Examples](#examples)
-    - [`derive`](#derive)
-    - [`path`](#path)
+  - [Attr: `cfg`](#attr-cfg)
+  - [Attr: `cfg_attr`](#attr-cfg_attr)
+- [The `cfg!` macro](#the-cfg-macro)
 
 <br>
 
@@ -113,6 +118,7 @@ type int8_t = i8;
 **Built-in attributes** per categories:
 - Conditional compilation
     - `cfg`
+    - `cfg_attr`
 - Testing
     - `test`
 - Derive
@@ -144,8 +150,8 @@ type int8_t = i8;
 
 <br>
 
-## Examples
-### `derive`
+
+## Attr: `derive`
 The `derive` attribute allows *certain* **traits** to be **automatically implemented** for data structures.
 ```Rust
 #[derive(PartialEq, Clone)]
@@ -157,7 +163,7 @@ struct Foo<T> {
 
 <br>
 
-### `path`
+## Attr: `path`
 The `path` attribute specifies the filename for a module.
 ```Rust
 #[path = "foo.rs"]
@@ -165,3 +171,162 @@ mod c;
 ```
 
 It means file `foo.rs` will be included into module tree as `c` module.
+
+<br>
+
+# Conditional compilation
+## Configuration options
+**Configuration options** are either **names** or **key-value pairs**, and are either **set** or **unset**.<br>
+
+<br>
+
+**Key-value options**:
+- `target_abi`
+- `target_arch` set once with the **target’s CPU architecture**, it is similar to the first element of the platform’s target triple, but **not** identical;
+  - **example** values:
+    - `"x86"`
+    - `"x86_64"`
+    - `"mips"`
+    - `"powerpc"`
+    - `"powerpc64"`
+    - `"arm"`
+    - `"aarch64"`
+- `target_endian` set once with either a value of `"little"` or `"big"` depending on the **endianness** of the target’s CPU;
+- `target_env`
+- `target_family` defines the **family** of the operating systems or architectures, **any** number of target_family key-value pairs can be set;
+  - **example** values:
+    - `"unix"`;
+    - `"windows"`;
+    - `"wasm"`;
+    - Both `"unix"` and `"wasm"`;
+- `target_feature` set feature available for the current compilation target;
+  - each **target** architecture has a **set of features** that may be enabled;
+  - **example** values:
+    - `"avx"`
+    - `"avx2"`
+    - `"crt-static"`
+    - `"rdrand"`
+    - `"sse"`
+    - `"sse2"`
+    - `"sse4.1"`
+- `target_os` set once with the **target’s operating system**;
+- `target_vendor`
+
+<br>
+
+**Example**:
+```rust
+#[cfg(target_feature = "crt-static")]
+compile_error!("Detected crt-static mode");
+```
+<br>
+
+**Names options**:
+- `test` enabled when compiling the test;
+- `panic` set once with the panic strategy;
+  - **example** values:
+    - `"abort"`
+    - `"unwind"`
+- `unix`
+  - `unix` is set if `target_family = "unix"` is set.
+- `windows`
+  - `windows` is set if `target_family = "windows"` is set.
+
+<br>
+
+## Examples
+Print out **all** set configuration options:
+```bash
+rustc --print cfg
+```
+
+<br>
+
+**On MacOS**:
+```bash
+rustc -C target-feature=+crt-static --print cfg | grep crt
+```
+
+<br>
+
+**On Linux**:
+```bash
+rustc -C target-feature=+crt-static --print cfg | grep crt
+target_feature="crt-static"
+```
+
+<br>
+
+Cargo sets **features** in the package using the rustc `--cfg` flag. If feature is set it is added to **configuration options** list:
+```bash
+rustc --cfg 'feature="foo"' --cfg 'feature="bar"' --print cfg | grep 'foo\|bar'
+feature="bar"
+feature="foo"
+```
+
+<br>
+
+## Attr: `cfg`
+The `cfg` attribute conditionally includes the thing it is attached to based on a **configuration predicate**.<br>
+If the **predicate** is `false`, the thing is **removed** from the source code.<br>
+
+```rust
+#[cfg(target_os = "macos")]
+fn macos_only() {
+  // ...
+}
+```
+
+<br>
+
+The **predicate** is one of the following:
+- a **configuration option**: the predicate is `true` if the **option** is **set**, and `false` if it is **unset**;
+- `all()` with a comma-separated list of **configuration predicates**;
+- `any()` with a comma-separated list of **configuration predicates**;
+- `not()` with a **configuration predicate**;
+
+<br>
+
+## Attr: `cfg_attr`
+The `cfg_attr` conditionally includes **other attributes** based on a configuration predicate.<br>
+When the configuration predicate is **true**, this attribute expands out to the attributes listed after the predicate.<br>
+
+For example, depending on `target_os` the module `os` corresponds to different `.rs` files:
+```rust
+#[cfg_attr(target_os = "linux", path = "linux.rs")]
+#[cfg_attr(windows, path = "windows.rs")]
+mod os;
+```
+
+<br>
+
+Enother example:
+```rust
+#[cfg_attr(feature = "magic", sparkles, crackles)]
+fn bewitched() {}
+```
+
+When the `magic` feature flag is **enabled**, the above will expand to:
+```rust
+#[sparkles]
+#[crackles]
+fn bewitched() {}
+```
+
+
+<br>
+
+# The `cfg!` macro
+The built-in `cfg!` macro takes in a **single configuration predicate** and evaluates to the `true` **literal** when the *predicate* is `true` and the `false` **literal** when it is `false`:<br>
+
+```rust
+let machine_kind = if cfg!(unix) {
+  "unix"
+} else if cfg!(windows) {
+  "windows"
+} else {
+  "unknown"
+};
+
+println!("I'm running on a {} machine!", machine_kind);
+```
