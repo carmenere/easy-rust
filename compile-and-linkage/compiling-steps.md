@@ -252,12 +252,14 @@ So, this `GOT[n]` entry points to resolver routine. Every time resolver is invol
 
 <br>
 
-**Before** the first call to `func` the `GOT[n]` points to to **resolver routine**:
+**Before** the first call to `func` the `GOT[n]` points to to **resolver routine**:<br>
+
 ![elf_plt_before](/img/elf_plt_before.png)
 
 <br>
 
-**After** the first call to `func` the `GOT[n]` points to `func`:
+**After** the first call to `func` the `GOT[n]` points to `func`:<br>
+
 ![elf_plt_after](/img/elf_plt_after.png)
 
 <br>
