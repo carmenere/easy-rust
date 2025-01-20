@@ -97,32 +97,45 @@ There are 3 type of binding libraries to binary:
 
 <br>
 
-## Binaries
-So, there are two types of binaries:
-- **statically linked** binaries, they are **self-contained** and do not depend on any external libraries;
-- **dynamically linked** binaries, they do not include a lot of functions, but rely on **system libraries** to provide a portion of the functionality;
-
-The size of **statically linked** binary is greater than **dynamically linked** binary, as the library code is stored within the executable rather than in separate files.<br>
-The **dynamically linked** binaries require **dynamic linker** to be loaded.<br>
-
 When the linker creates a **shared library**, it **doesn't** know in advance where it might be loaded. Modern systems use **ASLR** feature (address space layout randomization) and load libraries at **different** locations on each program invocation. So, **shared libraries** are loaded into **non-deterministic** addresses and **absolute** addresses used inside them **must** be **updated** at load time.<br>
 
 <br>
 
-There are two main approaches to solve this problem in Linux ELF shared libraries:
+There are 3 main approaches to solve this problem in Linux ELF shared libraries:
 - **Load-time relocation**;
-- **Position Independent Code** (**PIC**);
+- **Position Independent Code** (**PIC**) for **shared libraries**;
+- **Position Independent Executables** (**PIE**) for **executable**;
 
 <br>
 
-**PIC** is the more common and nowadays-recommended solution because **load-time relocation** has a couple of problems:
+**Load-time relocation** has a couple of problems:
   - it requires to change the `.text` section and which makes using of the library **non-shareable**;
   - it takes time to perform, because **dynamic linker** performs **all** relocations **before** calling `_start` entrypoint;
 
 <br>
 
+**PIC** and **PIE** are recommended solutions.<br>
+
+<br>
+
+## Binaries
+There are **two** types of binaries:
+- **statically linked** binaries, they are **self-contained** and do not depend on any external libraries;
+- **dynamically linked** binaries, they do not include a lot of functions, but rely on **system libraries** to provide a portion of the functionality;
+
+The size of **statically linked** binary is greater than **dynamically linked** binary, as the library code is stored within the **executable** rather than in separate files.<br>
+The **dynamically linked** binaries require **dynamic linker** to be loaded.<br>
+
+<br>
+
+**By default**, **executables** on modern systems are built as **Position Independent Executables** (**PIE**) and all addresses are resolved when the program is loaded into memory.<br>
+To **disable** **PIE** for binary there is option `-no-pie`.<br>
+
+<br>
+
+
 ## Libraries
-There are 2 kind of libraries:
+There are **two** kind of libraries:
 - **static** libraries (aka **statically linked** libraries, `.a` files);
 - **shared** libraries (aka **dynamically linked** libraries, `.so` files);
 
@@ -131,11 +144,11 @@ There are 2 kind of libraries:
 <br>
 
 ### Static libraries
-**Static library** () is a **set** of object files that are copied into a target application by a linker producing a **stand-alone executable**.<br>
+**Static library** is a **set** of object files that are copied into a target application by a linker producing a **stand-alone executable**.<br>
 
 <br>
 
-To create **static library** with name `NAME` there is command `ar`.
+To create **static library** with name `NAME` there is command `ar`.<br>
 **Example**, `ar rc libNAME.a [list of object files]`:
 - option `c` stands for **create** if not exists;
 - option `r` stands for **replace** old by newer version;

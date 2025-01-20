@@ -4,7 +4,6 @@
   - [rpath](#rpath)
   - [LD\_LIBRARY\_PATH](#ld_library_path)
   - [/etc/ld.so.cache](#etcldsocache)
-- [`ldd`](#ldd)
 
 <br>
 
@@ -94,36 +93,3 @@ cat /etc/ld.so.conf.d/x86_64-linux-gnu.conf
 /lib/x86_64-linux-gnu
 /usr/lib/x86_64-linux-gnu
 ```
-
-<br>
-
-# `ldd`
-`ldd` and `otool` prints all **shared libraries** required by binary.<br>
-
-In MacOS: `otool -L <file>`.<br>
-In Linux: `ldd <file>`.<br>
-
-<br>
-
-Each entry in output has 3 value:
-•	**optional**: `libNAME.so.X` where `X` is a version of lib, `NAME` - name of lib;
-•	**abs path** to library file;
-•	**address** at which it is loaded ;
-
-<br>
-
-**Example**:
-```bash
-ldd /bin/cat
-    linux-vdso.so.1 (0x00007ffd2d6d9000)
-    libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f6c5b1fb000)
-    /lib64/ld-linux-x86-64.so.2 (0x00007f6c5b7f5000)
-```
-
-<br>
-
-The **first enry** `linux-vdso.so.1` **doesn't** have corresponding file, it is the **vDSO** (virtual dynamic shared object).<br>
-The **last enry** contain only **abs path** and **address**.<br>
-
-<br>
-
