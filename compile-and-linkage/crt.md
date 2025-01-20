@@ -91,6 +91,7 @@ The **CRT** is shipped as part of the **OS** and **compiler**.<br>
 
 <br>
 
+**Meaning**:
 - `crt1.o` contains the `_start` function that **initializes** the process and calls `exit(main(argc, argv))`;
 - `crti.o` contains **prologues** for `_init` and `_fini` functions;
 - `crtn.o` contains **epilogues** for `_init` and `_fini` functions;

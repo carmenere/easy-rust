@@ -129,7 +129,7 @@ The **dynamically linked** binaries require **dynamic linker** to be loaded.<br>
 <br>
 
 **By default**, **executables** on modern systems are built as **Position Independent Executables** (**PIE**) and all addresses are resolved when the program is loaded into memory.<br>
-To disable **PIE** for binary there is option `-no-pie`.<br>
+To **disable** **PIE** for binary there is option `-no-pie`.<br>
 
 <br>
 
