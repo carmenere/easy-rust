@@ -14,6 +14,7 @@
   - [Attr: `path`](#attr-path)
 - [Conditional compilation](#conditional-compilation)
   - [Configuration options](#configuration-options)
+- [Key-value options](#key-value-options)
   - [Examples](#examples)
   - [Attr: `cfg`](#attr-cfg)
   - [Attr: `cfg_attr`](#attr-cfg_attr)
@@ -180,9 +181,9 @@ It means file `foo.rs` will be included into module tree as `c` module.
 
 <br>
 
-**Key-value options**:
+# Key-value options
 - `target_abi`
-- `target_arch` set once with the **target’s CPU architecture**, it is similar to the first element of the platform’s target triple, but **not** identical;
+- `target_arch` set once with the **target’s CPU architecture**, it is similar to the first element of the target triple, but **not** identical;
   - **example** values:
     - `"x86"`
     - `"x86_64"`
@@ -199,8 +200,8 @@ It means file `foo.rs` will be included into module tree as `c` module.
     - `"windows"`;
     - `"wasm"`;
     - Both `"unix"` and `"wasm"`;
-- `target_feature` set feature available for the current compilation target;
-  - each **target** architecture has a **set of features** that may be enabled;
+- `target_feature` set feature available for the current **target triple**;
+  - each **target triple** has a **set of features** that may be enabled;
   - **example** values:
     - `"avx"`
     - `"avx2"`
@@ -211,6 +212,10 @@ It means file `foo.rs` will be included into module tree as `c` module.
     - `"sse4.1"`
 - `target_os` set once with the **target’s operating system**;
 - `target_vendor`
+- `panic` set once with the panic strategy;
+  - **example** values:
+    - `"abort"`
+    - `"unwind"`
 
 <br>
 
@@ -223,10 +228,6 @@ compile_error!("Detected crt-static mode");
 
 **Names options**:
 - `test` enabled when compiling the test;
-- `panic` set once with the panic strategy;
-  - **example** values:
-    - `"abort"`
-    - `"unwind"`
 - `unix`
   - `unix` is set if `target_family = "unix"` is set.
 - `windows`
@@ -237,7 +238,54 @@ compile_error!("Detected crt-static mode");
 ## Examples
 Print out **all** set configuration options:
 ```bash
+rustup default
+1.76.0-aarch64-apple-darwin (default)
+
 rustc --print cfg
+debug_assertions
+panic="unwind"
+target_arch="aarch64"
+target_endian="little"
+target_env=""
+target_family="unix"
+target_feature="aes"
+target_feature="crc"
+target_feature="dit"
+target_feature="dotprod"
+target_feature="dpb"
+target_feature="dpb2"
+target_feature="fcma"
+target_feature="fhm"
+target_feature="flagm"
+target_feature="fp16"
+target_feature="frintts"
+target_feature="jsconv"
+target_feature="lor"
+target_feature="lse"
+target_feature="neon"
+target_feature="paca"
+target_feature="pacg"
+target_feature="pan"
+target_feature="pmuv3"
+target_feature="ras"
+target_feature="rcpc"
+target_feature="rcpc2"
+target_feature="rdm"
+target_feature="sb"
+target_feature="sha2"
+target_feature="sha3"
+target_feature="ssbs"
+target_feature="vh"
+target_has_atomic="128"
+target_has_atomic="16"
+target_has_atomic="32"
+target_has_atomic="64"
+target_has_atomic="8"
+target_has_atomic="ptr"
+target_os="macos"
+target_pointer_width="64"
+target_vendor="apple"
+unix
 ```
 
 <br>
