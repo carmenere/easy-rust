@@ -13,6 +13,7 @@
 - [Generics vs. Associated types](#generics-vs-associated-types)
 - [Blanket implementations](#blanket-implementations)
   - [`T`, `&T` and `&mut T`](#t-t-and-mut-t)
+- [Specializations](#specializations)
 - [Trait casting](#trait-casting)
       - [Example](#example-2)
 - [Supertraits](#supertraits)
@@ -238,14 +239,54 @@ Because the standard library has this **blanket implementations**, we can call t
 <br>
 
 ## `T`, `&T` and `&mut T`
-Types `&T` and `&mut T` are **disjoint sets**. Type `T` is a **superset** of both `&T` and `&mut T`.<br>
-So, the compiler **doesn't allow** us to define an implementation of `MyTrait` for `&T` and `&mut T` since it would conflict with the implementation of `MyTrait` for `T` which **already includes** all of `&T` and `&mut T`:
+Type `T` is **type variable** that runs values `U`, `&U` and `&mut U`, where `U` runs through all **owned types**.<br>
+From compiler point of view `impl<T> MyTrait for T {}` means following implementations (`U` runs through all **owned types**):
+```rust
+T=U: impl<U> MyTrait for U {}
+T=&U: impl<U> MyTrait for &U {}
+T=&mut U: impl<U> MyTrait for &mut U {}
+```
+
+<br>
+
+From compiler point of view both implementations `impl<T> MyTrait for T {}` and `impl<T> MyTrait for &T {}` are **overlapped**, because first implementation **already includes** `&U`.<br>
+
+<br>
+
+**Consider example**:
 ```rust
 trait MyTrait {}
 
 impl<T> MyTrait for T {}
 impl<T> MyTrait for &T {} // ❌
 impl<T> MyTrait for &mut T {} // ❌
+
+fn main (){}
+```
+
+<br>
+
+**Output**:
+```bash
+error[E0119]: conflicting implementations of trait `MyTrait` for type `&_`
+ --> src/main.rs:4:1
+  |
+3 | impl<T> MyTrait for T {}
+  | --------------------- first implementation here
+4 | impl<T> MyTrait for &T {}
+  | ^^^^^^^^^^^^^^^^^^^^^^ conflicting implementation for `&_`
+
+error[E0119]: conflicting implementations of trait `MyTrait` for type `&mut _`
+ --> src/main.rs:5:1
+  |
+3 | impl<T> MyTrait for T {}
+  | --------------------- first implementation here
+4 | impl<T> MyTrait for &T {}
+5 | impl<T> MyTrait for &mut T {}
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^ conflicting implementation for `&mut _`
+
+For more information about this error, try `rustc --explain E0119`.
+error: could not compile `foo` (bin "foo") due to 2 previous errors
 ```
 
 <br>
@@ -258,12 +299,28 @@ impl<T> Borrow<T> for T
 impl<T> Borrow<T> for &T
 ```
 
-From compiler's point of view both implementations `Borrow<T> for &T` and `Borrow<T> for T` are **not** overlapped.<br>
-Indeed, `Borrow<T> for &T` and `Borrow<T> for T` give 4 **disjoint** implementations for `T=u32` and `T=&u32`:
-1. `Borrow<u32> for u32` (`impl<T> Borrow<T> for T` for `T=u32`);
-2. `Borrow<&u32> for &u32` (by `impl<T> Borrow<T> for T` for `T=&u32`);
-3. `Borrow<u32> for &u32` (by `impl<T> Borrow<T> for &T` for `T=u32`);
-4. `Borrow<&u32> for &&u32` (by `impl<T> Borrow<T> for &T` for `T=&u32`);
+From compiler's point of view both implementations `Borrow<T> for T` and `Borrow<T> for &T` are **not** overlapped.<br>
+
+From compiler point of view `Borrow<T> for T` means following implementations (`U` runs through all **owned types**):
+```rust
+T=U: impl<U> Borrow<U> for U {}
+T=&U: impl<U> Borrow<&U> for &U {}
+T=&mut U: impl<U> Borrow<&mut U> for &mut U {}
+```
+
+<br>
+
+From compiler point of view `Borrow<T> for &T` means only **one** following implementation (`U` runs through all **owned types**):
+```rust
+T=U: impl<U> Borrow<U> for &U {}
+```
+
+<br>
+
+# Specializations
+[**RFC**](https://rust-lang.github.io/rfcs/1210-impl-specialization.html).<br>
+
+**Specialization** will **permit overlapping** in case of the one implemetation is **clearly more specific** than the other. The **more specific** `impl` block is used in a case of overlap.<br>
 
 <br>
 
