@@ -5,9 +5,8 @@
     - [Example 1](#example-1)
     - [Example 2.](#example-2)
 - [Operators](#operators)
-- [NLL vs. LL](#nll-vs-ll)
   - [NLL and iterator invalidation](#nll-and-iterator-invalidation)
-- [Lifetimes](#lifetimes)
+- [Lifetimes and scopes](#lifetimes-and-scopes)
 - [Borrowing rules](#borrowing-rules)
     - [Examples](#examples)
       - [Lend the value inside scope of shared reference](#lend-the-value-inside-scope-of-shared-reference)
@@ -112,15 +111,6 @@ Here:
 
 <br>
 
-# NLL vs. LL
-**NLL** (**non-lexical lifetime**) vs. **LL** (**lexical lifetime**):
-- **LL** means that **scope** of **identifier** starts **from** the point at which it was declared by `let` keyword **until** the **end of the block** (until `{`).
-- **NLL** means that **scope** of **identifier** starts **from** the point at which it was declared by `let` keyword **until** the **last time it is used**.
-
-Here **lifetime** is a synonym for **scope**.
-
-<br>
-
 ## NLL and iterator invalidation
 **NLL** prevents a common error called **iterator invalidation**, where the program modifies a collection while iterating over it.<br>
 
@@ -137,13 +127,17 @@ for i in &v {
 
 <br>
 
-# Lifetimes
-Every **variable** in Rust has **LL** which **begins** when it is **created** by `let` keyword and **ends** when it is **destroyed** (closing curly bracket `}`).
-Every **reference** in Rust has **NLL** which **begins** when it is **created** by `let` keyword and **ends** when it is **used last time**.<br>
+# Lifetimes and scopes
+In everyday speech, the word **lifetime** can be used in two distinct – but similar – ways:
+- the **lifetime of a reference**, corresponding to the span of time in which that reference is used;
+- the **lifetime of a value**, corresponding to the span of time before that value gets freed;
 
-But, the **reference** must be **valid** until the **lender** is **destroyed**. So, **lifetimes** and **scopes** (**NLL** and **LL**) are **not** the same.<br>
+To distinguish these cases, we refer to *lifetime of a value* as **scope**.<br>
 
-A **lifetime** is the **scope** within which a **reference** must be **valid**.<br>
+A **scope of value** means **Lexical Lifetime** (**LL**) which **begins** when value is **created** by `let var = value;` assigning to variable and **ends** when it is **destroyed** (closing curly bracket `}` or `drop()`).<br>
+A **lifetime of a reference** means **Non-Lexical Lifetime** (**NLL**) which **begins** when **reference** is **created** by `let` keyword and **ends** when it is **used last time**.<br>
+
+**Lifetimes** and **scopes** are linked to one another. A **lifetime** is the **scope** within which a **reference** must be **valid**. If you make a reference to a value, the lifetime of that reference **cannot outlive** the scope of that value. Otherwise, your reference would be pointing into freed memory.<br>
 
 *Lifetimes* are **denoted** with an **apostrophe**: `'a`, `'b`.<br>
 

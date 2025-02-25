@@ -1,5 +1,5 @@
 # What is borrow checker?
-**Borrow checker** is responsible for enforsing:
+**Borrow checker** is responsible for enforcing:
 1. **Ownership rules**:
    1. **Each value** in Rust **has** an **identifier** that’s called its **owner**.
    2. There can only be **one owner at a time**.

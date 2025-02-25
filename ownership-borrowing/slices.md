@@ -108,8 +108,7 @@ struct str([u8])
 
 You can think of a `str` as a `[u8]` which has **additional guarantees** that **sequence of bytes** `[u8]` contains valid **UTF-8** encoded **Unicode chars**.<br>
 
-Because `str` is a **slice** it used in its borrowed form: `&str` and `&str` is also called **string slice**.<br>
-The type `&str` is a **reference to a string slice** with some **lifetime** and `&str` is also called **string slice**.<br>
+Because `str` is a **slice** it used in its borrowed form: `&str`. The type `&str` is a **reference to a string slice** with some **lifetime** and `&str` is also called **string slice**. That's why `&str` is also called **string slice**.<br>
 **String literals** are **statically allocated**, i.e., they are hardcoded into binary and exists while programme is running and have type `&'static str`.<br>
 So, all **string literals** are `&strs`, but **not** all `&strs` are **string literal**.<br>
 
