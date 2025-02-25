@@ -36,8 +36,6 @@ Illustration:
 
 <br>
 
-Internally, the **slice** is **fat pointer** that stores the **starting index** and .<br>
-
 Internally, the **reference to a slice** (aka **slice reference**) is a **fat pointer** that contains 2 objects:
 - **pointer** to the slice’s **first element**;
 - **number of elements** in the slice (the **length** of the slice);
@@ -102,7 +100,15 @@ We could use that value 5 with the variable `s` to try to extract the first word
 <br>
 
 ## String slice
-The type `str` is a **string slice**. Semantically `str` can be represented as `str([u8])`. You can think of a `str` as being nothing more than a `[u8]` which has **additional guarantees** that sequence of `u8` contains valid **UTF8** chars.<br>
+Rust has 2 types for strings: `str` and `String`. Both `str` and `String` contain **Unicode characters** encoded with **UTF-8**.<br>
+In other words, string in Rust is a **UTF-8** encoded sequence of bytes. The **UTF-8** encodes **code points** (**Unicode characters**) in **1** to **4** bytes.<br>
+
+The type `str` is a **string slice**. Semantically `str` can be represented as 
+```rust
+struct str([u8])
+```
+
+You can think of a `str` as a `[u8]` which has **additional guarantees** that **sequence of bytes** `[u8]` contains valid **UTF-8** encoded chars.<br>
 
 The type `str` is **builtin type** and defined inside compiler. But `impl str` is defined in `std`:
 ```rust
@@ -126,7 +132,12 @@ impl str {
 
 <br>
 
-**String slice** is a reference to part of a `String`.<br>
+Because `str` is a **slice** it used in its borrowed form: `&str` and `&str` is also called **string slice**.<br>
+The type `&str` is a **reference to a string slice** with some **lifetime**.<br>
+**String literals** have type `&'static str`.<br>
+So, all **string literals** are `&strs`, but **not** all `&strs` are **string literal**.<br>
+
+<br>
 
 Example:
 ```Rust
@@ -135,14 +146,8 @@ let hello = &s[0..5];
 let world = &s[6..11];
 ```
 
-Range indices for `String` slice must occur at valid UTF-8 character boundaries.<br>
+Range indices for `String` slice must occur at **valid** UTF-8 character boundaries.<br>
 If you attempt to create a `String` slice in the middle of a multibyte character, your program will exit with an error.<br>
-
-<br>
-
-The type `&str` is a **reference to a string slice** with some **lifetime**.<br>
-**String literals** have type `&'static str`.<br>
-So all **string literals** are `&strs`, but **not** all `&strs` are **string literal**.<br>
 
 <br>
 

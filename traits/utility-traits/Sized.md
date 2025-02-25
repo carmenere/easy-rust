@@ -28,9 +28,6 @@ pub trait Sized { }
 The `Sized` trait is the **marker trait** and it indicates that the **size** of type is **known** *at compile time*.<br>
 The `Sized` trait is implemented **automatically** by the compiler for most types. In other words, most of types have **implicit** `Sized` bound **by default**.<br>
 
-Sized
-The Sized trait indicates that the size of this type is known at compile-time; that is, it’s not a dynamically sized type. Type parameters  are Sized by default, as are associated types. Sized is always implemented automatically by the compiler, not by implementation items. These implicit Sized bounds may be relaxed by using the special ?Sized bound.
-
 Also Rust adds the `Sized` bound to all **generics** (`T: Sized`). In other words, any **type parameter** (except `Self` in traits) or **associated type** has **implicit** `Sized` bound **by default**:
 ```rust
 struct Foo<T>(T);
@@ -50,7 +47,7 @@ Examples of **DST**:
 - `String`;
 
 So, a trait **doesn't** have an implicit `Sized` bound as this is **incompatible** with **trait objects**.<br>
-Although Rust **allows** define `Sized` for traits, but such `Sized` traits **cannot** be used as **trait objects** later. This trait is **not** **dyn compatible**. In older versions of Rust, **dyn compatibility** was called **object safety**, so this trait is **not object safe**. <br>
+Although Rust **allows** define `Sized` for traits, but such `Sized` traits **cannot** be used as **trait objects** later. The `Sized` trait is **not** **dyn compatible**. In older versions of Rust, **dyn compatibility** was called **object safety**, so this trait is **not object safe**. <br>
 Notation for defining `Sized` traits: `trait <name>: Sized { }`.<br>
 
 So,

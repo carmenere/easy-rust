@@ -190,9 +190,8 @@ let flag = v as i32;
 <br>
 
 # Strings
-The **UTF-8** encodes **code points** (**Unicode characters**) in **one** to **four** bytes, depending on the value of the code point.<br>
-Rust has two main types of strings: `&str` (reference to string slice) and `String`.<br>
-The type `String` has a **resizable buffer** holding **UTF-8** encoded bytes.<br>
+Rust has 2 types for strings: `str` and `String`. Both `str` and `String` contain **Unicode characters** encoded with **UTF-8**.<br>
+In other words, string in Rust is a **UTF-8** encoded sequence of bytes. The **UTF-8** encodes **code points** (**Unicode characters**) in **1** to **4** bytes.<br>
 
 <br>
 
@@ -219,6 +218,7 @@ Types of string literal:
 <br>
 
 ## `&str`
+Because `str` is a **slice** it used in its borrowed form: `&str`.<br>
 The `&str` type is called **string literal** or **string slice**.<br>
 *Strings* of `&str` type are **statically allocated**, i.e., they are hardcoded into binary and exists while programme is running.<br>
 *Strings* of `&str` type have a **fixed-size** and **cannot be mutated**, i.e., they are **immutable**.<br>
@@ -423,9 +423,7 @@ It is **ZST** (**zero-sized type**).
 <br>
 
 # DST
-DST (Dynamically Sized Types) 
- (aka DST aka
-[More here](../traits/utility-traits/Sized.md)
+**DST** or **D**ynamically **S**ized **T**ypes (aka **unsized**). [**More here**](../traits/utility-traits/Sized.md).
 
 <br>
 
