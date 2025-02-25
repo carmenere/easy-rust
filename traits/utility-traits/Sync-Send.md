@@ -43,7 +43,7 @@ pub unsafe auto trait Send { }
 pub unsafe auto trait Sync { }
 ```
 
-Both `Sync` and `Send` are **auto traits**, which means that they are automatically implemented for your types based on their fields. A **struct** in which **all fields** are `Send` and `Sync` is **also** `Send` and `Sync`.<br>
+Both `Sync` and `Send` are [**auto traits**](https://doc.rust-lang.org/reference/special-types-and-traits.html#auto-traits), which means that they are automatically implemented for your types based on their fields. A **struct** in which **all fields** are `Send` and `Sync` is **also** `Send` and `Sync`.<br>
 
 The way to opt out of `Send` or/and `Sync` is to add a field to your type that does not implement the trait. For that purpouse, there is special `std::marker::PhantomData<T>` type.<br>
 The `std::marker::PhantomData<T>` is treated by the compiler as a `T`, except it doesn't actually exist at runtime, in other words, it takes no space at runtime.<br>

@@ -323,5 +323,5 @@ This allows `File.open()` to accept not only `Path`, but also `OsStr`, `OsString
 <br>
 
 ## More examples
-- [borrow-for-case-insensitive-str](https://github.com/carmenere/easy-rust/blob/main/examples/traits/borrow-for-case-insensitive-str.md)
-- [borrow-own-hashmap-implementation](https://github.com/carmenere/easy-rust/blob/main/examples/hashmaps/borrow-own-hashmap-implementation.md)
+- [borrow-for-case-insensitive-str](../../examples/traits/borrow-for-case-insensitive-str.md)
+- [borrow-own-hashmap-implementation](../../examples/hashmaps/borrow-own-hashmap-implementation.md)

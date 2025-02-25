@@ -202,7 +202,7 @@ A great example of a situation where this **associated types** are useful is **o
 Rust doesn’t allow you to create your own operators or overload arbitrary operators.<br>
 But you can **overload** the operations and corresponding **traits** listed **in** `std::ops` by implementing the traits associated with the operator.<br>
 
-More xamples [here](https://github.com/carmenere/easy-rust/blob/main/examples/traits/overloading.md) and [here](https://github.com/carmenere/easy-rust/blob/main/examples/traits/overloading-generic-version-of-Point.md).
+More examples [here](../examples/traits/overloading.md) and [here](../examples/traits/overloading-generic-version-of-Point.md).
 <br>
 
 # Generics vs. Associated types

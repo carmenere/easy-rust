@@ -22,17 +22,23 @@
   - [Bytes. Chars. Vec](#bytes-chars-vec)
   - [Conversions between string types](#conversions-between-string-types)
 - [Unit type `()`](#unit-type-)
+- [DST](#dst)
 - [Arrays](#arrays)
   - [*Initialization* syntax](#initialization-syntax)
     - [Syntax options for *pre initialized* arrays:](#syntax-options-for-pre-initialized-arrays)
     - [Syntax options for *empty* arrays:](#syntax-options-for-empty-arrays)
   - [*Type declaration* syntax](#type-declaration-syntax)
-- [DST (Dynamically Sized Types)](#dst-dynamically-sized-types)
+- [Vectors](#vectors)
+  - [*Initialization* syntax](#initialization-syntax-1)
+    - [Syntax options for *pre initialized* vectors:](#syntax-options-for-pre-initialized-vectors)
+    - [Syntax options for *empty* vectors:](#syntax-options-for-empty-vectors)
+  - [*Type declaration* syntax](#type-declaration-syntax-1)
+- [Slices](#slices)
 - [Enums](#enums)
   - [Syntax](#syntax)
-    - [*Type declaration* syntax](#type-declaration-syntax-1)
+    - [*Type declaration* syntax](#type-declaration-syntax-2)
       - [Example](#example-1)
-    - [*Initialization* syntax](#initialization-syntax-1)
+    - [*Initialization* syntax](#initialization-syntax-2)
   - [Access to `enum` variant](#access-to-enum-variant)
       - [Example](#example-2)
 - [Primitive Type never](#primitive-type-never)
@@ -43,9 +49,9 @@
       - [Example](#example-4)
 - [Structs](#structs)
   - [Syntax](#syntax-2)
-    - [*Type declaration* syntax](#type-declaration-syntax-2)
+    - [*Type declaration* syntax](#type-declaration-syntax-3)
       - [Example](#example-5)
-    - [*Initialization* syntax](#initialization-syntax-2)
+    - [*Initialization* syntax](#initialization-syntax-3)
       - [`Struct` constructor](#struct-constructor)
         - [Example](#example-6)
       - [Method `new()`](#method-new)
@@ -53,27 +59,22 @@
       - [Example](#example-7)
 - [Tuple structs](#tuple-structs)
   - [Syntax](#syntax-3)
-    - [*Type declaration* syntax](#type-declaration-syntax-3)
+    - [*Type declaration* syntax](#type-declaration-syntax-4)
       - [Examples](#examples-5)
-    - [*Initialization* syntax](#initialization-syntax-3)
+    - [*Initialization* syntax](#initialization-syntax-4)
       - [Examples](#examples-6)
 - [Tuples](#tuples)
-  - [*Initialization* syntax](#initialization-syntax-4)
+  - [*Initialization* syntax](#initialization-syntax-5)
     - [Syntax options for *pre initialized* tuples:](#syntax-options-for-pre-initialized-tuples)
-  - [*Type declaration* syntax](#type-declaration-syntax-4)
+  - [*Type declaration* syntax](#type-declaration-syntax-5)
   - [Access to fields of a tuple](#access-to-fields-of-a-tuple)
 - [Unit-like structs](#unit-like-structs)
   - [Syntax](#syntax-4)
-    - [*Type declaration* syntax](#type-declaration-syntax-5)
+    - [*Type declaration* syntax](#type-declaration-syntax-6)
       - [Examples](#examples-7)
-    - [*Initialization* syntax](#initialization-syntax-5)
+    - [*Initialization* syntax](#initialization-syntax-6)
       - [Examples](#examples-8)
 - [Type aliases](#type-aliases)
-- [Vectors](#vectors)
-  - [*Initialization* syntax](#initialization-syntax-6)
-    - [Syntax options for *pre initialized* vectors:](#syntax-options-for-pre-initialized-vectors)
-    - [Syntax options for *empty* vectors:](#syntax-options-for-empty-vectors)
-  - [*Type declaration* syntax](#type-declaration-syntax-6)
 
 <br>
 
@@ -189,9 +190,9 @@ let flag = v as i32;
 <br>
 
 # Strings
-A **string** is a sequence of `Unicode` scalar values encoded as a stream of `UTF-8` bytes.<br>
-
-Rust has two main types of strings: `&str` and `String`.
+The **UTF-8** encodes **code points** (**Unicode characters**) in **one** to **four** bytes, depending on the value of the code point.<br>
+Rust has two main types of strings: `&str` (reference to string slice) and `String`.<br>
+The type `String` has a **resizable buffer** holding **UTF-8** encoded bytes.<br>
 
 <br>
 
@@ -421,6 +422,13 @@ It is **ZST** (**zero-sized type**).
 
 <br>
 
+# DST
+DST (Dynamically Sized Types) 
+ (aka DST aka
+[More here](../traits/utility-traits/Sized.md)
+
+<br>
+
 # Arrays
 An **array** is **fixed-size** *collection* of elements of **the same type**.<br>
 Arrays are **allocated** on the **stack**.
@@ -461,8 +469,56 @@ let arr2: [u64; 3] = [100; 3];
 
 <br>
 
-# DST (Dynamically Sized Types)
-[More here](https://github.com/carmenere/easy-rust/blob/main/traits/utility-traits/Sized.md)
+# Vectors
+A **vector** is *collection* of elements of **the same type** that is allowed to **grow** or **shrink** *in size* **at runtime**.<br>
+Vectors are **allocated** on the **heap**.<br>
+`Vec` is a type for **vector** provided by the **standard library**.<br>
+
+`capacity` is the number of elements the `Vec` can hold without reallocating.
+
+<br>
+
+## *Initialization* syntax
+### Syntax options for *pre initialized* vectors:
+- **Comma-delimited** by `vec!` macros: explicit enumeration of values within square brackets \[\]:
+```Rust
+let v = vec![0, 1, 2];
+```
+
+- **Repeat expression** by `vec!` macros: \[`V`; `N`\], where the **value** `V` is **repeated** `N` times:
+```Rust
+let v = vec![100; 5];
+```
+
+### Syntax options for *empty* vectors:
+- **Vector type constructor**:
+```Rust
+let v3: Vec<i64> = Vec::with_capacity(10);
+```
+- **Repeat expression** where `N` = 0:
+```Rust
+let v = vec![100; 0];
+```
+
+
+<br>
+
+## *Type declaration* syntax
+- `Vec<T>`
+```Rust
+let v3: Vec<i64> = Vec::with_capacity(10);
+```
+
+<br>
+
+# Slices
+A **slice** is a **DST** representing a *view* into a **contiguous sequence of elements** of type `T`.<br>
+The **slice type** is written as `[T]`, **without** specifying the **length**.<br>
+
+**DST** means slices **don't** implement the trait `Sized` and therefore slices **can’t** be stored directly in variables or passed as function arguments, e.g. `let s: [u64];` causes to error.<br>
+
+[More here](../ownership-borrowing/slices.md)
+
 
 <br>
 
@@ -841,45 +897,3 @@ type MySend = Box<dyn Fn() + Send + 'static>;
 ```
 
 In the above example type alias `MySend` can be used instead `Box<dyn Fn() + Send + 'static>`.
-
-<br>
-
-# Vectors
-A **vector** is *collection* of elements of **the same type** that is allowed to **grow** or **shrink** *in size* **at runtime**.<br>
-Vectors are **allocated** on the **heap**.<br>
-`Vec` is a type for **vector** provided by the **standard library**.<br>
-
-`capacity` is the number of elements the `Vec` can hold without reallocating.
-
-<br>
-
-## *Initialization* syntax
-### Syntax options for *pre initialized* vectors:
-- **Comma-delimited** by `vec!` macros: explicit enumeration of values within square brackets \[\]:
-```Rust
-let v = vec![0, 1, 2];
-```
-
-- **Repeat expression** by `vec!` macros: \[`V`; `N`\], where the **value** `V` is **repeated** `N` times:
-```Rust
-let v = vec![100; 5];
-```
-
-### Syntax options for *empty* vectors:
-- **Vector type constructor**:
-```Rust
-let v3: Vec<i64> = Vec::with_capacity(10);
-```
-- **Repeat expression** where `N` = 0:
-```Rust
-let v = vec![100; 0];
-```
-
-
-<br>
-
-## *Type declaration* syntax
-- `Vec<T>`
-```Rust
-let v3: Vec<i64> = Vec::with_capacity(10);
-```

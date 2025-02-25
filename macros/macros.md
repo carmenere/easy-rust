@@ -329,7 +329,7 @@ The `stringify!` macro used here is built into Rust. It takes a Rust **expressio
 <br>
 
 # More examples
-More examples [here](https://github.com/carmenere/easy-rust/blob/main/examples/macros/macros.md).
+More examples [here](../examples/macros/macros.md).
 
 <br>
 

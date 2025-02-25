@@ -439,7 +439,7 @@ Rust is an **expression-oriented language**. This means that **most things are e
 
 <br>
 
-*Semicolon* **drops** *left part* and **returns** *right part*. If there is **nothing** *on the right* *semicolon* `;` returns [**unit type**](https://github.com/carmenere/easy-rust/blob/main/basics/types.md#unit-type-).
+*Semicolon* **drops** *left part* and **returns** *right part*. If there is **nothing** *on the right* *semicolon* `;` returns [**unit type**](./types.md).
 
 <br>
 
