@@ -189,13 +189,25 @@ let flag = v as i32;
 
 # Strings
 Rust has 2 types for strings: `str` and `String`. Both `str` and `String` contain **Unicode characters** encoded with **UTF-8**.<br>
-In other words, string in Rust is a **UTF-8** encoded sequence of bytes. The **UTF-8** encodes **code points** (**Unicode characters**) in **1** to **4** bytes.<br>
+In other words, string in Rust is a **UTF-8** encoded sequence of bytes.<br>
+**Unicode characters** encoded with **UTF-8** have **variable length** from **1** to **4** bytes.<br>
+**UTF-8** is backward-compatible with **ASCII**. The first 128 UTF-8 characters precisely match the first 128 ASCII characters, meaning that existing ASCII text is already valid UTF-8.<br>
 
 <br>
 
 ## String literals
+[**More about string slices here**](../ownership-borrowing/slices.md).<br>
+**String literals** are **statically allocated**, i.e., they are hardcoded into binary and exists while programme is running and have type `&'static str`.<br>
+
+Example:
+```Rust
+let s: &str = "ABC";
+```
+
+<br>
+
 Types of string literal:
-- `"..."`	**string literal**, escapes:
+- `"..."`	**string literal**, some special symbols:
   - `\n` becomes new line;
   - `\r`
   - `\t`

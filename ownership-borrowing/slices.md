@@ -4,7 +4,7 @@
   - [Slice notation](#slice-notation)
   - [Slice rules](#slice-rules)
   - [String slice](#string-slice)
-    - [Examples](#examples)
+  - [`impl str`](#impl-str)
   - [String slice as type of function parameter](#string-slice-as-type-of-function-parameter)
   - [Get last element of dynamically growing collection](#get-last-element-of-dynamically-growing-collection)
 
@@ -101,16 +101,33 @@ We could use that value 5 with the variable `s` to try to extract the first word
 <br>
 
 ## String slice
-Rust has 2 types for strings: `str` and `String`. Both `str` and `String` contain **Unicode characters** encoded with **UTF-8**.<br>
-In other words, string in Rust is a **UTF-8** encoded sequence of bytes. The **UTF-8** encodes **code points** (**Unicode characters**) in **1** to **4** bytes.<br>
-
 The type `str` is a **string slice**. Semantically `str` can be represented as 
 ```rust
 struct str([u8])
 ```
 
-You can think of a `str` as a `[u8]` which has **additional guarantees** that **sequence of bytes** `[u8]` contains valid **UTF-8** encoded chars.<br>
+You can think of a `str` as a `[u8]` which has **additional guarantees** that **sequence of bytes** `[u8]` contains valid **UTF-8** encoded **Unicode chars**.<br>
 
+Because `str` is a **slice** it used in its borrowed form: `&str` and `&str` is also called **string slice**.<br>
+The type `&str` is a **reference to a string slice** with some **lifetime** and `&str` is also called **string slice**.<br>
+**String literals** are **statically allocated**, i.e., they are hardcoded into binary and exists while programme is running and have type `&'static str`.<br>
+So, all **string literals** are `&strs`, but **not** all `&strs` are **string literal**.<br>
+
+<br>
+
+Example:
+```Rust
+let s = String::from("hello world");
+let hello = &s[0..5];
+let world = &s[6..11];
+```
+
+Range indices for `String` slice must occur at **valid** UTF-8 character boundaries.<br>
+If you attempt to create a `String` slice in the middle of a multibyte character, your program will exit with an error.<br>
+
+<br>
+
+## `impl str`
 The type `str` is **builtin type** and defined inside compiler. But `impl str` is defined in `std`:
 ```rust
 #[cfg(not(test))]
@@ -130,33 +147,6 @@ impl str {
     }
 }
 ```
-
-<br>
-
-Because `str` is a **slice** it used in its borrowed form: `&str` and `&str` is also called **string slice**.<br>
-The type `&str` is a **reference to a string slice** with some **lifetime** and `&str` is also called **string slice**.<br>
-**String literals** are **statically allocated**, i.e., they are hardcoded into binary and exists while programme is running and have type `&'static str`.<br>
-
-So, all **string literals** are `&strs`, but **not** all `&strs` are **string literal**.<br>
-
-<br>
-
-### Examples
-```Rust
-let s: &str = "ABC";
-```
-
-<br>
-
-Example:
-```Rust
-let s = String::from("hello world");
-let hello = &s[0..5];
-let world = &s[6..11];
-```
-
-Range indices for `String` slice must occur at **valid** UTF-8 character boundaries.<br>
-If you attempt to create a `String` slice in the middle of a multibyte character, your program will exit with an error.<br>
 
 <br>
 
