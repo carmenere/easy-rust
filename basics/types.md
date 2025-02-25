@@ -14,10 +14,8 @@
 - [Type casting](#type-casting)
 - [Strings](#strings)
   - [String literals](#string-literals)
-  - [`&str`](#str)
-    - [Examples](#examples-3)
   - [`String`](#string)
-    - [Examples](#examples-4)
+    - [Examples](#examples-3)
   - [Methods](#methods)
   - [Bytes. Chars. Vec](#bytes-chars-vec)
   - [Conversions between string types](#conversions-between-string-types)
@@ -60,9 +58,9 @@
 - [Tuple structs](#tuple-structs)
   - [Syntax](#syntax-3)
     - [*Type declaration* syntax](#type-declaration-syntax-4)
-      - [Examples](#examples-5)
+      - [Examples](#examples-4)
     - [*Initialization* syntax](#initialization-syntax-4)
-      - [Examples](#examples-6)
+      - [Examples](#examples-5)
 - [Tuples](#tuples)
   - [*Initialization* syntax](#initialization-syntax-5)
     - [Syntax options for *pre initialized* tuples:](#syntax-options-for-pre-initialized-tuples)
@@ -71,9 +69,9 @@
 - [Unit-like structs](#unit-like-structs)
   - [Syntax](#syntax-4)
     - [*Type declaration* syntax](#type-declaration-syntax-6)
-      - [Examples](#examples-7)
+      - [Examples](#examples-6)
     - [*Initialization* syntax](#initialization-syntax-6)
-      - [Examples](#examples-8)
+      - [Examples](#examples-7)
 - [Type aliases](#type-aliases)
 
 <br>
@@ -197,7 +195,7 @@ In other words, string in Rust is a **UTF-8** encoded sequence of bytes. The **U
 
 ## String literals
 Types of string literal:
-- `"..."`	**string literal**, it is UTF-8 `&'static str`, it **interprets common escapes**:
+- `"..."`	**string literal**, escapes:
   - `\n` becomes new line;
   - `\r`
   - `\t`
@@ -214,21 +212,6 @@ Types of string literal:
 - `br#"..."#` **raw byte string literal** that can also contain `"`;
 - `b'x'` **ASCII byte literal**, it is a **single u8 byte**;
 - `'A'` **character literal**, it is **fixed 4 byte unicode char**;
-
-<br>
-
-## `&str`
-Because `str` is a **slice** it used in its borrowed form: `&str`.<br>
-The `&str` type is called **string literal** or **string slice**.<br>
-*Strings* of `&str` type are **statically allocated**, i.e., they are hardcoded into binary and exists while programme is running.<br>
-*Strings* of `&str` type have a **fixed-size** and **cannot be mutated**, i.e., they are **immutable**.<br>
-
-<br>
-
-### Examples
-```Rust
-let s: &str = "ABC";
-```
 
 <br>
 

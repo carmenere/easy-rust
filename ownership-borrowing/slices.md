@@ -4,6 +4,7 @@
   - [Slice notation](#slice-notation)
   - [Slice rules](#slice-rules)
   - [String slice](#string-slice)
+    - [Examples](#examples)
   - [String slice as type of function parameter](#string-slice-as-type-of-function-parameter)
   - [Get last element of dynamically growing collection](#get-last-element-of-dynamically-growing-collection)
 
@@ -133,9 +134,17 @@ impl str {
 <br>
 
 Because `str` is a **slice** it used in its borrowed form: `&str` and `&str` is also called **string slice**.<br>
-The type `&str` is a **reference to a string slice** with some **lifetime**.<br>
-**String literals** have type `&'static str`.<br>
+The type `&str` is a **reference to a string slice** with some **lifetime** and `&str` is also called **string slice**.<br>
+**String literals** are **statically allocated**, i.e., they are hardcoded into binary and exists while programme is running and have type `&'static str`.<br>
+
 So, all **string literals** are `&strs`, but **not** all `&strs` are **string literal**.<br>
+
+<br>
+
+### Examples
+```Rust
+let s: &str = "ABC";
+```
 
 <br>
 
