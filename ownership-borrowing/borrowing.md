@@ -80,8 +80,8 @@ fn main() {
 
 Here:
 - `val` mutable value
-- `&val`  shared reference
-- `&mut val`	mutable reference
+- `&val` shared reference
+- `&mut val` mutable reference
 - `b1` immutable borrower
 - `b2` immutable borrower
 - `b3` mutable borrower
