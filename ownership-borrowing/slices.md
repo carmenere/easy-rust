@@ -25,9 +25,9 @@ The **slice type** is written as `[T]`, **without** specifying the **length**.<b
 
 Illustration:
 ```bash
-+----+----+---+----+
-| Pointer | Length |  &[T] (or &str)
-+----+----+---+----+
++---+---+---+---+
+|Pointer| Length|  &[T] (or &str)
++---+---+---+---+
     |
     V
     +---+---+---+---+---+

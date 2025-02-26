@@ -6,10 +6,10 @@
 - [Overflow-checks](#overflow-checks)
   - [Examples](#examples)
 - [Constants](#constants)
-  - [Notes](#notes)
   - [Examples](#examples-1)
 - [Static](#static)
   - [Examples](#examples-2)
+- [`const` vs. `static`](#const-vs-static)
 - [Range operator](#range-operator)
 - [Type casting](#type-casting)
 - [Strings](#strings)
@@ -121,7 +121,9 @@ RUSTFLAGS="-C overflow-checks=yes|no" cargo run
 <br>
 
 # Constants
-## Notes
+Constant is **not** variable or place in memory, it is **compile time computation**.<br>
+
+**Properties**:
 - **Uppercase** by convention.
 - Data type is **mandatory**.
 - Values can not be changed.
@@ -165,6 +167,23 @@ fn main () {
     }
 }
 ```
+
+<br>
+
+# `const` vs. `static`
+`const`:
+- **has no fixed address in memory**;
+- value is **inlined** to each place where it is used;
+- **faster** runtime;
+- **bigger** executable file;
+
+<br>
+
+`static`:
+- **has fixed address in memory**;
+- value is **loaded from memory**;
+- **slower** runtime because we need load data from memory;
+- **smaller** executable file;
 
 <br>
 

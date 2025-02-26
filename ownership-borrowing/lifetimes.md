@@ -2,19 +2,26 @@
 
 - [Table of contents](#table-of-contents)
 - [Lifetimes](#lifetimes)
+  - [Lifetimes and scopes](#lifetimes-and-scopes)
+  - [NLL and iterator invalidation](#nll-and-iterator-invalidation)
   - [Lifetimes in functions](#lifetimes-in-functions)
-  - [Lifetimes rules](#lifetimes-rules)
   - [Lifetimes in structs](#lifetimes-in-structs)
   - [Lifetimes in impl blocks](#lifetimes-in-impl-blocks)
+- [Lifetime subtyping](#lifetime-subtyping)
+  - [Example](#example)
 - [Lifetime arithmetic](#lifetime-arithmetic)
+    - [Type declaration](#type-declaration)
+    - [Borrowing](#borrowing)
+    - [Assigning reference to reference](#assigning-reference-to-reference)
+    - [Struct's lifetimes](#structs-lifetimes)
+    - [Double references](#double-references)
+    - [Static scope](#static-scope)
   - [Examples](#examples)
     - [Example 1](#example-1)
     - [Example 2](#example-2)
     - [Example 3](#example-3)
     - [Example 4](#example-4)
 - [Interpretation of lifetimes](#interpretation-of-lifetimes)
-  - [Lifetime subtyping](#lifetime-subtyping)
-  - [Example](#example)
 - [Lifetimes bounds](#lifetimes-bounds)
 - ['static lifetime](#static-lifetime)
   - [Rules for 'static lifetime bound](#rules-for-static-lifetime-bound)
@@ -24,6 +31,8 @@
     - [Return reference to value from function](#return-reference-to-value-from-function)
 - [Anonymous lifetimes](#anonymous-lifetimes)
 - [Higher-Rank Trait Bounds (HRTBs)](#higher-rank-trait-bounds-hrtbs)
+  - [Example 1](#example-1-1)
+  - [Example 2](#example-2-1)
 
 <br>
 
@@ -31,31 +40,71 @@
 Every **reference** must be **valid** until the **lender** is **destroyed**.<br>
 A **lifetime** is the **scope** within which a **reference** must be **valid**.<br>
 *Lifetimes* are **denoted** with an **apostrophe**: `'a`, `'b`.<br>
+The **lifetimes** help Rust find **dangling pointers**.<br>
 
-Technically, **every reference has** some **lifetime** associated with it, but the compiler lets you **elide** them in common cases.<br>
+Technically, **every** reference has some **lifetime** associated with it, but the compiler lets you **elide** them in common cases.<br>
 It is called **lifetime elision** or **implicit lifetime annotation**. It is because the Rust compiler is smart enough to infer lifetimes in many cases.<br>
-But sometimes it is needed to specify lifetimes **explicitly**. That’s because of how the lifetime elision works.<br>
-When a function accepts **multiple references**, they’re **each** given **their own lifetime**.<br>
+But sometimes it is needed to specify lifetimes **explicitly**.<br>
+
+**Lifetimes rules**:
+1. **Each** function’s parameter that is **reference** gets its **own** *lifetime parameter* (aka **elided lifetime**).
+2. If there is exactly **one input** *lifetime parameter*, it is assigned to **all output** *lifetime parameters*.
+3. If there are **multiple input** *lifetime parameters*, but one of them is `&self` or `&mut self`, the **lifetime** of `self` is assigned to **all output** *lifetime parameters*.
+
+<br>
 
 From Rust point of view, signature:`fn f (s1: &str, s2: &str) → &str` is **equal** to signature:`fn f<'a, 'b> (s1: &'a str, s2: &'b str) → &'??? str`<br>
 So, `rustc` sets to `s1` and `s2` **different** lifetimes and `rustc` **doesn't** know what lifetime to assign to **returning value**.<br>
 That is why compiler return error. So we must **explicitly** set lifetimes for input and output parameters.<br>
 Example: `fn f<'a> (s1: &'a str, s2: &'a str) → &'a str`.<br>
 
-The **lifetimes** help Rust find **dangling pointers**.<br>
+<br>
+
+From Rust point of view, this code:
+```rust
+fn run<'a>(&self, x: &'a Foo) -> &i32
+```
+is equivalent to:
+```rust
+fn run<'a, 'b>(&'b self, x: &'a Foo) -> &'b i32
+```
+
+<br>
+
+## Lifetimes and scopes
+In everyday speech, the word **lifetime** can be used in two distinct – but similar – ways:
+- the **lifetime of a reference**, corresponding to the span of time in which that reference is **used** and **valid**;
+- the **lifetime of a value**, corresponding to the span of time before that value is **destroyed**;
+
+To distinguish these cases, we refer to *lifetime of a value* as **scope**.<br>
+
+A **scope of value** means **Lexical Lifetime** (**LL**) which **begins** when value is **created** by `let var = value;` assigning to variable and **ends** when it is **destroyed** (closing curly bracket `}` or `drop()`).<br>
+A **lifetime of a reference** means **Non-Lexical Lifetime** (**NLL**) which **begins** when **reference** is **created** by `let` keyword and **ends** when it is **used last time**.<br>
+
+**Lifetimes** and **scopes** are linked to one another. A **lifetime** is the **scope** within which a **reference** must be **valid**. If you make a reference to a value, the lifetime of that reference **cannot outlive** the scope of that value. Otherwise, your reference would be pointing into freed memory.<br>
+
+<br>
+
+## NLL and iterator invalidation
+**NLL** prevents a common error called **iterator invalidation**, where the program modifies a collection while iterating over it.<br>
+
+Rust rejects following code, because it borrows ``v`` both **immutably** and **mutably**:
+```Rust
+let mut v = vec![1, 2];
+
+// Borrows `v` immutably
+for i in &v {
+    // Error: borrows `v` mutably, but `v` was already borrowed.
+    v.push(*i);
+}
+```
+
+<br>
 
 ## Lifetimes in functions
 For function there are 2 kind of **lifetime parameters**:
 - **Input lifetime parameter** is a lifetime associated with a **parameter** of a function. 
 - **Output lifetime parameter** is a lifetime associated with the **return value** of a function.
-
-<br>
-
-## Lifetimes rules
-**Lifetimes rules**:
-1. Each function’s parameter that is **reference** gets its own **lifetime parameter** (aka **elided lifetime**).
-2. If there is exactly **one input** *lifetime parameter*, it is assigned to **all output** *lifetime parameters*.
-3. If there are **multiple input** *lifetime parameters*, but one of them is `&self` or `&mut self`, the **lifetime** of `self` is assigned to **all output** *lifetime parameters*.
 
 <br>
 
@@ -93,6 +142,113 @@ fn main() {
 
 <br>
 
+# Lifetime subtyping
+Consider following code:
+```Rust
+fn max<'a, 'b>(x: &'a i32, y: &'b i32) -> &'a i32 {
+    if *x > *y {
+        x
+    } else {
+        y
+    }
+}
+```
+
+```bash
+cargo run
+   Compiling playrs v0.1.0 (/Users/an.romanov/Projects/play.rust-lang.org)
+error[E0623]: lifetime mismatch
+  --> src/main.rs:10:9
+   |
+6  | fn max<'a, 'b>(x: &'a i32, y: &'b i32) -> &'a i32 {
+   |                               -------     -------
+   |                               |
+   |                               this parameter and the return type are declared with different lifetimes...
+...
+10 |         y
+   |         ^ ...but data from `y` is returned here
+
+For more information about this error, try `rustc --explain E0623`.
+error: could not compile `playrs` due to previous error
+```
+
+This program **doesn't compile**, because the lifetimes `'a` and `'b` are **independent**.<br>
+
+Rust allows you to declare that lifetime `a` contains another lifetime. It is called **lifetime subtyping**.<br>
+Notations of **lifetime subtyping**:<br>
+- `fn max<'a, 'b: 'a>(x: &'a i32, y: &'b i32) -> &'a i32`;
+- `fn max<'a, 'b>(x: &'a i32, y: &'b i32) -> &'a i32 where 'b: 'a`;
+
+<br>
+
+Notation `'long: 'short` means `'long` **outlives** `'short`.<br>
+
+<br>
+
+**Subtyping** is the idea that one type (called **subtype**) can be used in place of another type.<br>
+
+Given two types `Sub` and `Super`, where `Sub` is a **subtype** of `Super`. The **variance** of generic type `F<T>` defines **relationships** between **generic types** based on their **generic parameters**. There are **three** kinds of variance in Rust:
+- `F<T>` is **covariant** over `T` if `T` is a **subtype** of `U` then `F<T>` is a **subtype** of `F<U>`;
+- `F<T>` is **contravariant** over `T` if `T` is a **subtype** of `U` then `F<U>` is a **subtype** of `F<T>`;
+- `F<T>` is **invariant** over `T` otherwise (**no subtyping relation can be derived**);
+
+If `'long` **outlives** `'short`, then `&'long T` is a **subtype** of `&'short T`. That is, `&'long T` can be used wherever `&'short T` is expected (because it lives at least as long).<br>
+But for **mutable refs** it's **not the truth**: if `'long` **outlives** `'short`, then `&'long mut T` **cannot** be a **subtype** of `&'short mut T`.<br>
+
+<br>
+
+|Type|Variance in 'a|Variance in T|
+|:---|:-------------|:------------|
+|`&'a T`|covariant|covariant|
+|`&'a mut T`|covariant|**invariant**|
+|`dyn Trait<T> + 'a`|covariant|**invariant**|
+
+Consider the following example: **string literals** always have `'static` lifetime. Nevertheless, we can assign `s` to `t`:
+```rust
+fn bar<'a>() {
+    let s: &'static str = "hi";
+    let t: &'a str = s;
+}
+```
+
+Since `'static` **outlives** the lifetime parameter `'a`, `&'static str` is a **subtype** of `&'a str`.<br>
+
+<br>
+
+## Example
+```rust
+#[derive(Debug)]
+struct Movie<'a> {
+    title: &'a str,
+    rating: u8,
+}
+
+#[derive(Debug)]
+struct Reviewer<'a, 'b: 'a> {
+    movie: &'a Movie<'b>,
+    name: &'a str,
+}
+
+impl<'a, 'b> Reviewer<'a, 'b> {
+    fn new(name: &'a str, movie: &'b Movie) -> Self {
+        Reviewer { movie: movie, name: name }
+    }
+}
+
+fn main() {
+    let movie = Movie {
+        title: "Foo",
+        rating: 10,
+    };
+
+    println!("{:?}", Reviewer::new("Bar", &movie));
+}
+```
+
+Here `'b` specifies that lifetimes of the `Movie` struct **outlives** the `Reviewer` struct.
+
+<br>
+
 # Lifetime arithmetic
 In fact, **scopes** and **lifetimes** are **different concepts**:
 - in rust code, **all** objects, including constants, owned variables and references, **have scopes**;
@@ -101,42 +257,77 @@ In fact, **scopes** and **lifetimes** are **different concepts**:
 <br>
 
 For the expression `x: &'a T`, instead of saying `'a` is the lifetime of `x`, we should say: `'a` is a **lifetime parameter associated** with the **reference** `x`.<br>
-
 In terms of algebra, **scopes** are **values** like `1`, `2`, `3`, and **lifetimes** are **variables** like `x`, `y`, `z`.<br>
 
-Rules:
-1. **Association rule**: `x: &'a T` ⇒ `scope(x)` ⊆ `'a T`.
-In other words: the lifetime associated with the reference is a **superset** of the scope of this reference.
+<br>
 
-2. **Reference rule**: `x: &'a T = &y` ⇒ `'a T` ⊆ `scope(y)`. Here `y` is **owned type**.
-In other words: a lifetime associated with a reference is a **subset** of the scope of the referent object.
+### Type declaration
+```rust
+x: &'a T
+```
 
-3. **Assignment rule**: `x: &'a S = y: &'b T` ⇒ `'a` ⊆ `'b`. Here `x` and `y` are both references.
-In other words: the lifetime associated with the assignee is a **subset** of the lifetime associated with the assigner.
+<br>
 
-4. **Struct reference rule**: given a struct `S<'a> { x: &'a T }`, then `s: &'b S<'a>` ⇒ `'b` ⊆ `'a`.
-In other words: the lifetime associated with a struct reference is a **subset** of the lifetime associated with the struct member.
+The **lifetime** `'a` associated with the reference **outlives scope** of identifier `x` (denote scope of `x` as `'x`) that stores this reference, i.e. `'a: 'x`.<br>
 
-*Proof*.
-- for `s: &'b S<'a>`, there must be an object `y: S<'a>`, such that `s: &'b S` = `&y`;
-- `x: &'a T` ⇒ `scope(x)` ⊆ `'a T`;
-- `y: S<'a> = S::new()` ⇒ `scope(y.x)` ⊆ `'a T`;
-- `s: &'b S<'a> = &y` ⇒ `'b` ⊆ `scope(y)`, `scope(y)` = `scope(S<'a>)`;
-- `scope(y.x)` = `scope(y)`;
-- `'b` ⊆ `scope(y)` = `scope(y.x)` ⊆ `'a T`;
-So, `'b: 'a`.
+<br>
 
-5. **Double reference rule**:
-- `x: &'b &'a T` ⇒ `'b ⊆ 'a`
+### Borrowing
+```rust
+x: &'a T = &y
+```
+here `y` is **lender**.<br>
 
-6. **Lifetime bound**:
-- `'b: 'a` ⇔ `'a ⊆ 'b`
+<br>
 
-7. **Static scope**:
-- `'a` ⇒ `'a ⊆ 'static`
+The **scope** of **lender** `y` (denote scope of `y` as `'y`) **outlives** the **lifetime** `'a` associated with the reference to lender: `'y: 'a`.<br>
+In other words, **lifetime** of **reference** is *less than or equal to* **sope** of **lender**.<br>
 
-Only **static objects** have **static scopes**.
-Static objects are **not** located in **stack** or **heap**. They are **located** in **data segments** or **code segments** that are mapped to the process memory.
+<br>
+
+### Assigning reference to reference
+```rust
+x: &'a T = y: &'b T
+```
+here `x` and `y` are both references.<br>
+
+<br>
+
+The **lifetime** `'b` of the **assignor** `y` **outlives** the **lifetime** `'a` of the **assignee** `x`: `'b: 'a`.<br>
+
+<br>
+
+### Struct's lifetimes
+Consider **struct** that **contains reference**:
+```rust
+S<'b> { x: &'b T }
+```
+
+And consider **reference to struct**:
+```rust
+&'a S<'b>
+```
+
+<br>
+
+The **lifetime** `'b` associated with the *member of struct* **otlives** the **lifetime** `'a` associated with a **reference to struct**: `'b: 'a`.<br>
+
+<br>
+
+### Double references
+```rust
+x: &'b &'a T
+```
+
+<br>
+
+The lifetime `'a` **otlives** the lifetime `'b`: `'a: 'b`.<br>
+
+<br>
+
+### Static scope
+Static objects are **not** located in **stack** or **heap**. They are **located** in **data segments** or **code segments** that are mapped to the process memory.<br>
+`'static` lifetime **outlives** any lifetime `'a`: `'static: 'a`.<br>
 
 <br>
 
@@ -300,86 +491,9 @@ It means that the **lifetime** of varibale `result` can last until the end of sc
 
 <br>
 
-## Lifetime subtyping
-Consider following code:
-```Rust
-fn max<'a, 'b>(x: &'a i32, y: &'b i32) -> &'a i32 {
-    if *x > *y {
-        x
-    } else {
-        y
-    }
-}
-```
-
-```bash
-cargo run
-   Compiling playrs v0.1.0 (/Users/an.romanov/Projects/play.rust-lang.org)
-error[E0623]: lifetime mismatch
-  --> src/main.rs:10:9
-   |
-6  | fn max<'a, 'b>(x: &'a i32, y: &'b i32) -> &'a i32 {
-   |                               -------     -------
-   |                               |
-   |                               this parameter and the return type are declared with different lifetimes...
-...
-10 |         y
-   |         ^ ...but data from `y` is returned here
-
-For more information about this error, try `rustc --explain E0623`.
-error: could not compile `playrs` due to previous error
-```
-
-This program **doesn't compile**, because the lifetimes `'a` and `'b` are **independent**.<br>
-
-Rust allows you to declare that lifetime `a` contains another lifetime. It is called **lifetime subtyping**.<br>
-Notations of **lifetime subtyping**:<br>
-- `fn max<'a, 'b: 'a>(x: &'a i32, y: &'b i32) -> &'a i32`;
-- `fn max<'a, 'b>(x: &'a i32, y: &'b i32) -> &'a i32 where 'b: 'a`;
-
-<br>
-
-Notation `'left: 'right` means `'left` **outlives** `'right`, and `'left` is a **subtype** of `'right`, i.e., `'right` <= `'left`.
-
-<br>
-
-## Example
-```rust
-#[derive(Debug)]
-struct Movie<'a> {
-    title: &'a str,
-    rating: u8,
-}
-
-#[derive(Debug)]
-struct Reviewer<'a, 'b: 'a> {
-    movie: &'a Movie<'b>,
-    name: &'a str,
-}
-
-impl<'a, 'b> Reviewer<'a, 'b> {
-    fn new(name: &'a str, movie: &'b Movie) -> Self {
-        Reviewer { movie: movie, name: name }
-    }
-}
-
-fn main() {
-    let movie = Movie {
-        title: "Foo",
-        rating: 10,
-    };
-
-    println!("{:?}", Reviewer::new("Bar", &movie));
-}
-```
-
-Here `'b` specifies that lifetimes of the `Movie` struct **must live as long** or **longer** than the `Reviewer` struct.
-
-<br>
-
 # Lifetimes bounds
 **Syntactic forms**:
-- `S<T> where T: 'a` **type lifetime bound**; if `T` has **references**, they **must outlive** `'a`;
+- `S<T> where T: 'a` **lifetime bound**: it means if `T` has **references**, they all **must outlive** `'a`;
 - `S<T> where 'b: 'a` **lifetime** `'b` **must live** *at least as long as* (**outlive**) `'a` **bound**;
 
 <br>
@@ -529,7 +643,105 @@ They both compile without errors. But **second** is **clearer** because it tells
 <br>
 
 # Higher-Rank Trait Bounds (HRTBs)
-**HRTBs** are most commonly used with the `Fn*` traits.<br>
+## Example 1
+Consider example:
+```rust
+use std::fmt::Display;
+
+trait Processor {
+    fn process<T: Display>(&self, value: T) -> String;
+}
+
+struct MyProcessor;
+ 
+impl Processor for MyProcessor {
+    fn process<T: Display>(&self, value: T) -> String {
+        format!("{}", value)
+    }
+}
+
+fn get_processor<P>(processor: P) -> impl Fn(&str) -> String
+where
+    P: Processor,
+{
+    move |value| processor.process(value)
+}
+
+fn main(){
+    let processor = MyProcessor;
+    let process_closure = get_processor(processor);
+ 
+    let item_1 = "10".to_string();
+    let item_2 = "20".to_string();
+ 
+    println!("{}", process_closure(&item_1));
+    println!("{}", process_closure(&item_2));
+}
+```
+
+It compiles.<br>
+
+Consider specifying lifetimes explicitly:
+```rust
+fn get_processor<'a, P>(processor: P) -> impl Fn(&'a str) -> String
+where
+    P: Processor,
+{
+    move |value| processor.process(value)
+}
+```
+
+<br>
+
+We have specified the lifetime `'a`, but it's **not** used in the function arguments, instead it's used in the argument of the closure returned by the function.<br>
+This syntax means that *references* that are *passed to the closure* returned by `get_processor()` must **outlive** *closure* itself.<br>
+
+This syntax causes to `error[E0597]: item_1 does not live long enough`.<br>
+
+Explanation:
+- the closure is stored in the `process_closure` variable, which lives until the end of the main function;
+- values in Rust are dropped in reverse order, meaning `item_2` is dropped, then `item_1`, and then closure stored in `process_closure`;
+- this means that the strings `item_1` and `item_2` will be dropped **before** the closure stored in `process_closure`;
+- once `item_1` is dropped, all the references to `item_1` will be invalid;
+- the problem is that the closure expects a reference that lives as long as the closure itself, but the string `item_1` is dropped before the closure;
+
+<br>
+
+We can **increase the lifetime** of the `item_1` and `item_2` by moving them **above** the `process_closure`:
+```rust
+fn main(){
+    let processor = MyProcessor;
+    let item_2 = "20".to_string();
+    let item_1 = "10".to_string();
+ 
+    let process_closure = get_processor(processor);
+ 
+    println!("{}", process_closure(&item_1));
+    println!("{}", process_closure(&item_2));
+}
+```
+
+But this is not a good approach.<br>
+
+The solution is to use `for<'a>` syntax which is called **H**igher-**R**anked **T**rait **B**ounds (**HRTB**).<br>
+The `for<'a>` syntax means that the **reference can be valid for any lifetime** (hence a **smaller** lifetime **can** be used).<br>
+In other words, the **returned closure** can be called with references of **any** lifetime.<br>
+
+<br>
+
+**Example** of closure with **HRTB**:
+```rust
+fn get_processor<P>(processor: P) -> impl for<'a> Fn(&'a str) -> String
+where
+    P: Processor,
+{
+    move |value| processor.process(value)
+}
+```
+
+<br>
+
+## Example 2
 This compiles:
 ```rust
 pub fn foo(f: impl for<'a> Fn(&'a i32) -> &'a i32) -> i32 {
@@ -565,8 +777,4 @@ y does not live long enough
 <br>
 
 - The **first** one says: the lifetime `'a` of the returned reference from `f` is the same as for the passed argument of `f` and it's **not** **directly related** to the **input** or **output** lifetimes of function `foo`.<br>
-- The **second** one says: there is a lifetime `'a` for which `f` takes a reference with that lifetime and also returns a reference with that lifetime. The lifetime of **local variable** `y` passed to `f` is **shorter** than `'a` in this case, but it must be at least as long as `'a`.<br>
-
-<br>
-
-`for<'a>` means that the **reference can be valid for any lifetime** (hence a smaller lifetime can be used).<br>
+- The **second** one says: there is a lifetime `'a` for which `f` takes a reference with that lifetime and also returns a reference with that lifetime. Lifetime `'a` is connected to function `foo` and `'a` outlives **scope of function** `foo`, but the lifetime of **local variable** `y` passed to `f` is **shorter** than `'a` in this case, but it must be at least as long as `'a`.<br>

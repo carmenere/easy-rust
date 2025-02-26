@@ -5,8 +5,6 @@
     - [Example 1](#example-1)
     - [Example 2.](#example-2)
 - [Operators](#operators)
-  - [NLL and iterator invalidation](#nll-and-iterator-invalidation)
-- [Lifetimes and scopes](#lifetimes-and-scopes)
 - [Borrowing rules](#borrowing-rules)
     - [Examples](#examples)
       - [Lend the value inside scope of shared reference](#lend-the-value-inside-scope-of-shared-reference)
@@ -108,38 +106,6 @@ Here:
 |:-------|:---|:----------|
 |`&`|**Reference operator**|To **borrow value**, i.e., take a reference.|
 |`*`|**Dereference operator**|To **use a borrowed value**.|
-
-<br>
-
-## NLL and iterator invalidation
-**NLL** prevents a common error called **iterator invalidation**, where the program modifies a collection while iterating over it.<br>
-
-Rust rejects following code, because it borrows ``v`` both **immutably** and **mutably**:
-```Rust
-let mut v = vec![1, 2];
-
-// Borrows `v` immutably
-for i in &v {
-    // Error: borrows `v` mutably, but `v` was already borrowed.
-    v.push(*i);
-}
-```
-
-<br>
-
-# Lifetimes and scopes
-In everyday speech, the word **lifetime** can be used in two distinct – but similar – ways:
-- the **lifetime of a reference**, corresponding to the span of time in which that reference is used;
-- the **lifetime of a value**, corresponding to the span of time before that value gets freed;
-
-To distinguish these cases, we refer to *lifetime of a value* as **scope**.<br>
-
-A **scope of value** means **Lexical Lifetime** (**LL**) which **begins** when value is **created** by `let var = value;` assigning to variable and **ends** when it is **destroyed** (closing curly bracket `}` or `drop()`).<br>
-A **lifetime of a reference** means **Non-Lexical Lifetime** (**NLL**) which **begins** when **reference** is **created** by `let` keyword and **ends** when it is **used last time**.<br>
-
-**Lifetimes** and **scopes** are linked to one another. A **lifetime** is the **scope** within which a **reference** must be **valid**. If you make a reference to a value, the lifetime of that reference **cannot outlive** the scope of that value. Otherwise, your reference would be pointing into freed memory.<br>
-
-*Lifetimes* are **denoted** with an **apostrophe**: `'a`, `'b`.<br>
 
 <br>
 

@@ -7,15 +7,20 @@
     - [Example](#example-1)
       - [Incorrect code](#incorrect-code)
       - [Working version](#working-version)
-- [Associated Types](#associated-types)
-- [Default type parameters](#default-type-parameters)
-  - [Operator Overloading](#operator-overloading)
-- [Generics vs. Associated types](#generics-vs-associated-types)
+- [Associated items](#associated-items)
+  - [Associated functions and methods](#associated-functions-and-methods)
+  - [Associated types](#associated-types)
+  - [GATs](#gats)
+    - [Default type parameters](#default-type-parameters)
+    - [Operator Overloading](#operator-overloading)
+    - [Generics vs. Associated types](#generics-vs-associated-types)
+  - [Associated constants](#associated-constants)
 - [Blanket implementations](#blanket-implementations)
   - [`T`, `&T` and `&mut T`](#t-t-and-mut-t)
 - [Specializations](#specializations)
-- [Trait casting](#trait-casting)
-      - [Example](#example-2)
+- [Fully qualified path](#fully-qualified-path)
+  - [Example](#example-2)
+      - [Example](#example-3)
 - [Supertraits](#supertraits)
 
 <br>
@@ -25,12 +30,7 @@
 
 **Trait** is *similar* to **interface** or **abstract class**.<br>
 
-Inside trait there can be *both* **signatures** (like interface or abstract class) and **default implementations**.<br>
-
-**Static method** – method that **doesn't** takes `&self`.<br>
-**Bound method** – method that takes `&self` *as first parameter*.<br>
-
-**Constructors** are **static methods** of trait that have name `new` and return `Self`.<br>
+Inside trait there can be *both* **signatures** (**declarations**) and **default implementations**.<br>
 
 <br>
 
@@ -134,7 +134,26 @@ fn get_animal(rand_number: f64) -> Box<dyn Animal> {
 
 <br>
 
-# Associated Types
+Vec::<u8>::with_capacity(1024);
+
+# Associated items
+**Associated items** are the **items declared** in **traits** or defined in **implementations**.<br>
+Kinds **associated items**:
+- **associated functions**;
+- **methods**;
+- **associated types**;
+- **associated constants**;
+
+<br>
+
+## Associated functions and methods
+**Associated functions** are functions associated with a type. An example of a common **associated function** is a `new` function that returns a value of the type the associated function is associated with. Also `new` is called **constructor**.<br>
+**Methods** are *associated functions* whose first parameter is named `self`. *Methods* are called on a particular instance of a type.<br>
+Note, then `&self` is a short form for `self: &Self`. For example in `impl X for &T`, `Self` represents `&T` and `&self` means `self: &&T`.<br>
+
+<br>
+
+## Associated types
 When using *generics* **control over type var** is **on calling side** and **compiler decides** which concrete type will be used instead `T`.<br>
 
 **Associated type** is **type** that is **controlled** inside **implemetation** of **trait**.<br>
@@ -168,7 +187,12 @@ impl Iterator for MyType {
 
 <br>
 
-# Default type parameters
+## GATs
+**Generic associated types** (**GATs**) are *associated types* that includes **generic parameters**.<br>
+
+<br>
+
+### Default type parameters
 Consider following syntax:
 ```Rust
 use std::ops::Add;
@@ -196,16 +220,16 @@ Notes:
 
 <br>
 
-## Operator Overloading
+### Operator Overloading
 A great example of a situation where this **associated types** are useful is **operator overloading**.<br>
 
-Rust doesn’t allow you to create your own operators or overload arbitrary operators.<br>
 But you can **overload** the operations and corresponding **traits** listed **in** `std::ops` by implementing the traits associated with the operator.<br>
 
-More examples [here](../examples/traits/overloading.md) and [here](../examples/traits/overloading-generic-version-of-Point.md).
+More examples [here](../examples/traits/overloading.md) and [here](../examples/traits/overloading-generic-version-of-Point.md).<br>
+
 <br>
 
-# Generics vs. Associated types
+### Generics vs. Associated types
 What is the difference between using **generics** and **associated types**?<br>
 
 Example of trait `Iterator` with **generic**:
@@ -221,6 +245,10 @@ pub trait Iterator<T> {
 - When a trait has a **generic parameter**, it can be implemented for a type **multiple times**, changing the **concrete types** of the **generic type parameters** each time. In other words, we can have **multiple implementations** of *some trait* for *some type*.<br>
 - Also, with **generics** we must annotate the **type parameters** in **each implementation**.<br>
 - With **associated types** we **can’t** implement a trait on a type **multiple times**, so we **don’t** need to annotate types.<br>
+
+<br>
+
+## Associated constants
 
 <br>
 
@@ -324,12 +352,90 @@ T=U: impl<U> Borrow<U> for &U {}
 
 <br>
 
-# Trait casting
-Rust allows to implement **multiple traits** with the **same** methods **names** on **one type**.<br>
-To resolve such methods with the same names there is **fully qualified syntax**: `<SomeType as SomeTrait>::some_method(arg1, arg2, ... )`.<br>
-These means we want to call `some_method` of trait `SomeTrait` as implemented for `SomeType`.<br>
-Also it is possible to call `SomeTrait::some_method(&insatance)`.
-By default, the compiler use method of struct itself.<br>
+# Fully qualified path
+Rust allows to implement **multiple traits** with the **same** methods **names**. **Fully qualified path** is used to resolve such methods.<br>
+
+<br>
+
+**Fully qualified path** has following syntax:
+```rust
+<Type as Trait>::function(arg1, arg2, ... )
+```
+These means we want to call `function` of trait `Trait` as implemented for `Type`.<br>
+
+<br>
+
+For **method** (when function has `self` argument) it is possible to call:
+```rust
+Trait::method(&insatance_of_Type)
+```
+
+<br>
+
+Consider expression `x.f()` where `x` is **instance** of `X`. There are possible 2 cases:
+1. Type `X` **doesn't** implement method `f(&self)` in its own `impl` block. Also type `X` implements several traits that share the same name `f` for method. Then `x.f()` causes to error: `error[E0034]: multiple applicable items in scope`.<br>
+2. Type `X` implements method `f(&self)` in its own `impl` block. Also type `X` implements several traits that share the same name `f` for method. Then in `x.f()` compiler by default will use **own implementation** of method `f(&self)`, i.e. `f(&self)` from `impl` block of `X`.<br>
+
+<br>
+
+## Example
+Consider types `X` and `Y`. Both types have own `impl` block and both implement **method** `f(&self)`.<br>
+Consider traits `T1`, `T2`. All have **associated function** `f()`.<br>
+Consider traits `T3`. It has **method** `f(&self)`.<br>
+```rust
+struct X;
+struct Y;
+
+impl X {
+    fn f(&self) { println!("X"); }
+}
+
+impl Y {
+    fn f(&self) { println!("Y"); }
+}
+
+trait T1 {
+    fn f() { println!("T1 f"); }
+}
+
+trait T2 {
+    fn f() { println!("T2 f"); }
+}
+
+trait T3 {
+    fn f(&self);
+}
+
+impl T1 for X {}
+impl T2 for X {}
+impl T3 for X {
+    fn f(&self) {
+        println!("X, T3, f()");
+    }
+}
+
+impl T1 for Y {}
+impl T2 for Y {}
+impl T3 for Y {
+    fn f(&self) {
+        println!("Y, T3, f()");
+    }
+}
+
+fn main() {
+    let x = X;
+    let y = Y;
+    x.f();
+    y.f();
+    <X as T1>::f();
+    <Y as T2>::f();
+    //T2::f(); // -> error[E0790]: cannot call associated function on trait without specifying the corresponding `impl` type
+    T3::f(&x); // compiler infers type X from variable x and calls f() from X's implementation of T3
+    T3::f(&y); // compiler infers type Y from variable y and calls f() from Y's implementation of T3
+}
+```
+
+
 
 <br>
 
