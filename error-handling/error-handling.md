@@ -6,6 +6,7 @@
 - [Custom error type](#custom-error-type)
     - [Example](#example)
 - [Macros `try!` and `?` operator](#macros-try-and--operator)
+  - [Example](#example-1)
 
 <br>
 
@@ -151,14 +152,57 @@ The `?` operator is equivalent to `try!`. Now, `try!` is **deprecated**.<br>
 
 `?` **unwrap** `Result` **or** perform **prematurely** /premətʃʊəʳli/ **return** from function.<br>
 
+<br>
+
+`expression?` **unfolds to**:
+```Rust
+match expression {
+    Ok(value) => value,
+    Err(err)  => return Err(From::from(err)),
+}
+```
+<br>
+
 To use `?`, **calling** and **called** functions must use `Result<T, E>` as return type.<br>
+The `?` operator **automatically** converts the **error** to `Err` variant of `Result` type.<br>
+
+<br>
+A function that returns `Result<T, ErrorOuter>` can only use `?` on a value of type `Result<U, ErrorInner>` if `ErrorOuter` and `ErrorInner` are the same type or if `ErrorOuter` implements `From<ErrorInner>`.<br>
+
+A common alternative to a `From` implementation is `Result::map_err`, especially when the conversion only happens in one place.<br>
 
 <br>
 
-`expr?` **unfolds to**:
+## Example
 ```Rust
-match ::std::ops::Try::into_result(expr) {
-    Ok(val) => val,
-    Err(err) => return ::std::ops::Try::from_error(From::from(err)),
+use std::fs;
+use std::io;
+use std::num;
+
+enum CliError {
+    IoError(io::Error),
+    ParseError(num::ParseIntError),
+}
+
+impl From<io::Error> for CliError {
+    fn from(error: io::Error) -> Self {
+        CliError::IoError(error)
+    }
+}
+
+impl From<num::ParseIntError> for CliError {
+    fn from(error: num::ParseIntError) -> Self {
+        CliError::ParseError(error)
+    }
+}
+
+fn open_and_parse_file(file_name: &str) -> Result<i32, CliError> {
+    let mut contents = fs::read_to_string(&file_name)?;
+    let num: i32 = contents.trim().parse()?;
+    Ok(num)
 }
 ```
+
+<br>
+
+The `fs::read_to_string(&file_name)?` under the hood converts the `io::Error` to the type `CliError` returned by the function `open_and_parse_file`.<br>

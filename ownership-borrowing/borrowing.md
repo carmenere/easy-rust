@@ -5,9 +5,6 @@
     - [Example 1](#example-1)
     - [Example 2.](#example-2)
 - [Operators](#operators)
-- [NLL vs. LL](#nll-vs-ll)
-  - [NLL and iterator invalidation](#nll-and-iterator-invalidation)
-- [Lifetimes](#lifetimes)
 - [Borrowing rules](#borrowing-rules)
     - [Examples](#examples)
       - [Lend the value inside scope of shared reference](#lend-the-value-inside-scope-of-shared-reference)
@@ -81,8 +78,8 @@ fn main() {
 
 Here:
 - `val` mutable value
-- `&val`  shared reference
-- `&mut val`	mutable reference
+- `&val` shared reference
+- `&mut val` mutable reference
 - `b1` immutable borrower
 - `b2` immutable borrower
 - `b3` mutable borrower
@@ -109,43 +106,6 @@ Here:
 |:-------|:---|:----------|
 |`&`|**Reference operator**|To **borrow value**, i.e., take a reference.|
 |`*`|**Dereference operator**|To **use a borrowed value**.|
-
-<br>
-
-# NLL vs. LL
-**NLL** (**non-lexical lifetime**) vs. **LL** (**lexical lifetime**):
-- **LL** means that **scope** of **identifier** starts **from** the point at which it was declared by `let` keyword **until** the **end of the block** (until `{`).
-- **NLL** means that **scope** of **identifier** starts **from** the point at which it was declared by `let` keyword **until** the **last time it is used**.
-
-Here **lifetime** is a synonym for **scope**.
-
-<br>
-
-## NLL and iterator invalidation
-**NLL** prevents a common error called **iterator invalidation**, where the program modifies a collection while iterating over it.<br>
-
-Rust rejects following code, because it borrows ``v`` both **immutably** and **mutably**:
-```Rust
-let mut v = vec![1, 2];
-
-// Borrows `v` immutably
-for i in &v {
-    // Error: borrows `v` mutably, but `v` was already borrowed.
-    v.push(*i);
-}
-```
-
-<br>
-
-# Lifetimes
-Every **variable** in Rust has **LL** which **begins** when it is **created** by `let` keyword and **ends** when it is **destroyed** (closing curly bracket `}`).
-Every **reference** in Rust has **NLL** which **begins** when it is **created** by `let` keyword and **ends** when it is **used last time**.<br>
-
-But, the **reference** must be **valid** until the **lender** is **destroyed**. So, **lifetimes** and **scopes** (**NLL** and **LL**) are **not** the same.<br>
-
-A **lifetime** is the **scope** within which a **reference** must be **valid**.<br>
-
-*Lifetimes* are **denoted** with an **apostrophe**: `'a`, `'b`.<br>
 
 <br>
 

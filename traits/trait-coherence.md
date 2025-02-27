@@ -13,7 +13,7 @@ Example of **dependency tree**:
 - `Foo` -> `Bar` -> `Baz (v1.4)`;
 - `Foo` -> `Baz (0.9)`.
 
-This **dependency tree** is **not** **coherent**.
+This **dependency tree** is **not coherent**.
 
 <br>
 
@@ -56,13 +56,13 @@ This 2 modules will calculate **different** values for **the same key**!<br>
 
 <br>
 
-In Rust, **trait coherence** is the property that there is **at most** **one implementation** of a trait for **any given type**.
+In Rust, **trait coherence** is the property that there is **at most one implementation** of a trait for **any given type**.
 
 Rust enforces **trait coherence** through **2 rules**:
-- The **overlap rule** forbids you have two `impl` of **the same trait** for **the same type**.<br>
-- The **orphan rule**, very roughly speaking, forbids you have an `impl` where both **the trait** **and** **the type** are defined in a **different crate**.
+- The **overlap rule** forbids you have two `impl` of **the same trait** for **the same type**;
+- The **orphan rule** forbids you have an `impl` where both **the trait** and **the type** are defined in a **different crate**;
 
-For example, `impl<T: Debug>` trait for `T` overlaps with `impl<T: Display>` trait for `T` because some types might implement both `Debug` and `Display`, so you can't write both.
+For example, `impl<T: Debug> for T` overlaps with `impl<T: Display> for T` because some types might implement both `Debug` and `Display`, so you can't write both.
 
 <br>
 

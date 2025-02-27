@@ -12,6 +12,7 @@
       - [Abstract type](#abstract-type)
       - [Concrete type](#concrete-type)
       - [Interface](#interface)
+- [Higher-rank polymorphism](#higher-rank-polymorphism)
 
 <br>
 
@@ -112,3 +113,29 @@ So, an abstract type may provide no implementation, or an incomplete implementat
 
 #### Interface
 **Interface** (aka **protocol**, **trait**) is an **abstract type** whose methods are **all abstract methods**.<br>
+
+<br>
+
+# Higher-rank polymorphism
+A **higher order functions** are functions that accept and/or return a function.<br>
+A **higher-kinded type** is a type constructor that accepts or returns type constructor.<br>
+
+<br>
+
+We make our functions **polymorphic** by using **type parameters** (aka **generics**) instead of fixing the types.<br>
+When the function is s applied to a value, the type parameters are bound to actual types. We say the function is instantiated with the given types. The actual types (of type variables) are set to the types of values passed to the function.<br>
+
+**Actual type** of a *polymorphic function* is decided **where the function is called**, not where the function is defined, i.e., the **caller** of the function decides the type.<br>
+Same applies to higher order functions. If the types of the argument function are parameterised, the actual types are decided when the argument function is used.
+
+<br>
+
+Types of polymorphism:
+- **monomorphic** functions (i.e., non-polymorphic) have **rank 0**;
+- polymorphic functions with **generics** have **rank 1**;
+- polymorphic functions **parameterized by functions** of *rank 1* or *less* have **rank 2**;
+- polymorphic functions **parameterized by functions** of *rank 2* or *less* have **rank 3**;
+- ...
+- **higher-rank polymorphism** aka **higher-order polymorphism**;
+
+<br>

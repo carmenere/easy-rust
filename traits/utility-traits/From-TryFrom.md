@@ -13,8 +13,6 @@
   - [Every type can be converted to itself](#every-type-can-be-converted-to-itself)
   - [Relation with trait `Into`](#relation-with-trait-into)
     - [Example](#example-2)
-- [Error handling](#error-handling)
-  - [Example](#example-3)
 
 <br>
 
@@ -179,42 +177,5 @@ impl From<i32> for Number {
 fn main() {
     let n: Number = 5.into();
     println!("num: {:?}", n);
-}
-```
-
-<br>
-
-# Error handling
-The `?` operator **automatically** converts the **error** to `Err` variant of `Result` type.<br>
-
-<br>
-
-## Example
-```Rust
-use std::fs;
-use std::io;
-use std::num;
-
-enum CliError {
-    IoError(io::Error),
-    ParseError(num::ParseIntError),
-}
-
-impl From<io::Error> for CliError {
-    fn from(error: io::Error) -> Self {
-        CliError::IoError(error)
-    }
-}
-
-impl From<num::ParseIntError> for CliError {
-    fn from(error: num::ParseIntError) -> Self {
-        CliError::ParseError(error)
-    }
-}
-
-fn open_and_parse_file(file_name: &str) -> Result<i32, CliError> {
-    let mut contents = fs::read_to_string(&file_name)?;
-    let num: i32 = contents.trim().parse()?;
-    Ok(num)
 }
 ```

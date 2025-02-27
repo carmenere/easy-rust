@@ -4,14 +4,46 @@
   - [Slice notation](#slice-notation)
   - [Slice rules](#slice-rules)
   - [String slice](#string-slice)
+  - [`impl str`](#impl-str)
   - [String slice as type of function parameter](#string-slice-as-type-of-function-parameter)
   - [Get last element of dynamically growing collection](#get-last-element-of-dynamically-growing-collection)
 
 <br>
 
 # Slice type
-**Slices** are used to **reference** to **contiguous sequence of elements** *in collection*.<br>
-Internally, the **slice** is **fat pointer** that stores the **starting index** and the **length** of the *slice*.<br>
+A **slice** is a **DST** representing a *view* into a **contiguous sequence of elements** of type `T`.<br>
+The **slice type** is written as `[T]`, **without** specifying the **length**.<br>
+
+**DST** means slices **don't** implement the trait `Sized` and therefore slices **can’t** be stored directly in variables or passed as function arguments, e.g. `let s: [u64];` causes to error.<br>
+
+**Slice types** are generally **used** through **pointer types**, that's why we often refer to all of `[T]`, `&[T]`, and `&mut [T]` as a **slice**:
+- `&[T]`: **shared reference** to a **slice** (aka **shared slice**);
+- `&mut [T]`: **mutable reference** to a **slice** (aka **mutable slice**);
+- `Box<[T]>`: a **boxed slice**;
+
+<br>
+
+Illustration:
+```bash
++---+---+---+---+
+|Pointer| Length|  &[T] (or &str)
++---+---+---+---+
+    |
+    V
+    +---+---+---+---+---+
+    | D | A | T | A | . |  [T] (or str)
+    +---+---+---+---+---+
+```
+
+<br>
+
+Internally, the **reference to a slice** (aka **slice reference**) is a **fat pointer** that contains 2 objects:
+- **pointer** to the slice’s **first element**;
+- **number of elements** in the slice (the **length** of the slice);
+
+<br>
+
+**Slice references** a good choice when you want to write a function that operates on either an **array** or a **vector**.<br>
 
 <br>
 
@@ -69,7 +101,18 @@ We could use that value 5 with the variable `s` to try to extract the first word
 <br>
 
 ## String slice
-**String slice** is a reference to part of a `String`.<br>
+The type `str` is a **string slice**. Semantically `str` can be represented as 
+```rust
+struct str([u8])
+```
+
+You can think of a `str` as a `[u8]` which has **additional guarantees** that **sequence of bytes** `[u8]` contains valid **UTF-8** encoded **Unicode chars**.<br>
+
+Because `str` is a **slice** it used in its borrowed form: `&str`. The type `&str` is a **reference to a string slice** with some **lifetime** and `&str` is also called **string slice**. That's why `&str` is also called **string slice**.<br>
+**String literals** are **statically allocated**, i.e., they are hardcoded into binary and exists while programme is running and have type `&'static str`.<br>
+So, all **string literals** are `&strs`, but **not** all `&strs` are **string literal**.<br>
+
+<br>
 
 Example:
 ```Rust
@@ -78,8 +121,33 @@ let hello = &s[0..5];
 let world = &s[6..11];
 ```
 
-Range indices for `String` slice must occur at valid UTF-8 character boundaries.<br>
-If you attempt to create a `String` slice in the middle of a multibyte character, your program will exit with an error.
+Range indices for `String` slice must occur at **valid** UTF-8 character boundaries.<br>
+If you attempt to create a `String` slice in the middle of a multibyte character, your program will exit with an error.<br>
+
+<br>
+
+## `impl str`
+The type `str` is **builtin type** and defined inside compiler. But `impl str` is defined in `std`:
+```rust
+#[cfg(not(test))]
+impl str {
+    pub const fn len(&self) -> usize {
+        self.as_bytes().len()
+    }
+    pub const fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+    pub const fn as_bytes(&self) -> &[u8] {
+        // SAFETY: const sound because we transmute two types with the same layout
+        unsafe { mem::transmute(self) }
+    }
+    pub const unsafe fn as_bytes_mut(&mut self) -> &mut [u8] {
+        unsafe { &mut *(self as *mut str as *mut [u8]) }
+    }
+}
+```
+
+<br>
 
 ## String slice as type of function parameter
 Consider signature: `fn f1(s: &String) -> &str { }`. This function can only receive `&String` type.<br>
