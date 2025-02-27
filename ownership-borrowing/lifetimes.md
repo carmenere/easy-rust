@@ -2,13 +2,19 @@
 
 - [Table of contents](#table-of-contents)
 - [Lifetimes](#lifetimes)
-  - [Lifetimes and scopes](#lifetimes-and-scopes)
-  - [NLL and iterator invalidation](#nll-and-iterator-invalidation)
   - [Lifetimes in functions](#lifetimes-in-functions)
   - [Lifetimes in structs](#lifetimes-in-structs)
   - [Lifetimes in impl blocks](#lifetimes-in-impl-blocks)
+- [Lifetimes and scopes](#lifetimes-and-scopes)
+  - [NLL and iterator invalidation](#nll-and-iterator-invalidation)
+  - [Desugar lifetimes](#desugar-lifetimes)
+    - [Example 1](#example-1)
+    - [Example 2](#example-2)
+    - [Example 3: references that outlive referents](#example-3-references-that-outlive-referents)
 - [Lifetime subtyping](#lifetime-subtyping)
-  - [Example](#example)
+  - [Example 1](#example-1-1)
+  - [Example 2: `&mut T` is invariant over `T`](#example-2-mut-t-is-invariant-over-t)
+- [Exampke 4](#exampke-4)
 - [Lifetime arithmetic](#lifetime-arithmetic)
     - [Type declaration](#type-declaration)
     - [Borrowing](#borrowing)
@@ -17,8 +23,8 @@
     - [Double references](#double-references)
     - [Static scope](#static-scope)
   - [Examples](#examples)
-    - [Example 1](#example-1)
-    - [Example 2](#example-2)
+    - [Example 1](#example-1-2)
+    - [Example 2](#example-2-1)
     - [Example 3](#example-3)
     - [Example 4](#example-4)
 - [Interpretation of lifetimes](#interpretation-of-lifetimes)
@@ -31,13 +37,13 @@
     - [Return reference to value from function](#return-reference-to-value-from-function)
 - [Anonymous lifetimes](#anonymous-lifetimes)
 - [Higher-Rank Trait Bounds (HRTBs)](#higher-rank-trait-bounds-hrtbs)
-  - [Example 1](#example-1-1)
-  - [Example 2](#example-2-1)
+  - [Example 1](#example-1-3)
+  - [Example 2](#example-2-2)
 
 <br>
 
 # Lifetimes
-Every **reference** must be **valid** until the **lender** is **destroyed**.<br>
+Every **reference** (aka **borrow** or **borrower**) must be **valid** until the **lender** (aka **referent**) is **destroyed**.<br>
 A **lifetime** is the **scope** within which a **reference** must be **valid**.<br>
 *Lifetimes* are **denoted** with an **apostrophe**: `'a`, `'b`.<br>
 The **lifetimes** help Rust find **dangling pointers**.<br>
@@ -67,36 +73,6 @@ fn run<'a>(&self, x: &'a Foo) -> &i32
 is equivalent to:
 ```rust
 fn run<'a, 'b>(&'b self, x: &'a Foo) -> &'b i32
-```
-
-<br>
-
-## Lifetimes and scopes
-In everyday speech, the word **lifetime** can be used in two distinct – but similar – ways:
-- the **lifetime of a reference**, corresponding to the span of time in which that reference is **used** and **valid**;
-- the **lifetime of a value**, corresponding to the span of time before that value is **destroyed**;
-
-To distinguish these cases, we refer to *lifetime of a value* as **scope**.<br>
-
-A **scope of value** means **Lexical Lifetime** (**LL**) which **begins** when value is **created** by `let var = value;` assigning to variable and **ends** when it is **destroyed** (closing curly bracket `}` or `drop()`).<br>
-A **lifetime of a reference** means **Non-Lexical Lifetime** (**NLL**) which **begins** when **reference** is **created** by `let` keyword and **ends** when it is **used last time**.<br>
-
-**Lifetimes** and **scopes** are linked to one another. A **lifetime** is the **scope** within which a **reference** must be **valid**. If you make a reference to a value, the lifetime of that reference **cannot outlive** the scope of that value. Otherwise, your reference would be pointing into freed memory.<br>
-
-<br>
-
-## NLL and iterator invalidation
-**NLL** prevents a common error called **iterator invalidation**, where the program modifies a collection while iterating over it.<br>
-
-Rust rejects following code, because it borrows ``v`` both **immutably** and **mutably**:
-```Rust
-let mut v = vec![1, 2];
-
-// Borrows `v` immutably
-for i in &v {
-    // Error: borrows `v` mutably, but `v` was already borrowed.
-    v.push(*i);
-}
 ```
 
 <br>
@@ -139,6 +115,118 @@ fn main() {
     println!("x is: {}", f.x());
 }
 ```
+
+<br>
+
+# Lifetimes and scopes
+In everyday speech, the word **lifetime** can be used in two distinct – but similar – ways:
+- the **lifetime of a reference**, corresponding to the span of time in which that reference is **used** and **valid**;
+- the **lifetime of a value**, corresponding to the span of time before that value is **destroyed**;
+
+To distinguish these cases, we refer to *lifetime of a value* as **scope**.<br>
+
+A **scope of value** means **Lexical Lifetime** (**LL**) which **begins** when value is **created** by `let var = value;` assigning to variable and **ends** when it is **destroyed** (closing curly bracket `}` or `drop()`).<br>
+A **lifetime of a reference** means **Non-Lexical Lifetime** (**NLL**) which **begins** when **reference** is **created** by `let` keyword and **ends** when it is **used last time**.<br>
+
+A reference is alive from the place it is created to its last use.<br>
+
+**Lifetimes** and **scopes** are linked to one another. A **lifetime** is the **scope** within which a **reference** must be **valid**. If you make a reference to a value, the lifetime of that reference **cannot outlive** the scope of that value. Otherwise, your reference would be pointing into freed memory.<br>
+
+<br>
+
+## NLL and iterator invalidation
+**NLL** prevents a common error called **iterator invalidation**, where the program modifies a collection while iterating over it.<br>
+
+Rust rejects following code, because it borrows ``v`` both **immutably** and **mutably**:
+```Rust
+let mut v = vec![1, 2];
+
+// Borrows `v` immutably
+for i in &v {
+    // Error: borrows `v` mutably, but `v` was already borrowed.
+    v.push(*i);
+}
+```
+
+<br>
+
+## Desugar lifetimes
+Each let statement implicitly introduces a scope.<br>
+
+<br>
+
+### Example 1
+Rust desugar this simple piece of code:
+```rust
+let x: i32 = 0;
+let y: &i32 = &x;
+let z: &&i32 = &y;
+```
+to the following:
+```rust
+'a: {
+    let x: i32 = 0;
+    'b: {
+        let y: &'b i32 = &'b x;
+        'c: {
+            let z: &'c &'b i32 = &'c y;
+        }
+    }
+}
+```
+
+<br>
+
+### Example 2
+Rust desugar this simple piece of code:
+```rust
+let x: i32 = 0;
+let z: &i32;
+let y: &i32 = &x;
+z = y;
+```
+to the following:
+```rust
+'a: {
+    let x: i32 = 0;
+    'b: {
+        let z: &'b i32;
+        'c: {
+            // Must use 'b here because the reference to x is being passed to the scope 'b.
+            let y: &'b i32 = &'b x;
+            z = y;
+        }
+    }
+}
+```
+
+<br>
+
+### Example 3: references that outlive referents
+Consider example:
+```rust
+fn as_str<'a>(data: &'a u32) -> &'a str {
+    'b: {
+        let s = format!("{}", data);
+        return &'a s
+    }
+}
+
+fn main() {
+    'c: {
+        let x: u32 = 0;
+        'd: {
+            println!("{}", as_str::<'d>(&'d x));
+        }
+    }
+}
+```
+
+<br>
+
+The contract of `as_str` says that the reference `&str` must outlive `'a`.<br>
+Unfortunately, `s` was defined in the scope `'b`, so the **only** way this is **sound** is if `'b` contains `'a`, but it is **false**.<br>
+We have therefore created a reference whose lifetime outlives its referent.<br>
 
 <br>
 
@@ -192,16 +280,18 @@ Given two types `Sub` and `Super`, where `Sub` is a **subtype** of `Super`. The 
 - `F<T>` is **contravariant** over `T` if `T` is a **subtype** of `U` then `F<U>` is a **subtype** of `F<T>`;
 - `F<T>` is **invariant** over `T` otherwise (**no subtyping relation can be derived**);
 
-If `'long` **outlives** `'short`, then `&'long T` is a **subtype** of `&'short T`. That is, `&'long T` can be used wherever `&'short T` is expected (because it lives at least as long).<br>
-But for **mutable refs** it's **not the truth**: if `'long` **outlives** `'short`, then `&'long mut T` **cannot** be a **subtype** of `&'short mut T`.<br>
+If `'long` **outlives** `'short`, then `&'long T` is a **subtype** of `&'short T`. That is, `&'long T` can be used wherever `&'short T` is expected (because it lives at least as long). Therefore we can say that `&'a T` is **covariant over** `'a`.<br>
+But for **mutable refs** it's **not the truth**: if `'long` **outlives** `'short`, then `&'long mut T` **cannot** be a **subtype** of `&'short mut T`. Therefore we can say that `&mut T` is **invariant over** `T`. This means that `&mut &'long str` **cannot** be a **subtype** of `&mut &'short str`, even if `'long` is a **subtype** of `'short`.<br>
 
 <br>
 
-|Type|Variance in 'a|Variance in T|
+|Type|Variance in `'a`|Variance in `T`|
 |:---|:-------------|:------------|
 |`&'a T`|covariant|covariant|
 |`&'a mut T`|covariant|**invariant**|
 |`dyn Trait<T> + 'a`|covariant|**invariant**|
+
+<br>
 
 Consider the following example: **string literals** always have `'static` lifetime. Nevertheless, we can assign `s` to `t`:
 ```rust
@@ -215,7 +305,7 @@ Since `'static` **outlives** the lifetime parameter `'a`, `&'static str` is a **
 
 <br>
 
-## Example
+## Example 1
 ```rust
 #[derive(Debug)]
 struct Movie<'a> {
@@ -246,6 +336,73 @@ fn main() {
 ```
 
 Here `'b` specifies that lifetimes of the `Movie` struct **outlives** the `Reviewer` struct.
+
+<br>
+
+## Example 2: `&mut T` is invariant over `T`
+```rust
+fn assign<T>(input: &mut T, val: T) {
+    *input = val;
+}
+
+fn main() {
+    let mut hello: &'static str = "hello";
+    {
+        let world = String::from("world");
+        assign(&mut hello, &world);
+    }
+    println!("{hello}");
+}
+```
+
+All `assign` does is take a **mutable reference** and a **value** and **overwrite** the **referent** with it.<br>
+In the **caller** we pass in `&mut &'static str` and `&'world str`.<br>
+Because `&mut T` is **invariant** over `T`, the compiler concludes it **can't** apply any subtyping to the first argument, and so `T` must be exactly `&'static str`.<br>
+
+<br>
+
+This works:
+```rust
+fn main() {
+    let mut hello: &'static str = "hello";
+    {
+        let world: &'static str = &"world";
+        assign(&mut hello, &world);
+    }
+    println!("{hello}");
+}
+```
+
+<br>
+
+# Exampke 4
+This **doesn't** compile:
+```rust
+fn deref0<'a, 'b>(v: &'b &'a mut u32) -> &'a u32 { 
+    *v
+}
+```
+**Error**:
+```
+lifetime may not live long enough
+consider adding the following bound: 'b: 'a
+```
+
+<br>
+
+But, this works:
+```rust
+fn deref1<'a, 'b>(v: &'b &'a mut u32) -> &'b u32 { 
+    *v
+}
+```
+
+And this works:
+```rust
+fn deref2<'a, 'b>(v: &'b &'a u32) -> &'a u32 { 
+    *v
+}
+```
 
 <br>
 
