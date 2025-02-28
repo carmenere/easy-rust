@@ -151,7 +151,7 @@ for i in &v {
 <br>
 
 ## Desugar lifetimes
-Each let statement implicitly introduces a scope.<br>
+Each `let` statement **implicitly** introduces a **scope**.<br>
 
 <br>
 
@@ -275,21 +275,39 @@ Notation `'long: 'short` means `'long` **outlives** `'short`.<br>
 
 **Subtyping** is the idea that one type (called **subtype**) can be used in place of another type.<br>
 
-Given two types `Sub` and `Super`, where `Sub` is a **subtype** of `Super`. The **variance** of generic type `F<T>` defines **relationships** between **generic types** based on their **generic parameters**. There are **three** kinds of variance in Rust:
-- `F<T>` is **covariant** over `T` if `T` is a **subtype** of `U` then `F<T>` is a **subtype** of `F<U>`;
-- `F<T>` is **contravariant** over `T` if `T` is a **subtype** of `U` then `F<U>` is a **subtype** of `F<T>`;
-- `F<T>` is **invariant** over `T` otherwise (**no subtyping relation can be derived**);
+Given two types `Sub` and `Super`, where `Sub` is a **subtype** of `Super`. The **variance** over generic `T` defines **relationships** between **generic types** `F<T>`. <br>
 
-If `'long` **outlives** `'short`, then `&'long T` is a **subtype** of `&'short T`. That is, `&'long T` can be used wherever `&'short T` is expected (because it lives at least as long). Therefore we can say that `&'a T` is **covariant over** `'a`.<br>
-But for **mutable refs** it's **not the truth**: if `'long` **outlives** `'short`, then `&'long mut T` **cannot** be a **subtype** of `&'short mut T`. Therefore we can say that `&mut T` is **invariant over** `T`. This means that `&mut &'long str` **cannot** be a **subtype** of `&mut &'short str`, even if `'long` is a **subtype** of `'short`.<br>
+There are **three** kinds of **variance**:
+- `F<T>` is **covariant over** `T` if `T` is a **subtype** of `U` then `F<T>` is a **subtype** of `F<U>`;
+- `F<T>` is **contravariant over** `T` if `T` is a **subtype** of `U` then `F<U>` is a **subtype** of `F<T>`;
+- `F<T>` is **invariant over** `T` otherwise (**no subtyping relation can be derived**);
 
 <br>
 
+**In Rust**:
 |Type|Variance in `'a`|Variance in `T`|
 |:---|:-------------|:------------|
 |`&'a T`|covariant|covariant|
 |`&'a mut T`|covariant|**invariant**|
 |`dyn Trait<T> + 'a`|covariant|**invariant**|
+
+<br>
+
+**Variance over** `'a`:
+- The type `&'a T` is **covariant over** `'a`. In other words, if `'long` **outlives** `'short`, then `&'long T` is a **subtype** of `&'short T`. That is, `&'long T` can be used wherever `&'short T` is expected (because it lives at least as long).
+- The type `&'a mut T` is also **covariant over** `'a`. In other words, if `'long` **outlives** `'short`, then `&'long mut T` is a **subtype** of `&'short mut T`. That is, `&'long mut T` can be used wherever `&'short mut T` is expected (because it lives at least as long).
+
+<br>
+
+**Variance over** `T`:
+- The type `&'a T` is **covariant over** `T`. In other words, if `T` is a **subtype** of `U` then, then `&'a T` is a **subtype** of `&'a U`. That is, `&'a T` can be used wherever `&'a U` is expected.
+- The type `&'a mut T` is **invariant over** `T`. In other words, if `T` is a **subtype** of `U` then, then **neither** `&'a mut T` is a subtype of `&'a mut U` **nor** `&'a mut U` is a subtype of `&'a mut T`. That is, `&'a mut T` **cannot** be used wherever `&'a mut U` is expected and vice versa.
+
+<br>
+
+Consider `T` is a **subtype** of `U`, for example, `T = &'long str` and `U = &'short str`. This means that:
+- `&'a &'long str` is a **subtype** of `&'a &'short str`;
+- `&'a mut &'long str` **cannot** be a **subtype** of `&'a mut &'short str`, even if `&'long str` is a **subtype** of `&'short str`;
 
 <br>
 
