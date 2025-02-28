@@ -14,7 +14,7 @@
 - [Lifetime subtyping](#lifetime-subtyping)
   - [Example 1](#example-1-1)
   - [Example 2: `&mut T` is invariant over `T`](#example-2-mut-t-is-invariant-over-t)
-- [Exampke 4](#exampke-4)
+  - [Example 3](#example-3)
 - [Lifetime arithmetic](#lifetime-arithmetic)
     - [Type declaration](#type-declaration)
     - [Borrowing](#borrowing)
@@ -25,7 +25,7 @@
   - [Examples](#examples)
     - [Example 1](#example-1-2)
     - [Example 2](#example-2-1)
-    - [Example 3](#example-3)
+    - [Example 3](#example-3-1)
     - [Example 4](#example-4)
 - [Interpretation of lifetimes](#interpretation-of-lifetimes)
 - [Lifetimes bounds](#lifetimes-bounds)
@@ -393,7 +393,7 @@ fn main() {
 
 <br>
 
-# Exampke 4
+## Example 3
 This **doesn't** compile:
 ```rust
 fn deref0<'a, 'b>(v: &'b &'a mut u32) -> &'a u32 { 
