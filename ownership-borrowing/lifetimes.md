@@ -6,11 +6,10 @@
   - [Lifetimes in structs](#lifetimes-in-structs)
   - [Lifetimes in impl blocks](#lifetimes-in-impl-blocks)
 - [Lifetimes and scopes](#lifetimes-and-scopes)
-  - [NLL and iterator invalidation](#nll-and-iterator-invalidation)
-  - [Desugar lifetimes](#desugar-lifetimes)
     - [Example 1](#example-1)
     - [Example 2](#example-2)
     - [Example 3: references that outlive referents](#example-3-references-that-outlive-referents)
+  - [NLL and iterator invalidation](#nll-and-iterator-invalidation)
 - [Lifetime subtyping](#lifetime-subtyping)
   - [Variance over `'a`](#variance-over-a)
   - [Variance over `T`](#variance-over-t)
@@ -57,6 +56,13 @@ But sometimes it is needed to specify lifetimes **explicitly**.<br>
 
 <br>
 
+## Lifetimes in functions
+For function there are 2 kind of **lifetime parameters**:
+- **Input lifetime parameter** is a lifetime associated with a **parameter** of a function. 
+- **Output lifetime parameter** is a lifetime associated with the **return value** of a function.
+
+<br>
+
 From Rust point of view, signature:`fn f (s1: &str, s2: &str) → &str` is **equal** to signature:`fn f<'a, 'b> (s1: &'a str, s2: &'b str) → &'??? str`<br>
 So, `rustc` sets to `s1` and `s2` **different** lifetimes and `rustc` **doesn't** know what lifetime to assign to **returning value**.<br>
 That is why compiler return error. So we must **explicitly** set lifetimes for input and output parameters.<br>
@@ -72,13 +78,6 @@ is equivalent to:
 ```rust
 fn run<'a, 'b>(&'b self, x: &'a Foo) -> &'b i32
 ```
-
-<br>
-
-## Lifetimes in functions
-For function there are 2 kind of **lifetime parameters**:
-- **Input lifetime parameter** is a lifetime associated with a **parameter** of a function. 
-- **Output lifetime parameter** is a lifetime associated with the **return value** of a function.
 
 <br>
 
@@ -124,9 +123,7 @@ In everyday speech, the word **lifetime** can be used in two distinct – but si
 To distinguish these cases, we refer to *lifetime of a value* as **scope**.<br>
 
 A **scope of value** means **Lexical Lifetime** (**LL**) which **begins** when value is **created** by `let var = value;` assigning to variable and **ends** when it is **destroyed** (closing curly bracket `}` or `drop()`).<br>
-A **lifetime of a reference** means **Non-Lexical Lifetime** (**NLL**) which **begins** when **reference** is **created** by `let` keyword and **ends** when it is **used last time**.<br>
-
-A reference is alive from the place it is created to its last use.<br>
+A **lifetime of a reference** means **Non-Lexical Lifetime** (**NLL**) which **begins** when **reference** is **created** by `let` keyword and **ends** when it is **used last time**. Each `let` statement **implicitly** introduces a **scope**.<br>
 
 In fact, **scopes** and **lifetimes** are **different concepts**:
 - in rust code, **all** objects, including constants, owned variables and references, **have scopes**;
@@ -144,35 +141,14 @@ In terms of algebra, **scopes** are **values** like `1`, `2`, `3`, and **lifetim
 
 <br>
 
-## NLL and iterator invalidation
-**NLL** prevents a common error called **iterator invalidation**, where the program modifies a collection while iterating over it.<br>
-
-Rust rejects following code, because it borrows ``v`` both **immutably** and **mutably**:
-```Rust
-let mut v = vec![1, 2];
-
-// Borrows `v` immutably
-for i in &v {
-    // Error: borrows `v` mutably, but `v` was already borrowed.
-    v.push(*i);
-}
-```
-
-<br>
-
-## Desugar lifetimes
-Each `let` statement **implicitly** introduces a **scope**.<br>
-
-<br>
-
 ### Example 1
-Rust desugar this simple piece of code:
 ```rust
 let x: i32 = 0;
 let y: &i32 = &x;
 let z: &&i32 = &y;
 ```
-to the following:
+
+From compiler point of view:
 ```rust
 'a: {
     let x: i32 = 0;
@@ -187,15 +163,21 @@ to the following:
 
 <br>
 
+`'a` is a scope of `let x: i32 = 0`.<br>
+`'b` is a scope of `let y: &'b i32 = &'b x`.<br>
+`'c` is a scope of `let z: &'c &'b i32 = &'c y`.<br>
+
+<br>
+
 ### Example 2
-Rust desugar this simple piece of code:
 ```rust
 let x: i32 = 0;
 let z: &i32;
 let y: &i32 = &x;
 z = y;
 ```
-to the following:
+
+From compiler point of view:
 ```rust
 'a: {
     let x: i32 = 0;
@@ -237,6 +219,22 @@ fn main() {
 The contract of `as_str` says that the reference `&str` must outlive `'a`.<br>
 Unfortunately, `s` was defined in the scope `'b`, so the **only** way this is **sound** is if `'b` contains `'a`, but it is **false**.<br>
 We have therefore created a reference whose lifetime outlives its referent.<br>
+
+<br>
+
+## NLL and iterator invalidation
+**NLL** prevents a common error called **iterator invalidation**, where the program modifies a collection while iterating over it.<br>
+
+Rust rejects following code, because it borrows ``v`` both **immutably** and **mutably**:
+```Rust
+let mut v = vec![1, 2];
+
+// Borrows `v` immutably
+for i in &v {
+    // Error: borrows `v` mutably, but `v` was already borrowed.
+    v.push(*i);
+}
+```
 
 <br>
 
@@ -288,11 +286,9 @@ Constraints `'a: 'b, 'b: 'a` imply that `'a == 'b`.<br>
 
 **Outlives constraints**:
 1. `x: &'a T`. The **lifetime** `'a` associated with the reference **outlives scope of identifier** `x` (denote scope of `x` as `'x`) that stores this reference, i.e. `'a: 'x`.<br>
-2. `x: &'a T = &y`, here `y` is a **lender**. The **scope** of **lender** `y` (denote scope of `y` as `'y`) **outlives** the **lifetime** `'b` associated with the reference: `'y: 'a`.<br>
+2. `x: &'a T = &'a y`, here `y` is a **lender**. The **scope** of **lender** `y` (denote scope of `y` as `'y`) **outlives** the **lifetime** `'a` associated with the reference: `'y: 'a`.<br>
 In other words, **lifetime** of **reference** is *less than or equal to* **sope** of **lender**.<br>
-3. `x: &'a T = z`, here `z` is a **reference** with some lifetime `'b`. The lifetime `'b` **must outlive lifetime** `'a`.<br>
-<br>
-
+3. `x: &'a T = z`, here `z` is a **reference** of type `&'b T` with some lifetime `'b`. The lifetime `'b` **must outlive lifetime** `'a`: `'b: 'a`.<br>
 <br>
 
 **Subtyping** is the idea that one type (called **subtype**) can be used in place of another type.<br>
@@ -536,7 +532,7 @@ The **borrow checker** generates a **system of inequalities** and **solves it**.
 
 <br>
 
-Notation `​scope(rs1)` ⊆ `'a` means `'a: rs1`.<br>
+Below, notation `​scope(rs1)` ⊆ `'a` means `'a: rs1`.<br>
 
 ## Example 1
 ```rust
