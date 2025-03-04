@@ -258,7 +258,7 @@ fn main() {
 <br>
 
 # Reborrowing
-**Reborrowing** is what makes `&mut` **usable**. There's a lot of **implicit reborrowing** in Rust. For example, in function calls** **mutable references aren’t moved**, they are **implicitly reborrowed**.<br>
+**Reborrowing** is what makes `&mut` **usable**. There's a lot of **implicit reborrowing** in Rust. For example, in function calls **mutable references aren’t moved**, they are **implicitly reborrowed**.<br>
 
 **Shared references** `&T` implement `Copy`, which makes them very flexible.<br>
 **Exclusive references** `&mut T` **do not** implement `Copy`. Instead, you can use them through a **reborrowing**. Technically multiple mutable references to a piece of data can exist at the same time via **reborrowing**. This is what allows you to pass a mutable reference into a function without invaliding the original reference.<br>
