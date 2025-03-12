@@ -26,8 +26,8 @@ A **logger** (aka **logging implementation**) is an anything that implements the
 Libraries should link only to the `log` crate (`use log::{info, warn};`), and use the provided macros.<br>
 
 **In executables**:<br>
-Executables should choose a **logger** and initialize it early in the runtime of the program. The logging system may only be initialized **once**. Any log messages generated before the implementation is initialized will be **ignored**.<br>
-If **no** **logger** is selected, the _logging API_ falls back to a **noop** implementation that **ignores all log messages**. The overhead in this case is very small - **just an integer load**, comparison and jump.<br>
+Executables should choose a **logger** and initialize it early in the runtime of the program. The logging system may only be initialized **once**. Any log messages generated **before** the _logger_ is initialized will be **ignored**.<br>
+If **no** **logger** is selected, the _logging API_ falls back to a **noop logger** that **ignores all log messages**. The overhead in this case is very small - **just an integer load**, comparison and jump.<br>
 
 <br>
 
@@ -43,8 +43,8 @@ These marcos behave like `println!` and supports the syntax of `format!`.<br>
 That is:
 - `{}` calls `display()` on an object;
 - `{:?}` calls `debug()` on an object;
-- `{:#?}` **pretty-print** the **debug** formatting.
-- 
+- `{:#?}` **pretty-print** for `debug()`;
+
 <br>
 
 ## Log request
@@ -207,7 +207,7 @@ Some examples of valid values of `RUST_LOG` are:
 - `RUST_LOG=trace` turns on **global trace** logging for the entire application;
 - `RUST_LOG=hello=debug` turns on **debug** logging for **hello** only;
 - `RUST_LOG=error,hello=warn` turn on **global error** logging and also **warn** logging for **hello**;
-- `RUST_LOG=error,hello=off` turn on **global error** logging, but **turn off**** logging for **hello**;
+- `RUST_LOG=error,hello=off` turn on **global error** logging, but **turn off** logging for **hello**;
 
 <br>
 
