@@ -4,6 +4,7 @@
 # IDE
 .vscode/
 
+/.idea
 
 # Cargo
 **/target
