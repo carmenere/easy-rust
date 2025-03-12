@@ -119,7 +119,7 @@ fn main() -> Result<(), SetLoggerError> {
 
 - `metadata.level()`: contains the **log level** of current **log request**;
 - `set_logger`: sets appropriate logger;
-- `set_max_level`: sets the `MAX_LOG_LEVEL_FILTER`, **global maximum** log level:
+- `set_max_level`: sets the variable `MAX_LOG_LEVEL_FILTER`, aka global maximum log level:
   - messages with **log level** > **MAX_LOG_LEVEL_FILTER** are **filtered out**;
   - only messages with **log level** <= **MAX_LOG_LEVEL_FILTER** are printed out;
   - it’s important to set it, as it defaults to `Off`, so **no** log messages will ever be captured;
