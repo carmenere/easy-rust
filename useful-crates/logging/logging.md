@@ -117,10 +117,13 @@ fn main() -> Result<(), SetLoggerError> {
 
 <br>
 
-- `metadata.level()` contains the **log level** of current **log request**;
-- `set_logger` sets appropriate logger;
-- `set_max_level` sets the **global maximum** log level, all messages with greater log levels will be filtered out; it’s important to set it, as it defaults to `Off`, so no log messages will ever be captured;
-  - for example, `log::set_max_level(LevelFilter::Info)` will **ignore** `Debug` and `Trace` log levels;
+- `metadata.level()`: contains the **log level** of current **log request**;
+- `set_logger`: sets appropriate logger;
+- `set_max_level`: sets the `MAX_LOG_LEVEL_FILTER`, **global maximum** log level:
+  - messages with **log level** > **MAX_LOG_LEVEL_FILTER** are **filtered out**;
+  - only messages with **log level** <= **MAX_LOG_LEVEL_FILTER** are printed out;
+  - it’s important to set it, as it defaults to `Off`, so **no** log messages will ever be captured;
+  - for example, `log::set_max_level(LevelFilter::Info)` will **ignore** `debug!()` and `trace!()` log requests;
 
 <br>
 
