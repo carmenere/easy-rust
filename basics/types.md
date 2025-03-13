@@ -443,7 +443,8 @@ Text editing software should generally allow placement of cursor only at graphem
 
 <br>
 
-There is **no** method in **std** to iterate over **grapheme clusters**. The [**unicode-segmentation**](https://crates.io/crates/unicode-segmentation) crate provides grapheme cluster.<br>
+There is **no** method in **std** to iterate over **grapheme clusters**.<br>
+The [**unicode-segmentation**](https://crates.io/crates/unicode-segmentation) crate provides grapheme cluster. It provides special method `.graphemes(true)`.<br>
 
 <br>
 
