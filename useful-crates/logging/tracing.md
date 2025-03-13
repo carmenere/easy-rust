@@ -1,5 +1,6 @@
 # Observability vs. Monitoring
-`Inputs` -> `System` -> `Outputs` (telemetry data).<br>
+`Inputs` -> `System` -> `Outputs`.<br>
+
 **Observability** measures how easily can we infer **internal state** of system using only the obtained **telemetry** (metrics, logs, traces, profiling).<br>
 **Observability** helps to determine the behavior of the entire system from the system's outputs.<br>
 **Monitoring** is an **action**, but **observability** is a **property** of system.<br>
@@ -10,10 +11,11 @@
 | **Is** it broken?                          | **Why** it is broken?         |
 | Helps to **react** on incident **quickly** | Helps to **prevent** incident |
 
-_Observability_ **complements** monitoring. _Observability_ provides means to **look deeper** into complex systems.<br>
-_Observability_ allows to map/**correlate** **telemetry data** from various systems and **enrich** them with context.<br>
+_Observability_ **complements** _Monitoring_.<br>
+_Observability_ provides means to **look deeper** into complex systems.<br>
+_Observability_ allows to map/**correlate telemetry data** from various systems and to **enrich** them with context.<br>
 
-To improve observability, software engineers use a wide range of techniques to gather telemetry information, and tools to analyze and use it.<br>
+To improve observability, software engineers use a wide range of techniques and tools to gather **telemetry data** and analyze it.<br>
 Observability is foundational to site reliability engineering (**SRE**).<br>
 
 _Observability_ relies on 3 main types of **telemetry data**: **metrics**, **logs** and **traces**. Those are often referred to as **pillars of observability**.<br>
@@ -37,8 +39,8 @@ A **metric** is a **scalar** value that represents some system **state** at a sp
 # Instrumentation
 **Instrumentation** means generating telemetry alongside the normal operation of the application.<br>
 **Instrumentation** can be **native** (aka **in-code**) or **out-of-code**.<br>
-**Native instrumentation** **require modifying** the code of the _instrumented application_.<br>
-Note that **instrumenting** a program can cause performance changes, and may in some cases lead to inaccurate results.<br>
+**Native** _instrumentation_ require **modifying** the code of the _instrumented application_.<br>
+Note that **instrumenting** a program can cause **performance penalty**, and may in some cases lead to **inaccurate results**.<br>
 
 <br>
 
