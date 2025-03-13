@@ -64,8 +64,8 @@ _Tracing_ is achieved by **instrumenting** the source code.<br>
 <br>
 
 ## Distributed traces
-A **distributed trace** contains details that illustrating how the request moves through various services within a distributed system.<br>
-A **trace** represents the **complete** journey of a request through a distributed system..<br>
+A **distributed trace** contains details that illustrate how the request moves through various services within a distributed system.<br>
+A **trace** represents the **complete** journey of a request through a distributed system.<br>
 A **trace** consists of multiple **spans**.<br>
 
 **Spans** are fundamental building blocks of **distributed trace**.<br>
