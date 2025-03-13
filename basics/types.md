@@ -314,6 +314,20 @@ fn main() {
 <br>
 
 ## Conversions between string types
+**Methods** of `String`:
+- [**as_bytes**(&self)](https://doc.rust-lang.org/std/string/struct.String.html#method.as_bytes) - converts `String` to a **byte slice** `&[u8]`;
+- [**from_utf8**(vec: Vec<u8>)](https://doc.rust-lang.org/std/string/struct.String.html#method.from_utf8) - converts `Vec<u8>` to a `String`, returns `Err` if the slice is **not** _UTF-8_;
+  - if you need a `&str` instead of a `String`, consider [**str::from_utf8**(v: &\[u8\])](https://doc.rust-lang.org/std/str/fn.from_utf8.html) - converts a **byte slice** `&[u8]` to a **string slice** `&str`;
+- [**into_bytes**(self)](https://doc.rust-lang.org/std/string/struct.String.html#method.into_bytes) - converts a `String` into a `Vec<u8>`;
+
+<br>
+
+**Methods** of `str`:
+- [**bytes**(&self)](https://doc.rust-lang.org/std/primitive.str.html#method.bytes) - returns an **iterator** over the **bytes** `u8` of a string slice;
+- [**chars**(&self)](https://doc.rust-lang.org/std/string/struct.String.html#method.chars) - Returns an **iterator** over the `char` of a string slice;
+
+<br>
+
 Types `OsStr` and `OsString` must be imported explicitly:
 ```rust
 #![allow(unused_variables)]
@@ -420,6 +434,17 @@ fn main() {
     let r: OsString = OsString::from_vec(v); // this requires os::unix::ffi::OsStringExt
 }
 ```
+
+<br>
+
+# Unicode
+A **grapheme cluster** is a sequence of one or more Unicode **code points** that should be treated as a **single unit**.<br>
+Text editing software should generally allow placement of cursor only at grapheme cluster boundaries.<br>
+
+<br>
+
+There is **no** method in **std** to iterate over **grapheme clusters**.<br>
+The [**unicode-segmentation**](https://crates.io/crates/unicode-segmentation) crate provides grapheme cluster. It provides special method `.graphemes(true)`.<br>
 
 <br>
 
