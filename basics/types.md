@@ -315,8 +315,9 @@ fn main() {
 
 ## Conversions between string types
 **Methods** of `String`:
-- [**as_bytes**(&self)](https://doc.rust-lang.org/std/string/struct.String.html#method.as_bytes) - converts a **string slice** `&str` to a **byte slice** `[u8]`;
-- [**from_utf8**(vec: Vec<u8>)](https://doc.rust-lang.org/std/string/struct.String.html#method.from_utf8) - converts a **byte slice** `[u8]` to a **string slice** `&str`, returns `Err` if the slice is **not** _UTF-8_;
+- [**as_bytes**(&self)](https://doc.rust-lang.org/std/string/struct.String.html#method.as_bytes) - converts `String` to a **byte slice** `&[u8]`;
+- [**from_utf8**(vec: Vec<u8>)](https://doc.rust-lang.org/std/string/struct.String.html#method.from_utf8) - converts `Vec<u8>` to a `String`, returns `Err` if the slice is **not** _UTF-8_;
+  - if you need a `&str` instead of a `String`, consider [**str::from_utf8**(v: &\[u8\])](https://doc.rust-lang.org/std/str/fn.from_utf8.html) - converts a **byte slice** `&[u8]` to a **string slice** `&str`;
 - [**into_bytes**(self)](https://doc.rust-lang.org/std/string/struct.String.html#method.into_bytes) - converts a `String` into a `Vec<u8>`;
 
 <br>
