@@ -37,14 +37,24 @@ A **metric** is a **scalar** value that represents some system **state** at a sp
 <br>
 
 # Instrumentation
-**Instrumentation** means generating telemetry alongside the normal operation of the application.<br>
-**Instrumentation** can be **native** (aka **in-code**) or **out-of-code**.<br>
-**Native** _instrumentation_ require **modifying** the code of the _instrumented application_.<br>
+**Instrumenting** a software application means **integrating logic** into its code that will **produce and collect telemetry** _at runtime_.<br>
 Note that **instrumenting** a program can cause **performance penalty**, and may in some cases lead to **inaccurate results**.<br>
+
+There are several **tools** and **techniques** to **instrument an application**. Specifically, there are **two** types of instrumentation:
+- **source instrumentation**: involves modifying the **source code** of a program to add **instrumentation logic**;
+- **binary instrumentation**: involves modifying the compiled **executable** to add **instrumentation logic**;
 
 <br>
 
-# Tracing 
+Software instrumentation comes with some challenges you must take into account. These include:
+- **Performance overhead**: Instrumentation code can increase CPU and bandwidth usage, which can negatively impact the application's performance.
+- **More complex code**: The logic required to implement instrumentation can make the codebase more complex and difficult to read and maintain.
+- **Privacy concerns**: The data collected through instrumentation may include sensitive information, such as user behavior, preferences, and habits. This info should be handled with respect to privacy regulations and mustn't be exposed to unauthorized parties.
+- **Stability issues**: Instrumenting an application can introduce new bugs or issues that weren't present in the original code.
+
+<br>
+
+# Tracing
 **Tracing** in software engineering refers to the **process of capturing** information about the execution of a software program.<br>
 It involves recording information about the program’s execution, such as **function calls**, **variable values**, or even the **entire call stack**. All such collected information is called **trace data** or just **trace**.<br>
 _Tracing_ is achieved by **instrumenting** the source code.<br>
@@ -63,7 +73,7 @@ _Tracing_ is achieved by **instrumenting** the source code.<br>
 
 <br>
 
-## Distributed traces
+# Distributed traces
 A **distributed trace** contains details that illustrate how the request moves through various services within a distributed system.<br>
 A **trace** represents the **complete** journey of a request through a distributed system.<br>
 A **trace** consists of multiple **spans**.<br>
