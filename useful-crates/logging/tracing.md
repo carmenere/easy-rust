@@ -1,110 +1,100 @@
-# Observability vs. Monitoring
-`Inputs` -> `System` -> `Outputs`.<br>
-
-**Observability** measures how easily can we infer **internal state** of system using only the obtained **telemetry** (metrics, logs, traces, profiling).<br>
-**Observability** helps to determine the behavior of the entire system from the system's outputs.<br>
-**Monitoring** is an **action**, but **observability** is a **property** of system.<br>
-**Monitoring** shows the **fact** of problem, **observability** help to reveal the **root causes** of problem.<br>
-
-| Monitoring                                 | Observability                 |
-|:-------------------------------------------|:------------------------------|
-| **Is** it broken?                          | **Why** it is broken?         |
-| Helps to **react** on incident **quickly** | Helps to **prevent** incident |
-
-_Observability_ **complements** _Monitoring_.<br>
-_Observability_ provides means to **look deeper** into complex systems.<br>
-_Observability_ allows to map/**correlate telemetry data** from various systems and to **enrich** them with context.<br>
-
-To improve observability, software engineers use a wide range of techniques and tools to gather **telemetry data** and analyze it.<br>
-Observability is foundational to site reliability engineering (**SRE**).<br>
-
-_Observability_ relies on 3 main types of **telemetry data**: **metrics**, **logs** and **traces**. Those are often referred to as **pillars of observability**.<br>
+# Tracing stack
+- [**tracing**](https://docs.rs/tracing-subscriber/latest/tracing_subscriber/index.html) is a **framework** for **instrumenting** Rust programs to collect traces.;
+- [**tracing-subscriber**](https://docs.rs/tracing-subscriber/latest/tracing_subscriber/index.html): provides utilities for implementing and configuring subscribers;
+- [**tracing-flame**](https://crates.io/crates/tracing-flame): for generating **flamegraphs** and **flamecharts** with [**inferno**](https://crates.io/crates/inferno);
+- [**tracing-opentelemetry**](https://crates.io/crates/tracing-opentelemetry): provides compatibility with **OpenTelemetry**;
+- [**tracing-futures**](https://crates.io/crates/tracing-futures): provides support for instrumenting **asynchronous code** written using **futures** and **async**/**await**;
 
 <br>
 
-# Telemetry
-**Telemetry** is the **automated process** of **measuring** and **collecting**, **transmitting**, **processing** and **analyzing** data from **remote** systems. Once the data is **collected**, it needs to be transmitted to a **central** system that **store**, **process**, and **analyze** it.<br>
-**Telemetry** provides **constant feedback**, ensuring you always have the data you need to make informed decisions.<br>
-**Telemetry** helps you understand what’s happening within your system. Software developers and IT administrators use **telemetry** to remotely **monitor** the **health**, **security** and **performance** of applications in real time.<br>
-
-**Telemetry data** (or just **telemetry**) refers to the information gathered from **remote** systems and **transmitted** to a **central** system for analysis.<br>
-**Telemetry** includes different types of data, such as **logs**, **metrics**, and **traces**.<br>
-
-A **metric** is a **scalar** value that represents some system **state** at a specific moment of time.<br>
-**Event logging** is the act of keeping information about some **event** that occur in a system. A **log entry** (or just a **log**) is recorded for each such event.<br>
-**Logs** typically include a **timestamp**, **severity level** and **message** about event. In the simplest case, _logs_ are written to a file, called a **log file**.<br>
+# `tracing` crate
+The core of **tracing’s API** is composed of:
+- 5 macros for different levels of diagnostic information: `trace!`, `debug!`, `info!`, `warn!`, `error!`;
+- ([**spans**](https://docs.rs/tracing/latest/tracing/span/index.html)): unlike a _log_ that represents a _moment in time_, a **span** represents a **period of time** with a beginning and an end;
+- [**events**](https://docs.rs/tracing/latest/tracing/struct.Event.html): **like** a _log_ **event** represents **moment in time**, but **unlike** a _log_, an **event** exists within the **context** of a span;
+- [**subscribers**](https://docs.rs/tracing/latest/tracing/trait.Subscriber.html): **subscriber** implement primitives for **collecting** trace events and spans;
 
 <br>
 
-# Instrumentation
-**Instrumenting** a software application means **integrating logic** into its code that will **produce and collect telemetry** _at runtime_.<br>
-Note that **instrumenting** a program can cause **performance penalty**, and may in some cases lead to **inaccurate results**.<br>
-
-There are several **tools** and **techniques** to **instrument an application**. Specifically, there are **two** types of instrumentation:
-- **source instrumentation**: involves modifying the **source code** of a program to add **instrumentation logic**;
-- **binary instrumentation**: involves modifying the compiled **executable** to add **instrumentation logic**;
-
-<br>
-
-Software instrumentation comes with some challenges you must take into account. These include:
-- **Performance overhead**: Instrumentation code can increase CPU and bandwidth usage, which can negatively impact the application's performance.
-- **More complex code**: The logic required to implement instrumentation can make the codebase more complex and difficult to read and maintain.
-- **Privacy concerns**: The data collected through instrumentation may include sensitive information, such as user behavior, preferences, and habits. This info should be handled with respect to privacy regulations and mustn't be exposed to unauthorized parties.
-- **Stability issues**: Instrumenting an application can introduce new bugs or issues that weren't present in the original code.
+## Spans and events
+A **span** consists of fields, **set of fixed attributes** and **set of arbitrary user-defined key-value pairs**.
+Attributes describing spans include:
+- an **id** assigned by the subscriber that uniquely identifies it in relation to other spans;
+- the **span’s parent** in the **trace tree**;
+- [**metadata**](https://docs.rs/tracing/latest/tracing/struct.Metadata.html);
 
 <br>
 
-# Tracing
-**Tracing** in software engineering refers to the **process of capturing** information about the execution of a software program.<br>
-It involves recording information about the program’s execution, such as **function calls**, **variable values**, or even the **entire call stack**. All such collected information is called **trace data** or just **trace**.<br>
-_Tracing_ is achieved by **instrumenting** the source code.<br>
+**Spans** are created using the `span!` macro. **Spans** form a **tree structure** — unless it is a root span, all spans have a parent, and may have one or more children. When a new span is created, the current span becomes the new span’s parent.<br>
+Thus, a parent span always lasts for at least as long as the longest-executing span in its subtree.<br>
+Execution may enter and exit a span multiple times before that span is closed.<br>
+
+As **spans** and **events** occur, they are recorded or aggregated by implementations of the `Subscriber` trait.<br>
+**Subscribers** are notified when an **event** takes place and when a **span** is **entered** or **exited**.<br>
+It is up to the subscriber to determine whether and how span data should be stored.<br>
 
 <br>
 
-## Tracing vs. Logging
-- **Event logging**:
-  - Consumed primarily by **system administrators**;
-  - Contains **high level** information;
-  - Must **not** be too noisy;
-- **Tracing**:
-  - Consumed primarily by **developers**;
-  - Logs **low level** information;
-  - **Can** be noisy;
+The **span** in which a **thread** is currently executing is referred to as that **thread’s current span**.
+```rust
+use tracing::{span, Level};
+
+fn main() {
+  let span = span!(Level::TRACE, "my_span");
+  
+  // `enter()` returns a RAII guard which, when dropped, exits the span
+  let _enter = span.enter();
+  // perform some work in the context of `my_span`...
+}
+```
 
 <br>
 
-# Distributed traces
-A **distributed trace** contains details that illustrate how the request moves through various services within a distributed system.<br>
-A **trace** represents the **complete** journey of a request through a distributed system.<br>
-A **trace** consists of multiple **spans**.<br>
-
-**Spans** are fundamental building blocks of **distributed trace**.<br>
-Each **span** represents a single **unit of work** during processing a user request.<br>
-
-_Traces_ provide an **end-to-end overview** of the processing the whole request.<br>
-_Spans_ provide **detailed information** about **individual** operations or steps.<br>
+The `#[instrument]` attribute provides an easy way to add tracing spans to functions.<br>
+A function annotated with `#[instrument]` will create and enter a span with that function’s name every time the function is called, with arguments to that function will be recorded as fields using `fmt::Debug`.<br>
 
 <br>
 
-**Instrumenting** an application **with traces** means sending span information to a **tracing backend**.<br>
-The tracing backend correlates the received spans to generate presentable traces.<br>
-To be able to follow a request as it traverses multiple services, spans are labeled with ID that enable constructing a parent-child relationship between spans.<br>
+# `tracing-subscriber` crate
+A layer is a composable handler for tracing events. A Layer implements a behavior for recording or collecting traces that can be composed together with other Layers to build a Subscriber.
+The most important component of the tracing-subscriber API is the Layer trait, which provides a composable abstraction for building Subscribers.
+Multiple layers can have their own, separate per-layer filters. A span or event will be recorded if it is enabled by any per-layer filter, but it will be skipped by the layers whose filters did not enable it.
+A per-Layer filter that determines whether a span or event is enabled for an individual layer.
+In addition, the Filter trait defines an interface for filtering what spans and events are recorded by a particular layer. This allows different Layers to handle separate subsets of the trace data emitted by a program.
+
+```rust
+use tracing::{info, trace, warn, error, debug};
+use tracing_subscriber::{self, FmtSubscriber};
+
+fn main() {
+    let subscriber = FmtSubscriber::builder()
+        .with_max_level(tracing::Level::INFO)
+        .finish();
+
+    tracing::subscriber::set_global_default(subscriber)
+        .expect("setting default subscriber failed");
+    
+    let number = 5;
+    debug!("Some debug");
+    info!("Some info");
+    warn!("Some warn ");
+    error!("Some error...");
+}
+```
+
+In this example, we create a FmtSubscriber and set it as the global default. The with_max_level function is used to set the maximum level of events that the subscriber will record. In this case, we’re recording all events up to the TRACE level.
+
 
 <br>
 
-A **parent span** (aka **root span**) encapsulates the **end-to-end latency** of an entire request.<br>
-A **child span** is triggered by a _parent span_ and can be a **function call**, **DB call**, **call to another service**, etc.<br>
+```rust
+let subscriber = MySubscriber::new()
+    .with(MyLayer::new())
+    .with(MyOtherLayer::new())
+    .with(MyThirdLayer::new());
 
-A **span attributes** are key-value pairs that can be used to provide additional context on a span about the specific operation it tracks.<br>
-
-A **span context** uniquely identifies the request to which span belongs. A **span context** is propagated to all child spans.<br>
-_Span context_ consists of three core components:
-- **Trace ID**: all spans within the trace share the same **Trace ID**;
-- **Span ID**: a unique identifier for each span within the trace;
-- **Timestamps**: for example, duration of span;
+tracing::subscriber::set_global_default(subscriber);
+```
 
 <br>
 
-# Profiling
-**Profiling** is a form of dynamic program analysis that **measures** the **memory** or **time** complexity of a program, the **frequency** and **duration** of function calls and so on.<br>
-**Profiling** is achieved by **instrumenting** either the **source code** or binary executable using a tool called a **profiler**.<br>
