@@ -1,4 +1,17 @@
-# Tracing stack
+<!-- TOC -->
+* [Crates](#crates)
+* [`tracing` crate](#tracing-crate)
+  * [Usage](#usage)
+    * [In libraries](#in-libraries)
+    * [In executables](#in-executables)
+  * [Spans](#spans)
+  * [Events](#events)
+* [`tracing-subscriber` crate](#tracing-subscriber-crate)
+<!-- TOC -->
+
+<br>
+
+# Crates
 - [**tracing**](https://docs.rs/tracing-subscriber/latest/tracing_subscriber/index.html) is a **framework** for **instrumenting** Rust programs to collect traces;
 - [**tracing-subscriber**](https://docs.rs/tracing-subscriber/latest/tracing_subscriber/index.html): provides utilities for implementing and configuring **subscribers**;
 - [**tracing-flame**](https://crates.io/crates/tracing-flame): for generating **flamegraphs** and **flamecharts** with [**inferno**](https://crates.io/crates/inferno);
@@ -13,45 +26,6 @@ The core of **tracing’s API** is composed of:
 - [**spans**](https://docs.rs/tracing/latest/tracing/span/index.html): unlike a _log_ that represents a _moment in time_, a **span** represents a **period of time** with a beginning and an end;
 - [**events**](https://docs.rs/tracing/latest/tracing/struct.Event.html): **like** a _log_ **event** represents **moment in time**, but **unlike** a _log_, an **event** exists within the **context** of a span;
 - [**subscribers**](https://docs.rs/tracing/latest/tracing/trait.Subscriber.html): **subscriber** implement trait `Subscriber` which provides methods for collecting or recording trace data;
-
-<br>
-
-## Macros
-### `span!` and `event!` macros
-Attributes of  `span!` macro:
-
-| Parameter  | Optional | Input type                        | Default                                      |
-|:-----------|:---------|:----------------------------------|:---------------------------------------------|
-| Target     | Yes      | `&str`                            | The **module path** where the macro was invoked  |
-| Parent     | Yes      | parent_span_id                    | The **current span** where the macro was invoked |
-| **Level**      | **No**       | Any `tracing::Level` enum variant |                                              |
-| Span name  | No       | `&str`                            |                                              |
-
-
-Attributes of  `event!` macro:
-
-| Parameter       | Optional | Input type                        | Default                                          |
-|:----------------|:---------|:----------------------------------|:-------------------------------------------------|
-| Target          | Yes      | `&str`                            | The **module path** where the macro was invoked  |
-| Parent          | Yes      | parent_span_id                    | The **current span** where the macro was invoked |
-| **Level**           | **No**       | Any `tracing::Level` enum variant |                                                  |
-| key-value field | Yes      | `&str`                            |                                                  |
-
-A `Level` specifying the verbosity of the **span** or **event**.<br>
-
-```rust
-span!(Level::TRACE, "my_span");
-let span = span!(Level::TRACE, "my_span");
-
-event!(parent: &span, Level::INFO, "something happened inside my_span");
-// or
-event!(Level::INFO, "something happened inside my_span");
-```
-
-<br>
-
-There are **set of macros** for creating `Events`: `trace!`, `debug!`, `info!`, `warn!`, `error!`. They behave similarly to the `event!` macro, but with the `Level` argument with appropriate value.<br>
-There are **set of macros** for creating `Span`: `trace_span!`, `debug_span!`, `info_span!`, `warn_span!`, `error_span!`.They behave similarly to the `span!` macro, but with the `Level` argument with appropriate value.<br>
 
 <br>
 
@@ -78,7 +52,7 @@ The `set_global_default` sets this subscriber as the global default for the dura
 
 <br>
 
-## Spans and events
+## Spans
 A **span** consists of fields, **set of fixed attributes** and **set of arbitrary user-defined key-value pairs**.
 Attributes describing spans include:
 - an **id** assigned by the subscriber that uniquely identifies it in relation to other spans;
@@ -87,13 +61,32 @@ Attributes describing spans include:
 
 <br>
 
-**Spans** are created using the `span!` macro. **Spans** form a **tree structure** — unless it is a root span, all spans have a parent, and may have one or more children. When a new span is created, the current span becomes the new span’s parent.<br>
+**Spans** form a **tree structure** — unless it is a root span, all spans have a parent, and may have one or more children. When a **new** span is created, the **current** span **becomes** the new span’s **parent**.<br>
 Thus, a parent span always lasts for at least as long as the longest-executing span in its subtree.<br>
-Execution may enter and exit a span multiple times before that span is closed.<br>
+Execution may **enter** and **exit** a span _multiple times_ before that span is **closed**.<br>
 
-As **spans** and **events** occur, they are recorded or aggregated by implementations of the `Subscriber` trait.<br>
-**Subscribers** are notified when an **event** takes place and when a **span** is **entered** or **exited**.<br>
-It is up to the subscriber to determine whether and how span data should be stored.<br>
+**Spans** are created using the `span!` macro. Parameters of `span!` macro:
+
+| Parameter | Optional | Input type                        | Default                                      |
+|:----------|:---------|:----------------------------------|:---------------------------------------------|
+| Target    | Yes      | `&str`                            | The **module path** where the macro was invoked  |
+| Parent    | Yes      | parent_span_id                    | The **current span** where the macro was invoked |
+| **Level** | **No**   | Any `tracing::Level` enum variant |                                              |
+| Span name | No       | `&str`                            |                                              |
+
+A parameter `Level` specifies the **verbosity level** of the **span**.<br>
+
+<br>
+
+There are **set of macros** for creating `Span`: `trace_span!`, `debug_span!`, `info_span!`, `warn_span!`, `error_span!`.They behave similarly to the `span!` macro, but with the `Level` argument with appropriate value.<br>
+
+<br>
+
+**Example**:
+```rust
+span!(Level::TRACE, "my_span");
+let span = span!(Level::TRACE, "my_span");
+```
 
 <br>
 
@@ -117,13 +110,45 @@ A function annotated with `#[instrument]` will create and enter a span with that
 
 <br>
 
-# `tracing-subscriber` crate
-A layer is a composable handler for tracing events. A Layer implements a behavior for recording or collecting traces that can be composed together with other Layers to build a Subscriber.
-The most important component of the tracing-subscriber API is the Layer trait, which provides a composable abstraction for building Subscribers.
-Multiple layers can have their own, separate per-layer filters. A span or event will be recorded if it is enabled by any per-layer filter, but it will be skipped by the layers whose filters did not enable it.
-A per-Layer filter that determines whether a span or event is enabled for an individual layer.
-In addition, the Filter trait defines an interface for filtering what spans and events are recorded by a particular layer. This allows different Layers to handle separate subsets of the trace data emitted by a program.
+## Events
 
+**Events** are created using the `event!` macro. Parameters of `event!` macro:
+
+| Parameter       | Optional | Input type                        | Default                                          |
+|:----------------|:---------|:----------------------------------|:-------------------------------------------------|
+| Target          | Yes      | `&str`                            | The **module path** where the macro was invoked  |
+| Parent          | Yes      | parent_span_id                    | The **current span** where the macro was invoked |
+| **Level**       | **No**   | Any `tracing::Level` enum variant |                                                  |
+| Key-value field | Yes      | `&str`                            |                                                  |
+
+The `event!` macro suports up to **32** key-value fields.<br>
+
+<br>
+
+There are **set of macros** for creating `Events`: `trace!`, `debug!`, `info!`, `warn!`, `error!`. They behave similarly to the `event!` macro, but with the `Level` argument with appropriate value.<br>
+
+<br>
+
+**Example**:
+```rust
+span!(Level::TRACE, "my_span");
+let span = span!(Level::TRACE, "my_span");
+
+event!(parent: &span, Level::INFO, "something happened inside my_span");
+// or
+event!(Level::INFO, "something happened inside my_span");
+```
+
+<br>
+
+# `tracing-subscriber` crate
+As **spans** and **events** occur, they are recorded or aggregated by implementations of the `Subscriber` trait.<br>
+**Subscribers** are notified when an **event** takes place and when a **span** is **entered** or **exited**.<br>
+It is up to the subscriber to determine whether and how span data should be stored.<br>
+
+<br>
+
+**Example**:
 ```rust
 use tracing::{info, trace, warn, error, debug};
 use tracing_subscriber::{self, FmtSubscriber};
@@ -144,11 +169,20 @@ fn main() {
 }
 ```
 
-In this example, we create a FmtSubscriber and set it as the global default. The with_max_level function is used to set the maximum level of events that the subscriber will record. In this case, we’re recording all events up to the TRACE level.
-
+In this example, we create a `FmtSubscriber` and set it as the global default. The `with_max_level` function is used to set the **maximum level** of events that the subscriber will record. In this case, we’re recording all events up to the `TRACE` level.<br>
 
 <br>
 
+The most important component of the `tracing-subscriber` API is the `Layer` trait.<br>
+A **layer** is a composable handler for tracing events. A **layer** must implement `Layer` trait. _Layers_ can be **composed together** with other layers to build a `Subscriber`.<br>
+
+Multiple layers can have their own, **separate per-layer filters**. A **per-layer filter** must implement `Filter` trait.<br>
+A **per-layer filter** determines whether a span or event is **enabled** for an individual layer and if enabled it will be **recorded**.<br>
+This allows different Layers to handle separate subsets of the trace data emitted by a program.<br>
+
+<br>
+
+**Example**:
 ```rust
 let subscriber = MySubscriber::new()
     .with(MyLayer::new())
@@ -157,6 +191,3 @@ let subscriber = MySubscriber::new()
 
 tracing::subscriber::set_global_default(subscriber);
 ```
-
-<br>
-
