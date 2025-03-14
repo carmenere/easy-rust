@@ -1,5 +1,7 @@
+# Table of contents
 <!-- TOC -->
-* [Crates](#crates)
+* [Table of contents](#table-of-contents)
+* [Common crates](#common-crates)
 * [`tracing` crate](#tracing-crate)
   * [Usage](#usage)
     * [In libraries](#in-libraries)
@@ -11,7 +13,7 @@
 
 <br>
 
-# Crates
+# Common crates
 - [**tracing**](https://docs.rs/tracing-subscriber/latest/tracing_subscriber/index.html) is a **framework** for **instrumenting** Rust programs to collect traces;
 - [**tracing-subscriber**](https://docs.rs/tracing-subscriber/latest/tracing_subscriber/index.html): provides utilities for implementing and configuring **subscribers**;
 - [**tracing-flame**](https://crates.io/crates/tracing-flame): for generating **flamegraphs** and **flamecharts** with [**inferno**](https://crates.io/crates/inferno);
