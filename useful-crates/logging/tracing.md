@@ -1,18 +1,80 @@
 # Tracing stack
-- [**tracing**](https://docs.rs/tracing-subscriber/latest/tracing_subscriber/index.html) is a **framework** for **instrumenting** Rust programs to collect traces.;
-- [**tracing-subscriber**](https://docs.rs/tracing-subscriber/latest/tracing_subscriber/index.html): provides utilities for implementing and configuring subscribers;
+- [**tracing**](https://docs.rs/tracing-subscriber/latest/tracing_subscriber/index.html) is a **framework** for **instrumenting** Rust programs to collect traces;
+- [**tracing-subscriber**](https://docs.rs/tracing-subscriber/latest/tracing_subscriber/index.html): provides utilities for implementing and configuring **subscribers**;
 - [**tracing-flame**](https://crates.io/crates/tracing-flame): for generating **flamegraphs** and **flamecharts** with [**inferno**](https://crates.io/crates/inferno);
 - [**tracing-opentelemetry**](https://crates.io/crates/tracing-opentelemetry): provides compatibility with **OpenTelemetry**;
 - [**tracing-futures**](https://crates.io/crates/tracing-futures): provides support for instrumenting **asynchronous code** written using **futures** and **async**/**await**;
+- [**tracing-log**](https://crates.io/crates/tracing-log): provides a **compatibility** layer with the `log` crate, i.e. it allows a tracing `Subscriber` to consume **log records** of `log` crate as though they were `tracing` events;
 
 <br>
 
 # `tracing` crate
 The core of **tracing’s API** is composed of:
-- 5 macros for different levels of diagnostic information: `trace!`, `debug!`, `info!`, `warn!`, `error!`;
-- ([**spans**](https://docs.rs/tracing/latest/tracing/span/index.html)): unlike a _log_ that represents a _moment in time_, a **span** represents a **period of time** with a beginning and an end;
+- [**spans**](https://docs.rs/tracing/latest/tracing/span/index.html): unlike a _log_ that represents a _moment in time_, a **span** represents a **period of time** with a beginning and an end;
 - [**events**](https://docs.rs/tracing/latest/tracing/struct.Event.html): **like** a _log_ **event** represents **moment in time**, but **unlike** a _log_, an **event** exists within the **context** of a span;
-- [**subscribers**](https://docs.rs/tracing/latest/tracing/trait.Subscriber.html): **subscriber** implement primitives for **collecting** trace events and spans;
+- [**subscribers**](https://docs.rs/tracing/latest/tracing/trait.Subscriber.html): **subscriber** implement trait `Subscriber` which provides methods for collecting or recording trace data;
+
+<br>
+
+## Macros
+### `span!` and `event!` macros
+Attributes of  `span!` macro:
+
+| Parameter  | Optional | Input type                        | Default                                      |
+|:-----------|:---------|:----------------------------------|:---------------------------------------------|
+| Target     | Yes      | `&str`                            | The **module path** where the macro was invoked  |
+| Parent     | Yes      | parent_span_id                    | The **current span** where the macro was invoked |
+| **Level**      | **No**       | Any `tracing::Level` enum variant |                                              |
+| Span name  | No       | `&str`                            |                                              |
+
+
+Attributes of  `event!` macro:
+
+| Parameter       | Optional | Input type                        | Default                                          |
+|:----------------|:---------|:----------------------------------|:-------------------------------------------------|
+| Target          | Yes      | `&str`                            | The **module path** where the macro was invoked  |
+| Parent          | Yes      | parent_span_id                    | The **current span** where the macro was invoked |
+| **Level**           | **No**       | Any `tracing::Level` enum variant |                                                  |
+| key-value field | Yes      | `&str`                            |                                                  |
+
+A `Level` specifying the verbosity of the **span** or **event**.<br>
+
+```rust
+span!(Level::TRACE, "my_span");
+let span = span!(Level::TRACE, "my_span");
+
+event!(parent: &span, Level::INFO, "something happened inside my_span");
+// or
+event!(Level::INFO, "something happened inside my_span");
+```
+
+<br>
+
+There are **set of macros** for creating `Events`: `trace!`, `debug!`, `info!`, `warn!`, `error!`. They behave similarly to the `event!` macro, but with the `Level` argument with appropriate value.<br>
+There are **set of macros** for creating `Span`: `trace_span!`, `debug_span!`, `info_span!`, `warn_span!`, `error_span!`.They behave similarly to the `span!` macro, but with the `Level` argument with appropriate value.<br>
+
+<br>
+
+## Usage
+### In libraries
+Libraries should link only to the `tracing` crate, and use the provided macros to record whatever information will be useful to downstream consumers.<br>
+
+<br>
+
+### In executables
+In order to record trace events, executables have to use a `Subscriber` implementation compatible with `tracing`.<br>
+A `Subscriber` implements a way of collecting **trace data**, such as by logging it to standard output.<br>
+
+The simplest way to use a subscriber is to call the set_global_default function:
+```rust
+let my_subscriber = ... ;
+
+tracing::subscriber::set_global_default(my_subscriber)
+.expect("setting tracing default failed");
+```
+
+The `set_global_default` sets this subscriber as the global default for the duration of the entire program.<br>
+**Warning**: libraries should not call set_global_default()!<br>
 
 <br>
 
