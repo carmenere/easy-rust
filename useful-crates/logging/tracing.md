@@ -25,7 +25,7 @@
 
 # `tracing` crate
 The core of **tracing’s API** is composed of:
-- [**spans**](https://docs.rs/tracing/latest/tracing/span/index.html): unlike a _log_ that represents a _moment in time_, a **span** represents a **period of time** with a beginning and an end;
+- [**spans**](https://docs.rs/tracing/latest/tracing/span/index.html): **unlike** a _log_ that represents a _moment in time_, a **span** represents a **period of time** with a beginning and an end;
 - [**events**](https://docs.rs/tracing/latest/tracing/struct.Event.html): **like** a _log_ **event** represents **moment in time**, but **unlike** a _log_, an **event** exists within the **context** of a span;
 - [**subscribers**](https://docs.rs/tracing/latest/tracing/trait.Subscriber.html): **subscriber** implement trait `Subscriber` which provides methods for collecting or recording trace data;
 
