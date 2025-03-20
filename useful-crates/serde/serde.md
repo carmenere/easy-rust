@@ -3,15 +3,18 @@
   * [Serde data model](#serde-data-model)
     * [Module serde::de](#module-serdede)
     * [Module serde::ser](#module-serdeser)
-  * [Relationship between data formats, data types and intermediate types](#relationship-between-data-formats-data-types-and-intermediate-types)
-  * [Example: impl custom Deserialize and Visitor for i32](#example-impl-custom-deserialize-and-visitor-for-i32)
-  * [Crate serde_json](#crate-serde_json)
-    * [Example](#example)
-    * [serde_json::Value](#serde_jsonvalue)
-    * [Macros serde_json::json](#macros-serde_jsonjson)
+    * [serde_json::Serializer](#serde_jsonserializer)
     * [serde_json::Deserializer](#serde_jsondeserializer)
-    * [Methods for deserialize numbers of Deserializer trait](#methods-for-deserialize-numbers-of-deserializer-trait)
-  * [Methods for deserialize numbers of Deserialize trait](#methods-for-deserialize-numbers-of-deserialize-trait)
+  * [Relationship between data formats, data types and intermediate types](#relationship-between-data-formats-data-types-and-intermediate-types)
+  * [Example: impl custom `serde::de::Deserialize` and `serde::de::Visitor` for `i32`](#example-impl-custom-serdededeserialize-and-serdedevisitor-for-i32)
+  * [Crate `serde_json`](#crate-serde_json)
+    * [Example](#example)
+    * [`serde_json::Value`](#serde_jsonvalue)
+    * [Macros `serde_json::json`](#macros-serde_jsonjson)
+* [Crate `serde_with`](#crate-serde_with)
+* [`serde` source code snippets](#serde-source-code-snippets)
+  * [Methods for deserialize numbers of `serde::de::Deserializer` trait](#methods-for-deserialize-numbers-of-serdededeserializer-trait)
+  * [Methods for deserialize numbers of `serde::de::Deserialize` trait](#methods-for-deserialize-numbers-of-serdededeserialize-trait)
 <!-- TOC -->
 
 <br>
@@ -29,16 +32,39 @@ Serde consists of 3 layers:
 Deserialization in serde uses **visitor pattern** (aka **double dispatch**).<br>
 
 Provides traits
-- `serde::Deserialize`: a type that implements `Deserialize` is a **data type**;
-- `serde::Deserializer`: a type that implements `Deserializer` is a **data format**;
-- `serde::de::Visitor`: this trait represents a **visitor** that walks through a **deserializer**;
+- [**serde::de::Deserialize**](https://docs.rs/serde/latest/serde/de/trait.Deserialize.html): a type that implements `Deserialize` is a **data type**;
+- [**serde::de::Deserializer**](https://docs.rs/serde/latest/serde/de/trait.Deserializer.html): a type that implements `Deserializer` is a **data format**;
+- [**serde::de::Visitor**](https://docs.rs/serde/latest/serde/de/trait.Visitor.html): this trait represents a **visitor** that walks through a **deserializer**;
 
 <br>
 
 ### Module serde::ser
 Provides traits
-- `serde::ser::Serialize`: a type that implements `Serialize` is a **data type**;
-- `serde::ser::Serializer`: a type that implements `Serializer` is a **data format**;
+- [**serde::ser::Serialize**](https://docs.rs/serde/latest/serde/ser/trait.Serialize.html): a type that implements `Serialize` is a **data type**;
+- [**serde::ser::Serializer**](https://docs.rs/serde/latest/serde/ser/trait.Serializer.html): a type that implements `Serializer` is a **data format**;
+
+<br>
+
+### serde_json::Serializer
+Struct [**serde_json::Serializer**](https://docs.rs/serde_json/latest/serde_json/struct.Serializer.html).<br>
+A structure for serializing Rust values into JSON.<br>
+
+**Methods**:
+- `new(writer: W) -> Self` creates a new **JSON serializer**;
+
+<br>
+
+### serde_json::Deserializer
+Struct [**serde_json::Deserializer**](https://docs.rs/serde_json/latest/serde_json/struct.Deserializer.html).<br>
+A structure that deserializes JSON into Rust values.<br>
+
+<br>
+
+**Methods**:
+- `new(read: R) -> Self` create a new **JSON deserializer** from one of the possible `serde_json` **input sources**;
+- `from_reader(reader: R) -> Self` creates a **JSON deserializer** from an `io::Read`;
+- `from_slice(bytes: &'a [u8]) -> Self ` creates a **JSON deserializer** from a `&str`;
+- `from_str(s: &'a str) -> Self ` creates a **JSON deserializer** from a `&str`;
 
 <br>
 
@@ -178,7 +204,7 @@ So, the `Person` type must implement `de::Deserialize`.<br>
 
 <br>
 
-## Example: impl custom Deserialize and Visitor for i32
+## Example: impl custom `serde::de::Deserialize` and `serde::de::Visitor` for `i32`
 ```rust
 use std::fmt;
 use std::str::FromStr;
@@ -217,7 +243,7 @@ impl<'de> Visitor<'de> for I32Visitor {
 
 <br>
 
-## Crate serde_json
+## Crate `serde_json`
 ### Example
 ```rust
 use serde::{Serialize, Deserialize};
@@ -239,7 +265,7 @@ println!("{}", serde_json::to_string_pretty(&t).unwrap());
 }
 ```
 
-### serde_json::Value
+### `serde_json::Value`
 ```rust
 pub enum Value {
     Null,
@@ -253,7 +279,7 @@ pub enum Value {
 
 Represents any valid JSON value.
 
-### Macros serde_json::json
+### Macros `serde_json::json`
 Construct a `serde_json::Value` from a JSON literal.
 
 ```rust
@@ -271,21 +297,13 @@ let value = json!({
 
 <br>
 
-### serde_json::Deserializer
-Struct [**Deserializer**](https://docs.rs/serde_json/latest/serde_json/struct.Deserializer.html).<br>
-A structure that deserializes JSON into Rust values.<br>
+# Crate `serde_with`
+The `serde_with` crate which allows to derive `Serialize` and `Deserialize` using implementations of the `Display` and `FromStr` traits.<br>
 
 <br>
 
-[**Methods**](https://docs.rs/serde_json/latest/serde_json/struct.Deserializer.html#implementations):
-- `new(read: R) -> Self` create a **JSON deserializer** from one of the possible `serde_json` **input sources**;
-- `from_reader(reader: R) -> Self` creates a **JSON deserializer** from an `io::Read`;
-- `from_slice(bytes: &'a [u8]) -> Self ` creates a **JSON deserializer** from a `&str`;
-- `from_str(s: &'a str) -> Self ` creates a **JSON deserializer** from a `&str`;
-
-<br>
-
-### Methods for deserialize numbers of Deserializer trait
+# `serde` source code snippets
+## Methods for deserialize numbers of `serde::de::Deserializer` trait
 Methods for deserialize **numbers** (`deserialize_i8/u8/i16/u16` and so on) are generated by macros `deserialize_number!`.<br>
 
 ```rust
@@ -438,8 +456,8 @@ impl<'de, R: Read<'de>> Deserializer<R> {
 
 <br>
 
-## Methods for deserialize numbers of Deserialize trait
-[**Trait Deserialize**](https://docs.rs/serde/latest/serde/trait.Deserialize.html).<br>
+## Methods for deserialize numbers of `serde::de::Deserialize` trait
+[**serde::de::Deserialize**](https://docs.rs/serde/latest/serde/de/trait.Deserialize.html).<br>
 
 Implementations of `Deserialize` for **integer types** are generated by `impl_deserialize_num!`.<br>
 
@@ -485,8 +503,3 @@ macro_rules! impl_deserialize_num {
     };
 }
 ```
-
-<br>
-
-
-One option which I like is using the serde_with library which allows one to derive Serialize and Deserialize using implementations of the Display and FromStr traits.
