@@ -1,10 +1,8 @@
-# ``serde``
-#### Example (custom range type)
+# Example
 ```Rust
 use serde::{Deserialize, Serialize};
 use validator::{Validate, ValidationError};
 use sqlx::postgres::types::PgRange;
-
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, Validate)]
 #[serde(deny_unknown_fields)]
