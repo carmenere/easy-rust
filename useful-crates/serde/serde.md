@@ -297,7 +297,142 @@ let value = json!({
 
 <br>
 
-# Crate `serde_with`
+# Custom serializers/deserializers
+## Attributes `serialize_with`/`deserialize_with`/`with`
+- `#[serde(serialize_with = "path")]`
+  - Serialize this field using a custom function. The given function must be callable as `fn<S>(&T, S) -> Result<S::Ok, S::Error> where S: Serializer`
+- #[serde(deserialize_with = "path")]
+  - Deserialize this field using a custom function. The given function must be callable as `fn<'de, D>(D) -> Result<T, D::Error> where D: Deserializer<'de>`.
+- #[serde(with = "module")]
+  - Combination of `serialize_with` and `deserialize_with`. Serde will use `$module::serialize` as the `serialize_with` function and `$module::deserialize` as the `deserialize_with` function.
+
+<br>
+
+### Example 1: Custom serializer using `serialize_with`
+```rust
+use serde::{Serialize, Serializer};
+
+fn serialize_option_string<S>(value: &Option<String>, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    match value {
+        Some(v) => serializer.serialize_str(v),
+        None => serializer.serialize_str(""),
+    }
+}
+
+#[derive(Serialize)]
+struct MyStruct {
+    #[serde(serialize_with = "serialize_option_string")]
+    name: Option<String>,
+}
+
+fn main() {
+    let my_struct = MyStruct {
+        name: None,
+    };
+
+    let json = serde_json::to_string(&my_struct).unwrap();
+    println!("Serialized JSON: {}", json);
+}
+```
+
+<br>
+
+### Example 2: Custom serializer implementing `Serialize`
+```rust
+use serde::{Serialize, Serializer, ser::SerializeStruct};
+use chrono::{DateTime, Utc, NaiveDate};
+
+struct Event {
+  name: String,
+  date: DateTime<Utc>,
+}
+
+fn serialize_date<S>(date: &DateTime<Utc>, serializer: S) -> Result<S::Ok, S::Error>
+where
+        S: Serializer,
+{
+  let formatted_date = date.format("%Y-%m-%d").to_string();
+  serializer.serialize_str(&formatted_date)
+}
+
+impl Serialize for Event {
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+          S: Serializer
+  {
+    let mut state = serializer.serialize_struct("Event", 2)?;
+    state.serialize_field("name", &self.name)?;
+    state.serialize_field("date", &serialize_date(&self.date, serializer)?)?;
+    state.end()
+  }
+}
+
+fn main() {
+  let event = Event {
+    name: "RustConf".to_string(),
+    date: DateTime::from_utc(NaiveDate::from_ymd(2022, 9, 12).and_hms(0, 0, 0), Utc),
+  };
+
+  let serialized = serde_json::to_string(&event).unwrap();
+  println!("Serialized: {}", serialized);
+}
+```
+
+<br>
+
+### Example 3: Custom deserializer
+```rust
+use serde::{Deserialize, Deserializer};
+use chrono::{DateTime, Utc, NaiveDate};
+use serde::de::{self, Visitor};
+use std::fmt;
+
+struct DateTimeVisitor;
+
+impl<'de> Visitor<'de> for DateTimeVisitor {
+    type Value = DateTime<Utc>;
+
+    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        formatter.write_str("a string in the format YYYY-MM-DD")
+    }
+
+    fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
+    where
+        E: de::Error,
+    {
+        NaiveDate::parse_from_str(value, "%Y-%m-%d")
+            .map(|date| DateTime::from_utc(date.and_hms(0, 0, 0), Utc))
+            .map_err(de::Error::custom)
+    }
+}
+
+fn deserialize_date<'de, D>(deserializer: D) -> Result<DateTime<Utc>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    deserializer.deserialize_str(DateTimeVisitor)
+}
+
+#[derive(Deserialize, Debug)]
+struct Event {
+    name: String,
+    #[serde(deserialize_with = "deserialize_date")]
+    date: DateTime<Utc>,
+}
+
+fn main() {
+    let data = r#"{"name": "RustConf", "date": "2025-03-20"}"#;
+    let event: Event = serde_json::from_str(data).unwrap();
+    dbg!(event);
+}
+```
+
+<br>
+
+## Crate `serde_with`
 The `serde_with` crate which allows to derive `Serialize` and `Deserialize` using implementations of the `Display` and `FromStr` traits.<br>
 
 <br>
