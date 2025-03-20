@@ -438,6 +438,8 @@ fn main() {
 <br>
 
 ## Crate `serde_with`
+[**serde_with**](https://docs.rs/serde_with/latest/serde_with).<br>
+
 The `serde_with` crate which allows to derive `Serialize` and `Deserialize` using implementations of the `Display` and `FromStr` traits.<br>
 
 <br>
