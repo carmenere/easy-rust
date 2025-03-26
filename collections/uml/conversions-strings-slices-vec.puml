@@ -20,7 +20,7 @@ class "&str"
 '&str ->
 ''''''''''''''''''''''''''''''''''''''''''''''''
 '&str -> String
-"&str" --> "String" : String::from(v: &str)
+"&str" --> "String" : String::from(<b>str</b>)
 "&str" --> "String" : .to_string()
 "&str" --> "String" : .to_owned()
 '&str -> &[u8]
@@ -35,17 +35,17 @@ class "&str"
 "&[u8]" --> "Vec<u8>" : .to_vec()
 "&[u8]" --> "Vec<u8>" : .to_owned()
 '&[u8] -> &str
-"&[u8]" -[#green]-> "&str" : <color:green>std::str::from_utf8(v: &[u8])</color>
+"&[u8]" -[#green]-> "&str" : <color:green>std::str::from_utf8(<b>slice</b>)</color>
 '&[u8] -> String
-"&[u8]" -[dotted]-> "String" : <b>transitively:</b>\nString::from_utf8(v: Vec<u8>)
+"&[u8]" -[dotted]-> "String" : <b>transitively:</b>\nString::from_utf8(<b>vec</b>)
 
 ''''''''''''''''''''''''''''''''''''''''''''''''
 'Vec<u8> ->
 ''''''''''''''''''''''''''''''''''''''''''''''''
 'Vec<u8> -> String
-"Vec<u8>" --> "String" : String::from_utf8(v: Vec<u8>)
+"Vec<u8>" --> "String" : String::from_utf8(<b>vec</b>)
 'Vec<u8> -> &str
-"Vec<u8>" -[dotted]-> "&str" : <b>transitively:</b>\nstd::str::from_utf8(vec.as_slice())
+"Vec<u8>" -[dotted]-> "&str" : <b>transitively:</b>\nstd::str::from_utf8(<b>vec</b>.as_slice())
 'Vec<u8> -> &[u8]
 "Vec<u8>" -[#blue]-> "&[u8]" : <color:blue>.as_slice()</color>
 
