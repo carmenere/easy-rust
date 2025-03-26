@@ -1,11 +1,13 @@
 # Table of contents
-- [Table of contents](#table-of-contents)
-- [URLs](#urls)
-- [Declaration](#declaration)
-- [In a nutshell](#in-a-nutshell)
-- [Blanket implementations](#blanket-implementations)
-    - [`impl<T, N> Clone for [T; N]`](#implt-n-clone-for-t-n)
-    - [`impl<T> Clone for &T`](#implt-clone-for-t)
+<!-- TOC -->
+* [Table of contents](#table-of-contents)
+* [URLs](#urls)
+* [Declaration](#declaration)
+* [In a nutshell](#in-a-nutshell)
+* [Blanket implementations](#blanket-implementations)
+    * [`impl Clone for [T; N]`](#impl-clone-for-t-n)
+    * [`impl Clone for &T`](#impl-clone-for-t)
+<!-- TOC -->
 
 <br>
 
@@ -36,7 +38,7 @@ Unlike `ToOwned` trait the `Clone` works **only** for going **from** `&T` **to**
 <br>
 
 # Blanket implementations
-### `impl<T, N> Clone for [T; N]`
+### `impl Clone for [T; N]`
 ```rust
 impl<T: Clone, const N: usize> Clone for [T; N] {
    fn clone(&self) -> Self {
@@ -47,7 +49,7 @@ impl<T: Clone, const N: usize> Clone for [T; N] {
 
 <br>
 
-### `impl<T> Clone for &T`
+### `impl Clone for &T`
 ```rust
 impl<T: ?Sized> Clone for &T {
    fn clone(&self) -> Self {

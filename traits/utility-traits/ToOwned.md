@@ -1,17 +1,19 @@
 # Table of contents
-- [Table of contents](#table-of-contents)
-- [URLs](#urls)
-- [Declaration](#declaration)
-- [In a nutshell](#in-a-nutshell)
-  - [Examples](#examples)
-    - [`.as_ref()` with `.to_owned()`](#as_ref-with-to_owned)
-- [Implementations in `std`](#implementations-in-std)
-- [Blanket implementations](#blanket-implementations)
-  - [`impl<T> ToOwned for T`](#implt-toowned-for-t)
-  - [`impl<T> ToOwned for [T]`](#implt-toowned-for-t-1)
-- [Difference between .clone() and .to\_owned()](#difference-between-clone-and-to_owned)
-  - [`.clone()`](#clone)
-  - [`.to_owned()`](#to_owned)
+<!-- TOC -->
+* [Table of contents](#table-of-contents)
+* [URLs](#urls)
+* [Declaration](#declaration)
+* [In a nutshell](#in-a-nutshell)
+  * [Examples](#examples)
+    * [`.as_ref()` with `.to_owned()`](#as_ref-with-to_owned)
+* [Implementations in `std`](#implementations-in-std)
+* [Blanket implementations](#blanket-implementations)
+  * [`impl ToOwned for T`](#impl-toowned-for-t)
+  * [`impl ToOwned for [T]`](#impl-toowned-for-t-1)
+* [Difference between .clone() and .to_owned()](#difference-between-clone-and-to_owned)
+  * [`.clone()`](#clone)
+  * [`.to_owned()`](#to_owned)
+<!-- TOC -->
 
 <br>
 
@@ -79,7 +81,7 @@ impl ToOwned for str {
 <br>
 
 # Blanket implementations
-## `impl<T> ToOwned for T`
+## `impl ToOwned for T`
 ```rust
 impl<T> ToOwned for T
 where
@@ -98,7 +100,7 @@ where
 
 <br>
 
-## `impl<T> ToOwned for [T]`
+## `impl ToOwned for [T]`
 ```rust
 impl<T: Clone> ToOwned for [T] {
    type Owned = Vec<T>;

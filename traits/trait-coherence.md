@@ -1,10 +1,12 @@
 # Table of contents
-- [Table of contents](#table-of-contents)
-- [Version resolution](#version-resolution)
-- [Coherence](#coherence)
-    - [Example: hash table problem](#example-hash-table-problem)
-  - [Orphan rule](#orphan-rule)
-  - [Overlapping rule](#overlapping-rule)
+<!-- TOC -->
+* [Table of contents](#table-of-contents)
+* [Version resolution](#version-resolution)
+* [Coherence](#coherence)
+    * [Example: hash table problem](#example-hash-table-problem)
+  * [Orphan rule](#orphan-rule)
+  * [Overlapping rule](#overlapping-rule)
+<!-- TOC -->
 
 <br>
 

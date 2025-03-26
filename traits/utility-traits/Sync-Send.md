@@ -1,15 +1,17 @@
 # Table of contents
-- [Table of contents](#table-of-contents)
-- [URLs](#urls)
-- [Send and Sync](#send-and-sync)
-- [!Send and !Sync](#send-and-sync-1)
-- [Send + Sync](#send--sync)
-- [Send + !Sync](#send--sync-1)
-- [!Send + Sync](#send--sync-2)
-- [!Send + !Sync](#send--sync-3)
-  - [`Rc<T>`](#rct)
-  - [`*mut T`](#mut-t)
-  - [`*const T`](#const-t)
+<!-- TOC -->
+* [Table of contents](#table-of-contents)
+* [URLs](#urls)
+* [Send and Sync](#send-and-sync)
+* [!Send and !Sync](#send-and-sync-1)
+* [Send + Sync](#send--sync)
+* [Send + !Sync](#send--sync-1)
+* [!Send + Sync](#send--sync-2)
+* [!Send + !Sync](#send--sync-3)
+  * [`Rc<T>`](#rct)
+  * [`*mut T`](#mut-t)
+  * [`*const T`](#const-t)
+<!-- TOC -->
   
 <br>
 

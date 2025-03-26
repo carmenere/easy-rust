@@ -1,17 +1,19 @@
 # Table of contents
-- [Table of contents](#table-of-contents)
-- [URLs](#urls)
-- [Declarations](#declarations)
-  - [`PartialEq`](#partialeq)
-  - [`Eq`](#eq)
-  - [`PartialOrd`](#partialord)
-  - [`Ord`](#ord)
-- [In a nutshell](#in-a-nutshell)
-  - [Correspondence to binary relations](#correspondence-to-binary-relations)
-  - [`PartialEq`](#partialeq-1)
-  - [`Eq`](#eq-1)
-  - [`PartialOrd`](#partialord-1)
-  - [`Ord`](#ord-1)
+<!-- TOC -->
+* [Table of contents](#table-of-contents)
+* [URLs](#urls)
+* [Declarations](#declarations)
+  * [`PartialEq`](#partialeq)
+  * [`Eq`](#eq)
+  * [`PartialOrd`](#partialord)
+  * [`Ord`](#ord)
+* [In a nutshell](#in-a-nutshell)
+  * [Correspondence to binary relations](#correspondence-to-binary-relations)
+  * [`PartialEq`](#partialeq-1)
+  * [`Eq`](#eq-1)
+  * [`PartialOrd`](#partialord-1)
+  * [`Ord`](#ord-1)
+<!-- TOC -->
 
 <br>
 

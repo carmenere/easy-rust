@@ -1,36 +1,12 @@
 # Table of contents
-- [Table of contents](#table-of-contents)
-- [In a nutshell](#in-a-nutshell)
-- [Adapters](#adapters)
-- [Declarations](#declarations)
-  - [`map()`](#map)
-      - [Example](#example)
-  - [`rev()`](#rev)
-  - [`filter()`](#filter)
-  - [`flatten()`](#flatten)
-      - [Example](#example-1)
-  - [`filter_map()`](#filter_map)
-  - [`flat_map()`](#flat_map)
-      - [Example](#example-2)
-  - [`fuse()`](#fuse)
-  - [`chain()`](#chain)
-      - [Example](#example-3)
-  - [`enumerate()`](#enumerate)
-  - [`zip()`](#zip)
-      - [Example for `zip()`](#example-for-zip)
-      - [Example for `zip_longest()`:](#example-for-zip_longest)
-  - [`by_ref()`](#by_ref)
-  - [`cloned()`](#cloned)
-  - [`copied()`](#copied)
-  - [`take()`](#take)
-  - [`take_while()`](#take_while)
-  - [`skip()`](#skip)
-  - [`skip_while()`](#skip_while)
-  - [`fold()`](#fold)
+<!-- TOC -->
+* [Table of contents](#table-of-contents)
+* [Adapters](#adapters)
+<!-- TOC -->
 
 <br>
 
-# In a nutshell
+# Adapters
 `Iterator` trait provides **adapter methods**, or simply **adapters**.<br>
 
 Calling **adapter** on an **iterator** returns a **new iterator** that **yields its own items** from the first iterator.<br>
@@ -41,7 +17,8 @@ In a **chain of adapters**, the only way to get a result is to call `next()` or 
 
 <br>
 
-# Adapters
+**Adapters**:
+
 |Adapter|Description|
 |:----|:------------|
 |[**all**](https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.all)|Tests if **predicate** `p` is applied to **every** element returns `true`. On empty returns `true`.|

@@ -1,27 +1,30 @@
 # Table of contents
-- [Table of contents](#table-of-contents)
-- [URLs](#urls)
-- [Declarations](#declarations)
-  - [`Iterator`](#iterator)
-  - [`IntoIterator`](#intoiterator)
-  - [`FromIterator`](#fromiterator)
-- [In a nutshell](#in-a-nutshell)
-  - [Iterators](#iterators)
-  - [Iterables](#iterables)
-  - [`FromIterator`](#fromiterator-1)
-- [Blanket implementations](#blanket-implementations)
-  - [`IntoIterator`](#intoiterator-1)
-    - [`impl<I: Iterator> IntoIterator for I`](#impli-iterator-intoiterator-for-i)
-- [Loop syntax](#loop-syntax)
-- [`Iterator::collect()`](#iteratorcollect)
-- [`Turbofish`](#turbofish)
-    - [Example](#example)
-- [Method `drain()`](#method-drain)
-- [Examples](#examples)
-  - [Implementing own `Iterator`](#implementing-own-iterator)
-  - [`IntoIterator`](#intoiterator-2)
-  - [Implementing `IntoIterator` for `MyCollection`](#implementing-intoiterator-for-mycollection)
-- [`IntoIterator` for arrays](#intoiterator-for-arrays)
+<!-- TOC -->
+* [Table of contents](#table-of-contents)
+* [URLs](#urls)
+* [Declarations](#declarations)
+  * [`Iterator`](#iterator)
+  * [`IntoIterator`](#intoiterator)
+  * [`FromIterator`](#fromiterator)
+* [In a nutshell](#in-a-nutshell)
+  * [Iterators](#iterators)
+  * [Iterables](#iterables)
+  * [`FromIterator`](#fromiterator-1)
+* [Blanket implementations](#blanket-implementations)
+  * [`IntoIterator`](#intoiterator-1)
+    * [`impl<I: Iterator> IntoIterator for I`](#impli-iterator-intoiterator-for-i)
+* [Iterators](#iterators-1)
+* [Loop syntax](#loop-syntax)
+* [`Iterator::collect()`](#iteratorcollect)
+* [`Turbofish`](#turbofish)
+    * [Example](#example)
+* [Method `drain()`](#method-drain)
+* [Examples](#examples)
+  * [Implementing own `Iterator`](#implementing-own-iterator)
+  * [`IntoIterator`](#intoiterator-2)
+  * [Implementing `IntoIterator` for `MyCollection`](#implementing-intoiterator-for-mycollection)
+* [`IntoIterator` for arrays](#intoiterator-for-arrays)
+<!-- TOC -->
 
 <br>
 
@@ -107,73 +110,34 @@ In Rust, **iterator** must implement `Iterator` trait.<br>
 
 <br>
 
-<table>
-    <tr>
-        <th>Case</th>
-        <th>Description</th>
-    </tr>
-<tr></tr>
-<tr>
-<td>
+
 
 Over **values** of type **T**
-
-</td>
-
-
-<td>
-
-```Rust
+```rust
 impl IntoIterator for SomeCollection<T> {
   fn into_iter(self) -> Iterator<Item=T> {
   }
 }
 ```
 
-</td>
-</tr>
-
-<tr></tr>
-<tr>
-<td>
 
 Over **shared references**: `&T`
-
-</td>
-
-<td>
-
-```Rust
+```rust
 impl IntoIterator for &SomeCollection<T> {
   fn into_iter(self) -> Iterator<Item=&T> {
   }
 }
 ```
 
-</td>
-</tr>
-
-<tr></tr>
-<tr>
-<td>
 
 Over **mutable references**: `&mut T`
-
-</td>
-
-<td>
-
-```Rust
+```rust
 impl IntoIterator for &mut SomeCollection<T> {
   fn into_iter(self) -> Iterator<Item=&mut T> {
   }
 }
 ```
 
-</td>
-</tr>
-
-</table>
 
 <br>
 
@@ -204,6 +168,69 @@ So, every `Iterator` returns itself from `.into_iter()`, in other words you **do
 
 <br>
 
+# Iterators
+Consider example:
+```rust
+for item in collection {
+    ...
+}
+```
+
+In this example, after `for` loop *collection* `collection` is become **invalid**.<br>
+
+Access to **collections** in loops uses `move semantics` by default.
+
+<br>
+
+To make the `collection` **reusable after loop** use `immutable reference` to access to the `collection`:
+```rust
+for item in &collection {
+    ...
+}
+```
+
+<br>
+
+To **modify item** *during* the loop use `mutable reference` to access to the `collection`:
+```rust
+for item in &mut collection {
+    ...
+}
+```
+
+<br>
+
+For loop under the hood:
+1. `into_iter()`
+```rust
+for item in collection
+```
+is expanded to
+```rust
+for item in collection.into_iter()
+```
+
+2. `iter()`
+```rust
+for item in &collection
+```
+is expanded to
+```rust
+for item in collection.iter()
+```
+
+3. `iter_mut()`
+```rust
+for item in &mut collection
+```
+is expanded to
+```rust
+for item in collection.iter_mut()
+```
+
+
+<br>
+
 # Loop syntax
 `for ... in ...` syntax is just a syntactic sugar for an `IntoIterator::into_iter()` invocation, followed by repeated calling of `Iterator::next()`.<br>
 
@@ -214,47 +241,22 @@ Contexts:
 
 <br>
 
-<table>
-    <tr>
-        <th>Context</th>
-        <th></th>
-        <th>Real call</th>
-        <th></th>
-        <th>Real loop</th>
-    </tr>
-<tr></tr>
-<tr>
-<td>
-
-```Rust
+`Iterator` over `T`: 
+```rust
 for x in v {
   // body
 }
 ```
 
-</td>
-
-
-<td>
-
 **=>**
 
-</td>
-<td>
-
-```Rust
+```rust
 let mut iter = (v).into_iter();
 ```
 
-</td>
-<td rowspan="5">
-
 **=>**
 
-</td>
-<td rowspan="5">
-
-```Rust
+```rust
 loop {
     match iter.next() {
         Some(x) => {
@@ -265,65 +267,32 @@ loop {
 }
 ```
 
-</td>
-</tr>
 
-<tr></tr>
-<tr>
-<td>
-
-```Rust
+`Iterator` over `&T`:
+```rust
 for x in &v {
   // body
 }
 ```
 
-</td>
-
-<td>
-
 **=>**
 
-</td>
-<td>
-
-```Rust
+```rust
 let mut iter = (&v).into_iter();
 ```
 
-</td>
-
-</tr>
-
-<tr></tr>
-<tr>
-<td>
-
-```Rust
+`Iterator` over `&mut T`
+```rust
 for x in &mut v {
   // body
 }
 ```
 
-</td>
-
-
-<td>
-
 **=>**
 
-</td>
-<td>
-
-```Rust
+```rust
 let mut iter = (&mut v).into_iter();
 ```
-
-</td>
-
-</tr>
-
-</table>
 
 <br>
 
@@ -361,7 +330,7 @@ Example: `let all_scores = score_table.values().cloned().collect::<Vec<Score>>()
 **Turbofish** helps the **inference** algorithm to understand type of item of **resulting collection**.<br>
 
 ### Example
-```Rust
+```rust
 fn main() {
     let numbers: Vec<i32> = vec![
         1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
@@ -396,11 +365,11 @@ This is because the compiler **doesn’t know** what type you’re trying to col
 
 This can be fixed in two different ways:
 - by **declaring** the **type** of variable in `let` **binding**: 
-```Rust
+```rust
 let even_numbers: Vec<i32> = ...
 ```
 - by using a **turbofish**:
-```Rust
+```rust
 let even_numbers = numbers
     .into_iter()
     .filter(|n| n % 2 == 0)
@@ -410,7 +379,7 @@ let even_numbers = numbers
 The `::<Vec<i32>>` part is the **turbofish** and means collect this **iterator** into a `Vec<i32>`.<br>
 
 You can actually replace `i32` with `_` in **turbofish** and let the compiler infer it because it knows the **iterator** yields `i32`:
-```Rust
+```rust
 let even_numbers = numbers
     .into_iter()
     .filter(|n| n % 2 == 0)
@@ -432,7 +401,7 @@ So,
 
 # Examples
 ## Implementing own `Iterator`
-```Rust
+```rust
 struct MyIterator;
 
 impl Iterator for MyIterator {
@@ -463,7 +432,7 @@ But not every type provides all these 3 implementations:
 <br>
 
 ## Implementing `IntoIterator` for `MyCollection`
-```Rust
+```rust
 // A sample collection, that's just a wrapper over Vec<T>
 #[derive(Debug)]
 struct MyCollection(Vec<i32>);
@@ -511,7 +480,7 @@ for (i, n) in c.into_iter().enumerate() {
 
 This means you **can** iterate **over** `&[1, 2, 3]` and `&mut [1, 2, 3]`, but **not** **over** `[1, 2, 3]` **directly**.
 
-```Rust
+```rust
 for &e in &[1, 2, 3] {} // Ok
 for e in [1, 2, 3] {} // Error
 ```
@@ -525,3 +494,5 @@ Instead, the trait implementation was added in all editions (starting in Rust **
 - In Rust **2015** and **2018** code, the compiler will still resolve `array.into_iter()` to `(&array).into_iter()` like before, as if the trait implementation does not exist. 
 - This only applies to the `.into_iter()` method call syntax. It **doesn't** affect **any other syntax** such as 
 `for e in [1, 2, 3]`,  `iter.zip([1, 2, 3])` or `IntoIterator::into_iter([1, 2, 3])`. Those will work in all editions.
+
+<br>

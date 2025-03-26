@@ -1,13 +1,15 @@
 # Table of contents
-- [Table of contents](#table-of-contents)
-- [URLs](#urls)
-- [Trait `Into`](#trait-into)
-  - [Declaration](#declaration)
-  - [In a nutshell](#in-a-nutshell)
-  - [Example](#example)
-- [Trait `TryInto`](#trait-tryinto)
-  - [Declaration](#declaration-1)
-  - [In a nutshell](#in-a-nutshell-1)
+<!-- TOC -->
+* [Table of contents](#table-of-contents)
+* [URLs](#urls)
+* [Trait `Into`](#trait-into)
+  * [Declaration](#declaration)
+  * [In a nutshell](#in-a-nutshell)
+  * [Example](#example)
+* [Trait `TryInto`](#trait-tryinto)
+  * [Declaration](#declaration-1)
+  * [In a nutshell](#in-a-nutshell-1)
+<!-- TOC -->
 
 <br>
 

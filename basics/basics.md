@@ -1,40 +1,38 @@
 # Table of contents
-- [Table of contents](#table-of-contents)
-- [Assertions](#assertions)
-- [Closures](#closures)
-  - [Notation](#notation)
-  - [Various closures declarations](#various-closures-declarations)
-- [Comments in Rust](#comments-in-rust)
-- [Control flow](#control-flow)
-  - [Notation](#notation-1)
-- [Functions](#functions)
-  - [Function declaration](#function-declaration)
-  - [Generic function declaration](#generic-function-declaration)
-- [Iterators](#iterators)
-- [Variables declarations (aka let bindings)](#variables-declarations-aka-let-bindings)
-  - [Notations](#notations)
-  - [Examples](#examples)
-- [Loops](#loops)
-  - [Iterator loops](#iterator-loops)
-    - [Syntax](#syntax)
-    - [Examples](#examples-1)
-  - [Iterator loops with `enumeration`](#iterator-loops-with-enumeration)
-    - [Examples](#examples-2)
-  - [Predicate loops](#predicate-loops)
-    - [Syntax](#syntax-1)
-    - [Example](#example)
-- [Infinite loops](#infinite-loops)
-    - [Syntax](#syntax-2)
-    - [Example](#example-1)
-- [Loop labels](#loop-labels)
-  - [Example](#example-2)
-- [Operators](#operators)
-  - [Arithmetic operators](#arithmetic-operators)
-  - [Comparison operators](#comparison-operators)
-  - [Logical operators:](#logical-operators)
-  - [Bitwise operators (bit level logic):](#bitwise-operators-bit-level-logic)
-    - [Examples](#examples-3)
-- [Semicolon `;`](#semicolon-)
+<!-- TOC -->
+* [Table of contents](#table-of-contents)
+* [Assertions](#assertions)
+* [Comments in Rust](#comments-in-rust)
+* [Control flow](#control-flow)
+  * [Notation](#notation)
+* [Functions](#functions)
+  * [Function declaration](#function-declaration)
+  * [Generic function declaration](#generic-function-declaration)
+* [Variables declarations (aka let bindings)](#variables-declarations-aka-let-bindings)
+  * [Notations](#notations)
+  * [Examples](#examples)
+* [Loops](#loops)
+  * [Iterator loops](#iterator-loops)
+    * [Syntax](#syntax)
+    * [Examples](#examples-1)
+  * [Iterator loops with `enumeration`](#iterator-loops-with-enumeration)
+    * [Examples](#examples-)
+  * [Predicate loops](#predicate-loops)
+    * [Syntax](#syntax-1)
+    * [Example](#example)
+* [Infinite loops](#infinite-loops)
+    * [Syntax](#syntax-2)
+    * [Example](#example-1)
+* [Loop labels](#loop-labels)
+  * [Example](#example-2)
+* [Operators](#operators)
+  * [Arithmetic operators](#arithmetic-operators)
+  * [Comparison operators](#comparison-operators)
+  * [Logical operators:](#logical-operators)
+  * [Bitwise operators (bit level logic):](#bitwise-operators-bit-level-logic)
+    * [Examples](#examples-2)
+* [Semicolon `;`](#semicolon-)
+<!-- TOC -->
 
 <br>
 
@@ -51,7 +49,7 @@ If assertion is `false`, the program **crashes**.
 <tr>
 <td>
 
-```Rust
+```rust
 assert!(expr)
 ```
 
@@ -61,7 +59,7 @@ assert!(expr)
 <tr>
 <td>
 
-```Rust
+```rust
 assert_eq!(left, right)
 ```
 
@@ -69,28 +67,6 @@ assert_eq!(left, right)
 <td>If <code>left</code> is <b>not equal</b> <code>right</code> then <code>panic!</code> is called.</td>
 </tr>
 </table>
-
-<br>
-
-# Closures
-## Notation
-`|| -> { ... }`
-
-`||` defines **arguments**, **mandatory**.
-
-`->` defines **returning type**, **optional**.
-
-`{}` defines **body**, **optional**
-
-<br>
-
-## Various closures declarations
-```Rust
-let x: i32 = || -> i32 { … };
-let x: ()  = || {};
-let x: ()  = |a, b| { … };
-let x: i32 = |a, b| a + b;
-```
 
 <br>
 
@@ -124,7 +100,7 @@ Commonly used **sections** in **Documentation comments**:
 `if/else` expression allows to **branch code** depending on conditions.
 
 ## Notation
-```Rust
+```rust
 if expr1 {
     ...
 } else if expr2 {
@@ -140,103 +116,18 @@ if expr1 {
 
 # Functions
 ## Function declaration
-```Rust
+```rust
 fn name (a: i64) {
   ...
 }
 ```
 
 ## Generic function declaration
-```Rust
+```rust
 fn name<T> (a: T) {
   ...
 }
 ```
-
-<br>
-
-# Iterators
-Consider example:
-```Rust
-for item in collection {
-    ...
-}
-```
-
-In this example, after `for` loop *collection* `collection` is become **invalid**.<br>
-
-Access to **collections** in loops uses `move semantics` by default.
-
-<br>
-
-To make the `collection` **reusable after loop** use `immutable reference` to access to the `collection`:
-```Rust
-for item in &collection {
-    ...
-}
-```
-
-<br>
-
-To **modify item** *during* the loop use `mutable reference` to access to the `collection`:
-```Rust
-for item in &mut collection {
-    ...
-}
-```
-
-Iterator syntax variants:
-<table>
-<tr>
-<td><b>Shorthand</b></td>
-<td><b>Equivalent</b></td>
-<tr>
-<tr></tr>
-<tr>
-<td>
-
-```Rust
-for item in collection
-```
-</td>
-<td>
-
-```Rust
-for item in IntoIterator::into_iter(collection)
-```
-</td>
-</tr>
-<tr></tr>
-<tr>
-<td>
-        
-```Rust
-for item in &collection
-```
-</td>
-        <td>
-
-```Rust
-for item in collection.iter()
-```
-</td>
-</tr>
-<tr></tr>
-<tr>
-<td>
-
-```Rust
-for item in &mut collection
-```
-</td>
-<td>
-
-```Rust
-for item in collection.iter_mut()
-```
-</td>
-    </tr>
-</table>
 
 <br>
 
@@ -250,13 +141,13 @@ Here "\[\]" means *optional*. <br>
 
 ## Examples
 - Declarations of **immutable** variables:
-```Rust
+```rust
 let a: i32;
 let b: i32 = 33;
 let c = 33;
 ```
 - Declarations of **mutable** variables:
-```Rust
+```rust
 let mut x: i32;
 let mut y: i32 = 33;
 let mut z = 33;
@@ -277,7 +168,7 @@ There are 4 loop types in Rust:
 There is `for` loop in Rust when *number of iterations* in **known**.
 
 ### Syntax
-```Rust
+```rust
 for var_name in expression {
     ...
 }
@@ -293,7 +184,7 @@ Notes:
 
 ### Examples
 - Iterate over vector:
-```Rust
+```rust
 let v = &["apples", "cake", "coffee"];
 
 for item in v {
@@ -302,7 +193,7 @@ for item in v {
 ```
 
 - Iterate over range:
-```Rust
+```rust
 for i in 1..6 {
     my_f();
 }
@@ -313,7 +204,7 @@ for i in 1..6 {
 ## Iterator loops with `enumeration`
 ### Examples 
 - Iterate over range with enumeration:
-```Rust
+```rust
 for (i, j) in (5..10).enumerate() {
     println!("i = {}; j = {}.", i, j);
 }
@@ -334,7 +225,7 @@ There is `while` loop in Rust when *number of iterations* in **unknown**.
 <br>
 
 ### Syntax
-```Rust
+```rust
 while expression {
     ...
 }
@@ -343,7 +234,7 @@ while expression {
 where `expression` is `predicate`, i.e., returns `bool` type.
 
 ### Example
-```Rust
+```rust
 let mut i = 0;
 
 while i < 10 {
@@ -356,7 +247,7 @@ while i < 10 {
 
 # Infinite loops
 ### Syntax
-```Rust
+```rust
 loop {
     ...
 }
@@ -365,7 +256,7 @@ loop {
 It is similar to `while true { ... }`. But from compiler point of view it is different cases and compiler uses **additional optimizations** for `loop {}` variant.
 
 ### Example
-```Rust
+```rust
 loop {
     println!("hello");
 }
@@ -378,7 +269,7 @@ By default, statements `break` and `continue` **refer** to the **current** *loop
 **Labels** allow to **apply** statements `break` and `continue` to the **corresponding** *outer loop*.
 
 ## Example
-```Rust
+```rust
 'outer: for x in 0..10 {
     'inner: for y in 0..10 {
         if x % 2 == 0 { continue 'outer; }
@@ -449,20 +340,20 @@ Rust is an **expression-oriented language**. This means that **most things are e
 
 Examples, when `;` is **necessary**:
 - After **loop**, **control** and **match** blocks to drop their results:
-```Rust
+```rust
 for { … };
 ```
-```Rust
+```rust
 if/if else/else { … };
 ```
-```Rust
+```rust
 match { … };
 ```
 - After **let bindings** and **assignments**:
-```Rust
+```rust
 let i = 5;
 ```
-```Rust
+```rust
 let mut a = 5;
 a = 10;
 ```
@@ -470,12 +361,12 @@ a = 10;
 <br>
 
 Examples, when `;` can be **omitted**:
-```Rust
+```rust
 struct Foo {}
 ```
-```Rust
+```rust
 enum Bar {}
 ```
-```Rust
+```rust
 fn baz() {}
 ```

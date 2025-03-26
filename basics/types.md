@@ -1,78 +1,62 @@
 # Table of contents
-- [Table of contents](#table-of-contents)
-- [Scalars](#scalars)
-- [Number separator](#number-separator)
-  - [Example](#example)
-- [Overflow-checks](#overflow-checks)
-  - [Examples](#examples)
-- [Constants](#constants)
-  - [Examples](#examples-1)
-- [Static](#static)
-  - [Examples](#examples-2)
-- [`const` vs. `static`](#const-vs-static)
-- [Range operator](#range-operator)
-- [Type casting](#type-casting)
-- [Strings](#strings)
-  - [String literals](#string-literals)
-  - [`String`](#string)
-    - [Examples](#examples-3)
-  - [Methods](#methods)
-  - [Bytes. Chars. Vec](#bytes-chars-vec)
-  - [Conversions between string types](#conversions-between-string-types)
-- [Unit type `()`](#unit-type-)
-- [DST](#dst)
-- [Arrays](#arrays)
-  - [*Initialization* syntax](#initialization-syntax)
-    - [Syntax options for *pre initialized* arrays:](#syntax-options-for-pre-initialized-arrays)
-    - [Syntax options for *empty* arrays:](#syntax-options-for-empty-arrays)
-  - [*Type declaration* syntax](#type-declaration-syntax)
-- [Vectors](#vectors)
-  - [*Initialization* syntax](#initialization-syntax-1)
-    - [Syntax options for *pre initialized* vectors:](#syntax-options-for-pre-initialized-vectors)
-    - [Syntax options for *empty* vectors:](#syntax-options-for-empty-vectors)
-  - [*Type declaration* syntax](#type-declaration-syntax-1)
-- [Slices](#slices)
-- [Enums](#enums)
-  - [Syntax](#syntax)
-    - [*Type declaration* syntax](#type-declaration-syntax-2)
-      - [Example](#example-1)
-    - [*Initialization* syntax](#initialization-syntax-2)
-  - [Access to `enum` variant](#access-to-enum-variant)
-      - [Example](#example-2)
-- [Primitive Type never](#primitive-type-never)
-- [Newtype pattern](#newtype-pattern)
-  - [Syntax](#syntax-1)
-      - [Example](#example-3)
-  - [Destructuring let](#destructuring-let)
-      - [Example](#example-4)
-- [Structs](#structs)
-  - [Syntax](#syntax-2)
-    - [*Type declaration* syntax](#type-declaration-syntax-3)
-      - [Example](#example-5)
-    - [*Initialization* syntax](#initialization-syntax-3)
-      - [`Struct` constructor](#struct-constructor)
-        - [Example](#example-6)
-      - [Method `new()`](#method-new)
-  - [Range operator in structs](#range-operator-in-structs)
-      - [Example](#example-7)
-- [Tuple structs](#tuple-structs)
-  - [Syntax](#syntax-3)
-    - [*Type declaration* syntax](#type-declaration-syntax-4)
-      - [Examples](#examples-4)
-    - [*Initialization* syntax](#initialization-syntax-4)
-      - [Examples](#examples-5)
-- [Tuples](#tuples)
-  - [*Initialization* syntax](#initialization-syntax-5)
-    - [Syntax options for *pre initialized* tuples:](#syntax-options-for-pre-initialized-tuples)
-  - [*Type declaration* syntax](#type-declaration-syntax-5)
-  - [Access to fields of a tuple](#access-to-fields-of-a-tuple)
-- [Unit-like structs](#unit-like-structs)
-  - [Syntax](#syntax-4)
-    - [*Type declaration* syntax](#type-declaration-syntax-6)
-      - [Examples](#examples-6)
-    - [*Initialization* syntax](#initialization-syntax-6)
-      - [Examples](#examples-7)
-- [Type aliases](#type-aliases)
+<!-- TOC -->
+* [Table of contents](#table-of-contents)
+* [Scalars](#scalars)
+* [Number separator](#number-separator)
+  * [Example](#example)
+* [Overflow-checks](#overflow-checks)
+  * [Examples](#examples)
+* [Constants](#constants)
+  * [Examples](#examples-1)
+* [Static](#static)
+  * [Examples](#examples-2)
+* [`const` vs. `static`](#const-vs-static)
+* [Range operator](#range-operator)
+* [Type casting](#type-casting)
+* [Unit type `()`](#unit-type-)
+* [DST](#dst)
+* [Enums](#enums)
+  * [Syntax](#syntax)
+    * [*Type declaration* syntax](#type-declaration-syntax)
+      * [Example](#example-1)
+    * [*Initialization* syntax](#initialization-syntax)
+  * [Access to `enum` variant](#access-to-enum-variant)
+      * [Example](#example-2)
+* [Primitive Type never](#primitive-type-never)
+* [Newtype pattern](#newtype-pattern)
+  * [Syntax](#syntax-1)
+      * [Example](#example-3)
+  * [Destructuring let](#destructuring-let)
+      * [Example](#example-4)
+* [Structs](#structs)
+  * [Syntax](#syntax-2)
+    * [*Type declaration* syntax](#type-declaration-syntax-1)
+      * [Example](#example-5)
+    * [*Initialization* syntax](#initialization-syntax-1)
+      * [`Struct` constructor](#struct-constructor-)
+        * [Example](#example-6)
+      * [Method `new()`](#method-new)
+  * [Range operator in structs](#range-operator-in-structs)
+      * [Example](#example-7)
+* [Tuple structs](#tuple-structs)
+  * [Syntax](#syntax-3)
+    * [*Type declaration* syntax](#type-declaration-syntax-2)
+      * [Examples](#examples-3)
+    * [*Initialization* syntax](#initialization-syntax-2)
+      * [Examples](#examples-4)
+* [Tuples](#tuples)
+  * [*Initialization* syntax](#initialization-syntax-3)
+    * [Syntax options for *pre initialized* tuples:](#syntax-options-for-pre-initialized-tuples)
+  * [*Type declaration* syntax](#type-declaration-syntax-3)
+  * [Access to fields of a tuple](#access-to-fields-of-a-tuple)
+* [Unit-like structs](#unit-like-structs)
+  * [Syntax](#syntax-4)
+    * [*Type declaration* syntax](#type-declaration-syntax-4)
+      * [Examples](#examples-5)
+    * [*Initialization* syntax](#initialization-syntax-4)
+      * [Examples](#examples-6)
+* [Type aliases](#type-aliases)
+<!-- TOC -->
 
 <br>
 
@@ -206,248 +190,6 @@ let flag = v as i32;
 
 <br>
 
-# Strings
-Rust has 2 types for strings: `str` and `String`. Both `str` and `String` contain **Unicode characters** encoded with **UTF-8**.<br>
-In other words, string in Rust is a **UTF-8** encoded sequence of bytes.<br>
-**Unicode characters** encoded with **UTF-8** have **variable length** from **1** to **4** bytes.<br>
-**UTF-8** is backward-compatible with **ASCII**. The first 128 UTF-8 characters precisely match the first 128 ASCII characters, meaning that existing ASCII text is already valid UTF-8.<br>
-
-<br>
-
-## String literals
-[**More about string slices here**](../ownership-borrowing/slices.md).<br>
-**String literals** are **statically allocated**, i.e., they are hardcoded into binary and exists while programme is running and have type `&'static str`.<br>
-
-Example:
-```Rust
-let s: &str = "ABC";
-```
-
-<br>
-
-Types of string literal:
-- `"..."`	**string literal**, some special symbols:
-  - `\n` becomes new line;
-  - `\r`
-  - `\t`
-  - `\0`
-  - `\\` becomes slash;
-  - `\u{7fff}` becomes symbol;
-- `r"..."` **raw string literal**, it **doesn't** interpret **common escapes**;
-- `r#"..."#` **raw string literal** that can also contain `"`;
-- `c"..."` **C string literal**, i.e. a **NUL-terminated** `&'static CStr` **for FFI**;
-- `cr"..."` **raw C string literal**;
-- `cr#"..."#` **raw C string literal** that can also contain `"`;
-- `b"..."` **byte string literal**; it **constructs ASCII-only** `&'static [u8; N]`.
-- `br"..."` **raw byte string literal**;
-- `br#"..."#` **raw byte string literal** that can also contain `"`;
-- `b'x'` **ASCII byte literal**, it is a **single u8 byte**;
-- `'A'` **character literal**, it is **fixed 4 byte unicode char**;
-
-<br>
-
-## `String`
-The `String` is a sequence that is allowed to **grow** or **shrink** *in size* **at runtime** and is provided by Rust's standard library.
-
-### Examples
-- Instantiating `String` variables by `String` **constructor** (`new()`):
-```Rust
-let s: String = String::new();
-```
-- Instantiating `String` variables from `&str` values:
-```Rust
-let s1: String = String::from("ABC");
-```
-```Rust
-let s2: String = "ABC".to_string();
-```
-
-<br>
-
-## Methods
-|Method|Description|
-|:-----|:----------|
-|`.len()`|Returns **length** of string.|
-|`.push('c')`|**Append** *one character* to string.|
-|`.push_str("abc")`|**Append** *substring* to string.|
-|`.replace(from, to)`|**Replace** *substring* `from` to substring `to`.|
-|`.split(sep)`|Splits string by separator|
-
-<br>
-
-## Bytes. Chars. Vec<u8>
-```rust
-#![allow(unused_variables)]
-
-fn main() {
-    // String
-    let s = String::from("你好");
-    println!("Len of s: {}", s.len());
-    let s = String::from_utf8("你好".as_bytes().to_vec()).unwrap();
-    println!("Len of s: {}", s.len());
-
-    // Vec<u8>
-    let v: Vec<u8> = s.as_bytes().to_owned();
-    println!("Len of Vec<u8>: {}", v.len());
-    println!("Vec<u8>:");
-    for item in v {
-        println!("  {}", item);
-    }
-
-    // std::str::Bytes<'_>
-    let bytes: std::str::Bytes<'_> = s.bytes();
-    println!("Len of bytes: {}", bytes.len());
-    println!("Bytes:");
-    for b in bytes {
-        println!("  {}", b);
-    }
-
-    // std::str::Chars<'_>
-    let chars: std::str::Chars<'_> = s.chars();
-    println!("Chars:");
-    for ch in chars {
-        println!("  {}", ch);
-    }
-}
-```
-
-<br>
-
-## Conversions between string types
-**Methods** of `String`:
-- [**as_bytes**(&self)](https://doc.rust-lang.org/std/string/struct.String.html#method.as_bytes) - converts `String` to a **byte slice** `&[u8]`;
-- [**from_utf8**(vec: Vec<u8>)](https://doc.rust-lang.org/std/string/struct.String.html#method.from_utf8) - converts `Vec<u8>` to a `String`, returns `Err` if the slice is **not** _UTF-8_;
-  - if you need a `&str` instead of a `String`, consider [**str::from_utf8**(v: &\[u8\])](https://doc.rust-lang.org/std/str/fn.from_utf8.html) - converts a **byte slice** `&[u8]` to a **string slice** `&str`;
-- [**into_bytes**(self)](https://doc.rust-lang.org/std/string/struct.String.html#method.into_bytes) - converts a `String` into a `Vec<u8>`;
-
-<br>
-
-**Methods** of `str`:
-- [**bytes**(&self)](https://doc.rust-lang.org/std/primitive.str.html#method.bytes) - returns an **iterator** over the **bytes** `u8` of a string slice;
-- [**chars**(&self)](https://doc.rust-lang.org/std/string/struct.String.html#method.chars) - Returns an **iterator** over the `char` of a string slice;
-
-<br>
-
-Types `OsStr` and `OsString` must be imported explicitly:
-```rust
-#![allow(unused_variables)]
-
-use std::ffi::{OsStr, OsString};
-use std::os::unix::ffi::{OsStringExt, OsStrExt};
-
-fn main() {
-    let s: String = String::from("abc");
-    let s1: String = String::from("abc");
-    let s2: String = String::from("abc");
-    let st: &str = "abc";
-    let u: &[u8] = "abc".as_bytes();
-    let b: &[u8; 6] = b"foobar";
-    let bb: [u8; 6] = b"foobar".to_owned();
-    let v: Vec<u8> = String::from("abc").into_bytes();
-    let v1: Vec<u8> = String::from("abc").into_bytes();
-    let v2: Vec<u8> = String::from("abc").into_bytes();
-    let ost: &OsStr = OsStr::new("abc");
-    let os: OsString = OsString::from("abc");
-
-    //////////////////////////////////////////////////
-    
-    // &str -> String
-    let r: String = String::from(st);
-    let r: String = st.to_string();
-    let r: String = st.to_owned();
-
-    // &str -> &[u8]
-    let r: &[u8] = st.as_bytes();
-    
-    // &str -> Vec<u8>
-    let r: Vec<u8> = st.as_bytes().to_owned();
-    
-    // &str -> &OsStr
-    let r: &OsStr = OsStr::new(st);
-
-    //////////////////////////////////////////////////
-    
-    // String -> &str
-    let r: &str = s.as_str();
-
-    // String -> &[u8]
-    let r: &[u8] = s.as_bytes();
-
-    // String -> Vec<u8>
-    let r: Vec<u8> = s1.into_bytes();
-
-    // String -> OsString
-    let r: OsString = OsString::from(s);
-
-    //////////////////////////////////////////////////
-
-    // &[u8] -> String
-    let r: String = String::from_utf8(v1).unwrap();
-    let r: String = String::from_utf8(u.to_vec()).unwrap();
-
-    // &[u8] -> &str
-    let r: &str = std::str::from_utf8(u).unwrap();
-    let r: &str = std::str::from_utf8(&v).unwrap();
-
-    // &[u8] -> Vec<u8>
-    let r: Vec<u8> = u.to_owned();
-    let r: Vec<u8> = u.to_vec();
-
-    // &[u8] -> &OsStr
-    let r: &OsStr = OsStr::from_bytes(u); // this requires os::unix::ffi::OsStrExt
-    
-    //////////////////////////////////////////////////
-    
-    // &[u8; 6] -> &[u8]
-    let r: &[u8] = st.as_bytes();
-    let r: &[u8] = &b[..];
-    let r: &[u8] = &b"abc"[..];
-
-    // &[u8; 6] -> [u8; 6]
-    let r: [u8; 6] = b.to_owned();
-
-    //////////////////////////////////////////////////
-    
-    // [u8; 6] -> Vec<u8>
-    let r: Vec<u8> = bb.to_vec();
-    
-    // [u8; 6] -> &[u8; 6]
-    let r: &[u8; 6] = &bb;
-
-    // [u8; 6] -> &[u8]
-    let r: &[u8] = bb.as_ref();
-    let r: &[u8] = bb.as_slice();
-
-    //////////////////////////////////////////////////
-    
-    // Vec<u8> -> &str
-    let r: Vec<u8> = v.as_slice().to_vec();
-    let r: &str = std::str::from_utf8(&v).unwrap();
-    
-    // Vec<u8> -> String
-    let r: String = String::from_utf8(v2).unwrap();
-
-    // Vec<u8> -> &[u8]
-    let r: &[u8] = v.as_slice();
-
-    // Vec<u8> -> OsString
-    let r: OsString = OsString::from_vec(v); // this requires os::unix::ffi::OsStringExt
-}
-```
-
-<br>
-
-# Unicode
-A **grapheme cluster** is a sequence of one or more Unicode **code points** that should be treated as a **single unit**.<br>
-Text editing software should generally allow placement of cursor only at grapheme cluster boundaries.<br>
-
-<br>
-
-There is **no** method in **std** to iterate over **grapheme clusters**.<br>
-The [**unicode-segmentation**](https://crates.io/crates/unicode-segmentation) crate provides grapheme cluster. It provides special method `.graphemes(true)`.<br>
-
-<br>
-
 # Unit type `()`
 **Unit type** or just **Unit** (denoted as `()`) is an **empty tuple**.<br>
 It is **ZST** (**zero-sized type**).
@@ -463,99 +205,6 @@ It is **ZST** (**zero-sized type**).
 
 # DST
 **DST** or **D**ynamically **S**ized **T**ypes (aka **unsized**). [**More here**](../traits/utility-traits/Sized.md).
-
-<br>
-
-# Arrays
-An **array** is **fixed-size** *collection* of elements of **the same type**.<br>
-Arrays are **allocated** on the **stack**.
-
-<br>
-
-## *Initialization* syntax
-### Syntax options for *pre initialized* arrays:
-- **Comma-delimited**: explicit enumeration of values within square brackets \[\]:
-```Rust
-let arr = [0, 1, 2];
-```
-
-- **Repeat expression**: \[`V`; `N`\], where the **value** `V` is **repeated** `N`times:
-```Rust
-let arr = [100; 5];
-```
-
-### Syntax options for *empty* arrays:
-- **Repeat expression** where `N` = 0:
-```Rust
-let a = [100; 0];
-println!("len of 'a' is {}.", a.len());
-
-Output:
-len of a is 0.
-```
-
-<br>
-
-## *Type declaration* syntax
-- **Repeat expression**: \[`T`; `N`\], where the value of a **type** `T` is **repeated** `N` times:
-```Rust
-let arr1: [u64; 3] = [0, 1, 2];
-
-let arr2: [u64; 3] = [100; 3];
-```
-
-<br>
-
-# Vectors
-A **vector** is *collection* of elements of **the same type** that is allowed to **grow** or **shrink** *in size* **at runtime**.<br>
-Vectors are **allocated** on the **heap**.<br>
-`Vec` is a type for **vector** provided by the **standard library**.<br>
-
-`capacity` is the number of elements the `Vec` can hold without reallocating.
-
-<br>
-
-## *Initialization* syntax
-### Syntax options for *pre initialized* vectors:
-- **Comma-delimited** by `vec!` macros: explicit enumeration of values within square brackets \[\]:
-```Rust
-let v = vec![0, 1, 2];
-```
-
-- **Repeat expression** by `vec!` macros: \[`V`; `N`\], where the **value** `V` is **repeated** `N` times:
-```Rust
-let v = vec![100; 5];
-```
-
-### Syntax options for *empty* vectors:
-- **Vector type constructor**:
-```Rust
-let v3: Vec<i64> = Vec::with_capacity(10);
-```
-- **Repeat expression** where `N` = 0:
-```Rust
-let v = vec![100; 0];
-```
-
-
-<br>
-
-## *Type declaration* syntax
-- `Vec<T>`
-```Rust
-let v3: Vec<i64> = Vec::with_capacity(10);
-```
-
-<br>
-
-# Slices
-A **slice** is a **DST** representing a *view* into a **contiguous sequence of elements** of type `T`.<br>
-The **slice type** is written as `[T]`, **without** specifying the **length**.<br>
-
-**DST** means slices **don't** implement the trait `Sized` and therefore slices **can’t** be stored directly in variables or passed as function arguments, e.g. `let s: [u64];` causes to error.<br>
-
-[More here](../ownership-borrowing/slices.md)
-
 
 <br>
 

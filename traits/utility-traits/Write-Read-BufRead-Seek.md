@@ -1,15 +1,17 @@
 # Table of contents
-- [Table of contents](#table-of-contents)
-- [URLs](#urls)
-- [In a nutshell](#in-a-nutshell)
-  - [Readers and writers](#readers-and-writers)
-  - [`io::Read`](#ioread)
-  - [`io::Write`](#iowrite)
-  - [`io::BufRead` and `io::BufReader`](#iobufread-and-iobufreader)
-  - [`io::BufWriter`](#iobufwriter)
-    - [Example](#example)
-  - [`io::Seek`](#ioseek)
-    - [Example](#example-1)
+<!-- TOC -->
+* [Table of contents](#table-of-contents)
+* [URLs](#urls)
+* [In a nutshell](#in-a-nutshell)
+  * [Readers and writers](#readers-and-writers)
+  * [`io::Read`](#ioread)
+  * [`io::Write`](#iowrite)
+  * [`io::BufRead` and `io::BufReader`](#iobufread-and-iobufreader)
+  * [`io::BufWriter`](#iobufwriter)
+    * [Example](#example)
+  * [`io::Seek`](#ioseek)
+    * [Example](#example-1)
+<!-- TOC -->
 
 <br>
 

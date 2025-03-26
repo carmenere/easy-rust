@@ -1,18 +1,20 @@
 # Table of contents
-- [Table of contents](#table-of-contents)
-- [URLs](#urls)
-- [Trait `From`](#trait-from)
-  - [Declaration](#declaration)
-  - [In a nutshell](#in-a-nutshell)
-  - [Example](#example)
-- [Trait `TryFrom`](#trait-tryfrom)
-  - [Declaration](#declaration-1)
-  - [In a nutshell](#in-a-nutshell-1)
-  - [Example](#example-1)
-- [Blanket implementations](#blanket-implementations)
-  - [Every type can be converted to itself](#every-type-can-be-converted-to-itself)
-  - [Relation with trait `Into`](#relation-with-trait-into)
-    - [Example](#example-2)
+<!-- TOC -->
+* [Table of contents](#table-of-contents)
+* [URLs](#urls)
+* [Trait `From`](#trait-from)
+  * [Declaration](#declaration)
+  * [In a nutshell](#in-a-nutshell)
+  * [Example](#example)
+* [Trait `TryFrom`](#trait-tryfrom)
+  * [Declaration](#declaration-1)
+  * [In a nutshell](#in-a-nutshell-1)
+  * [Example](#example-1)
+* [Blanket implementations](#blanket-implementations)
+  * [Every type can be converted to itself](#every-type-can-be-converted-to-itself)
+  * [Relation with trait `Into`](#relation-with-trait-into)
+    * [Example](#example-2)
+<!-- TOC -->
 
 <br>
 

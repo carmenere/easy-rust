@@ -1,27 +1,31 @@
 # Table of contents
-- [Table of contents](#table-of-contents)
-- [Traits](#traits)
-  - [`impl ... for ...`](#impl--for-)
-      - [Example](#example)
-  - [Returning traits](#returning-traits)
-    - [Example](#example-1)
-      - [Incorrect code](#incorrect-code)
-      - [Working version](#working-version)
-- [Associated items](#associated-items)
-  - [Associated functions and methods](#associated-functions-and-methods)
-  - [Associated types](#associated-types)
-  - [GATs](#gats)
-    - [Default type parameters](#default-type-parameters)
-    - [Operator Overloading](#operator-overloading)
-    - [Generics vs. Associated types](#generics-vs-associated-types)
-  - [Associated constants](#associated-constants)
-- [Blanket implementations](#blanket-implementations)
-  - [`T`, `&T` and `&mut T`](#t-t-and-mut-t)
-- [Specializations](#specializations)
-- [Fully qualified path](#fully-qualified-path)
-  - [Example](#example-2)
-      - [Example](#example-3)
-- [Supertraits](#supertraits)
+<!-- TOC -->
+* [Table of contents](#table-of-contents)
+* [Traits](#traits)
+  * [`impl ... for ...`](#impl--for-)
+      * [Example](#example)
+  * [Returning traits](#returning-traits)
+    * [Example](#example-1)
+      * [Incorrect code](#incorrect-code)
+      * [Working version](#working-version)
+* [Associated items](#associated-items)
+  * [Associated functions and methods](#associated-functions-and-methods)
+  * [Associated types](#associated-types)
+  * [GATs](#gats)
+    * [Default type parameters](#default-type-parameters)
+    * [Operator Overloading](#operator-overloading)
+    * [Generics vs. Associated types](#generics-vs-associated-types)
+  * [Associated constants](#associated-constants)
+* [Blanket implementations](#blanket-implementations)
+  * [`T`, `&T` and `&mut T`](#t-t-and-mut-t)
+* [Specializations](#specializations)
+* [Fully qualified path](#fully-qualified-path)
+  * [Example](#example-2)
+  * [Errors E0790 and E0034](#errors-e0790-and-e0034)
+    * [Example1](#example1)
+    * [Example2: type inference](#example2-type-inference)
+* [Supertraits](#supertraits)
+<!-- TOC -->
 
 <br>
 
@@ -137,6 +141,8 @@ fn get_animal(rand_number: f64) -> Box<dyn Animal> {
 Vec::<u8>::with_capacity(1024);
 
 # Associated items
+[**More details here**](https://doc.rust-lang.org/reference/items/associated-items.html).<br>
+
 **Associated items** are the **items declared** in **traits** or defined in **implementations**.<br>
 Kinds **associated items**:
 - **associated functions**;
@@ -149,7 +155,10 @@ Kinds **associated items**:
 ## Associated functions and methods
 **Associated functions** are functions associated with a type. An example of a common **associated function** is a `new` function that returns a value of the type the associated function is associated with. Also `new` is called **constructor**.<br>
 **Methods** are *associated functions* whose first parameter is named `self`. *Methods* are called on a particular instance of a type.<br>
-Note, then `&self` is a short form for `self: &Self`. For example in `impl X for &T`, `Self` represents `&T` and `&self` means `self: &&T`.<br>
+
+<br>
+
+Note, that `&self` is a shorthand for `self: &Self`. For example in `impl X for &T`, `Self` represents `&T`, `self` means `&T` and `&self` means `self: &&T`.<br>
 
 <br>
 
@@ -348,7 +357,7 @@ T=U: impl<U> Borrow<U> for &U {}
 # Specializations
 [**RFC**](https://rust-lang.github.io/rfcs/1210-impl-specialization.html).<br>
 
-**Specialization** will **permit overlapping** in case of the one implemetation is **clearly more specific** than the other. The **more specific** `impl` block is used in a case of overlap.<br>
+**Specialization** will **permit overlapping** in case of the one implementation is **clearly more specific** than the other. The **more specific** `impl` block is used in a case of overlap.<br>
 
 <br>
 
@@ -357,11 +366,11 @@ Rust allows to implement **multiple traits** with the **same** methods **names**
 
 <br>
 
-**Fully qualified path** has following syntax:
+**Fully qualified path** has the following syntax:
 ```rust
 <Type as Trait>::function(arg1, arg2, ... )
 ```
-These means we want to call `function` of trait `Trait` as implemented for `Type`.<br>
+The above syntax means we want to call `function` of trait `Trait` as implemented for `Type`.<br>
 
 <br>
 
@@ -372,74 +381,7 @@ Trait::method(&insatance_of_Type)
 
 <br>
 
-Consider expression `x.f()` where `x` is **instance** of `X`. There are possible 2 cases:
-1. Type `X` **doesn't** implement method `f(&self)` in its own `impl` block. Also type `X` implements several traits that share the same name `f` for method. Then `x.f()` causes to error: `error[E0034]: multiple applicable items in scope`.<br>
-2. Type `X` implements method `f(&self)` in its own `impl` block. Also type `X` implements several traits that share the same name `f` for method. Then in `x.f()` compiler by default will use **own implementation** of method `f(&self)`, i.e. `f(&self)` from `impl` block of `X`.<br>
-
-<br>
-
 ## Example
-Consider types `X` and `Y`. Both types have own `impl` block and both implement **method** `f(&self)`.<br>
-Consider traits `T1`, `T2`. All have **associated function** `f()`.<br>
-Consider traits `T3`. It has **method** `f(&self)`.<br>
-```rust
-struct X;
-struct Y;
-
-impl X {
-    fn f(&self) { println!("X"); }
-}
-
-impl Y {
-    fn f(&self) { println!("Y"); }
-}
-
-trait T1 {
-    fn f() { println!("T1 f"); }
-}
-
-trait T2 {
-    fn f() { println!("T2 f"); }
-}
-
-trait T3 {
-    fn f(&self);
-}
-
-impl T1 for X {}
-impl T2 for X {}
-impl T3 for X {
-    fn f(&self) {
-        println!("X, T3, f()");
-    }
-}
-
-impl T1 for Y {}
-impl T2 for Y {}
-impl T3 for Y {
-    fn f(&self) {
-        println!("Y, T3, f()");
-    }
-}
-
-fn main() {
-    let x = X;
-    let y = Y;
-    x.f();
-    y.f();
-    <X as T1>::f();
-    <Y as T2>::f();
-    //T2::f(); // -> error[E0790]: cannot call associated function on trait without specifying the corresponding `impl` type
-    T3::f(&x); // compiler infers type X from variable x and calls f() from X's implementation of T3
-    T3::f(&y); // compiler infers type Y from variable y and calls f() from Y's implementation of T3
-}
-```
-
-
-
-<br>
-
-#### Example
 ```Rust
 trait Foo {
     fn abc(&self);
@@ -479,12 +421,153 @@ fn main () {
 
 <br>
 
+## Errors E0790 and E0034
+[**Error E0790**](https://doc.rust-lang.org/error_codes/E0790.html).<br>
+[**Error E0034**](https://doc.rust-lang.org/error_codes/E0034.html).<br>
+
+<br>
+
+Consider expression `x.f()` where `x` is **instance** of `X`. There are possible 2 cases:
+1. Type `X` **doesn't** implement method `f(&self)` in its own `impl` block. Also type `X` implements several traits that share the same name `f` for method. Then `x.f()` causes to error: `error[E0034]: multiple applicable items in scope`.<br>
+2. Type `X` implements method `f(&self)` in its own `impl` block. Also type `X` implements several traits that share the same name `f` for method. Then in `x.f()` compiler by default will use **own implementation** of method `f(&self)`, i.e. `f(&self)` from `impl` block of `X`.<br>
+
+<br>
+
+### Example1
+Consider types `X` and `Y`. Both types have own `impl` block and both implement **method** `f(&self)`.<br>
+Consider traits `Trait1`, `Trait2`. All have **associated function** `f()`.<br>
+Consider traits `Trait3`. It has **method** `f(&self)`.<br>
+
+```rust
+struct X;
+struct Y;
+
+impl X {
+    fn f(&self) { println!("X"); }
+}
+
+impl Y {
+    fn f(&self) { println!("Y"); }
+}
+
+trait Trait1 {
+    fn f() { println!("Trait1 f"); }
+}
+
+trait Trait2 {
+    fn f() { println!("Trait2 f"); }
+}
+
+trait Trait3 {
+    fn f(&self);
+}
+
+impl Trait1 for X {}
+impl Trait2 for X {}
+impl Trait3 for X {
+    fn f(&self) {
+        println!("X, Trait3, f()");
+    }
+}
+
+impl Trait1 for Y {}
+impl Trait2 for Y {}
+impl Trait3 for Y {
+    fn f(&self) {
+        println!("Y, Trait3, f()");
+    }
+}
+
+fn main() {
+    let x = X;
+    let y = Y;
+    x.f();
+    y.f();
+    <X as Trait1>::f();
+    <Y as Trait2>::f();
+    //Trait2::f(); // -> error[E0790]: cannot call associated function on trait without specifying the corresponding `impl` type
+    Trait3::f(&x); // compiler infers type X from variable x and calls f() from X's implementation of Trait3
+    Trait3::f(&y); // compiler infers type Y from variable y and calls f() from Y's implementation of Trait3
+}
+```
+
+<br>
+
 **Output**:
 ```bash
 FooBar, method abc()
 FooBar, impl Foo, method abc()
 FooBar, impl Bar, method abc()
 ```
+
+<br>
+
+### Example2: type inference
+```rust
+trait New {
+    const TYPE: &'static str;
+
+    fn new() -> Self;
+    fn whoami() -> String {
+        format!("I am {}!", Self::TYPE)
+    }
+}
+
+struct X {
+    x: String,
+}
+
+struct Y {
+    y: String,
+}
+
+impl New for X {
+    const TYPE: &'static str = "X";
+    fn new() -> Self {
+        Self {
+            x: Self::whoami(),
+        }
+    }
+}
+
+impl New for Y {
+    const TYPE: &'static str = "X";
+    fn new() -> Self {
+        Self {
+            y: Self::whoami(),
+        }
+    }
+}
+
+fn explicit<T: New>() -> T {
+    let x: T = New::new();
+    // or
+    let x = <T as New>::new();
+    x
+}
+
+fn implicit<T: New>() -> T {
+    New::new()
+}
+
+fn main() {
+    let x1 = explicit::<X>();
+    let x2: X = explicit();
+    let x3 = implicit::<X>();
+    let x4: X = implicit();
+
+    let y1 = explicit::<Y>();
+    let y2: Y = explicit();
+    let y3 = implicit::<Y>();
+    let y4: Y = implicit();
+}
+```
+
+<br>
+
+**Explanations**:
+- in function `implicit()` the call `New::new()` is resolved because it's the **last expression** and compiler associates trait `New` with the returned type `T`, so, here `New::new()` is implicitly means `<T as New>::new()`.<br>
+- in function `explicit()` the call `New::new()` is resolved because in **first** let binding **explicit type declaration** is used and in the **second** let binding **fully qualified path** is used.<br>
 
 <br>
 

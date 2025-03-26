@@ -1,20 +1,26 @@
 # Table of contents
-- [Table of contents](#table-of-contents)
-- [Closures](#closures)
-      - [Example](#example)
-- [Closure traits and closure capture modes](#closure-traits-and-closure-capture-modes)
-- [Closure type](#closure-type)
-  - [impl Fn()](#impl-fn)
-  - [impl FnMut()](#impl-fnmut)
-  - [impl FnOnce()](#impl-fnonce)
-- [Returning closures](#returning-closures)
-- [`move` keyword](#move-keyword)
-    - [Example](#example-1)
-    - [Example](#example-2)
-- [How the compiler implements closures](#how-the-compiler-implements-closures)
-- [Another examples](#another-examples)
-    - [Function that accepts one closures](#function-that-accepts-one-closures)
-    - [Function that accepts two closures](#function-that-accepts-two-closures)
+<!-- TOC -->
+* [Table of contents](#table-of-contents)
+* [Closures](#closures)
+  * [Syntax](#syntax)
+    * [Notation](#notation)
+    * [Closure with args](#closure-with-args)
+    * [Closure without args](#closure-without-args)
+    * [Compare to functions](#compare-to-functions)
+* [Closure traits and closure capture modes](#closure-traits-and-closure-capture-modes)
+* [Closure type](#closure-type)
+  * [impl Fn()](#impl-fn)
+  * [impl FnMut()](#impl-fnmut)
+  * [impl FnOnce()](#impl-fnonce)
+* [Returning closures](#returning-closures)
+* [`move` keyword](#move-keyword)
+    * [Example](#example)
+    * [Example](#example-1)
+* [How the compiler implements closures](#how-the-compiler-implements-closures)
+* [Another examples](#another-examples)
+    * [Function that accepts one closures](#function-that-accepts-one-closures)
+    * [Function that accepts two closures](#function-that-accepts-two-closures)
+<!-- TOC -->
 
 <br>
 
@@ -26,38 +32,46 @@ Note that we call the closure using the **binding name** and **parentheses**, ju
 
 **Closure has access to values in the scope where it defined**. In other words, **closure captures** any **values** it uses from **scope** where it is **defined**.<br>
 
-**Syntax** for **closure** (braces are optional) and **named function**:
-<table>
-<tr>
-<td>
+**Example**:
+```rust
+fn main() {
+    let x = 10;
+    let capture_x = || println!("{x}");
+    capture_x();
+}
+```
+here **closure** captures variable `x`.
 
-**Closure**
+<br>
 
-</td>
+## Syntax
+### Notation
+`|| -> { ... }`:
+- `||` defines **arguments**, **mandatory**;
+- `->` defines **returning type**, **optional**;
+- `{}` defines **body**, **optional**;
 
+<br>
 
-<td>
+**Examples**:
+```rust
+let x: i32 = || -> i32 { … };
+let x: ()  = || {};
+let x: ()  = |a, b| { … };
+let x: i32 = |a, b| a + b;
+```
 
-```Rust
+<br>
+
+### Closure with args
+```rust
 let add_one = |x: i64| -> i64 { 1 + x };
 let add_one = |x: i64|        { 1 + x };
 let add_one = |x: i64|          1 + x  ;
 ```
 
-</td>
-</tr>
-
-<tr></tr>
-<tr>
-<td>
-
-**Closure without args**
-
-</td>
-
-<td>
-
-```Rust
+### Closure without args
+```rust
 let x = 1;
 
 || -> i64 { 1 + x } 
@@ -65,40 +79,10 @@ let x = 1;
 ||          1 + x
 ```
 
-</td>
-</tr>
-
-<tr></tr>
-<tr>
-<td>
-
-**Function**
-
-</td>
-
-<td>
-
-```Rust
+### Compare to functions
+```rust
 fn addone (x: i64) -> i64 { 1 + x }
 ```
-
-</td>
-</tr>
-
-</table>
-
-<br>
-
-#### Example
-```Rust
-fn main() {
-    let x = 10;
-    let capture_x = || println!("{x}");
-    capture_x();
-}
-```
-
-here **closure** captures variable `x`.
 
 <br>
 
@@ -146,7 +130,7 @@ What trait is implemented is decided by **what the closure does with the capture
 
 # Closure type
 The concrete type of a closure **can't** be written **explicitly**:
-```Rust
+```rust
 let closure /*:No way to write the type of closure here*/ = || {};
 ```
 
@@ -154,7 +138,7 @@ let closure /*:No way to write the type of closure here*/ = || {};
 
 **Each closure** has an **unique anonymous type** assigned to it by the compiler.<br>
 **No two closures**, even if **identical**, have the **same type**:
-```Rust
+```rust
 fn main() {
     let mut closure1 = || {};
     let closure2 = || {};
@@ -165,7 +149,7 @@ fn main() {
 <br>
 
 But is is possible to refer to **closure type** in finction signature trough `Fn()`/`FnMut()`/`FnOnce()` traits:
-```Rust
+```rust
 fn call_fn_once<C: FnOnce(i32, i32) -> i32>(c: C) -> i64 {
     c(1, 2).into()
 }
@@ -195,7 +179,7 @@ fn main() {
 <br>
 
 Also it is possible to use reference to closures:
-```Rust
+```rust
 fn main() {
     let foo = "foo".to_string();
     let capture_foo: &dyn Fn() = &|| {
@@ -211,7 +195,7 @@ fn main() {
 
 ## impl Fn()
 Closure `capture_foo` is of `impl Fn()` type:
-```Rust
+```rust
 fn main() {
     let mut foo = "foo".to_string();
     let mut capture_foo = || {
@@ -226,7 +210,7 @@ fn main() {
 
 ## impl FnMut()
 Closure `capture_foo` is of `impl FnMut()` type:
-```Rust
+```rust
 fn main() {
     let mut foo = "foo".to_string();
     let mut capture_foo = || {
@@ -242,7 +226,7 @@ fn main() {
 
 ## impl FnOnce()
 Closure `capture_foo` is of `impl FnOnce()` type:
-```Rust
+```rust
 fn main() {
     let foo = "foo".to_string();
     let capture_foo = || {
@@ -257,7 +241,7 @@ fn main() {
 <br>
 
 # Returning closures
-```Rust
+```rust
 fn return_closure(a: i32) -> impl Fn(u32) -> u32 {
     if a > 0 {
         |i| i+i
@@ -293,7 +277,7 @@ fn main () {
 
 # `move` keyword
 Example:
-```Rust
+```rust
 fn main() {
     let foo = "foo".to_string();
     let capture_foo = move || {
@@ -314,7 +298,7 @@ The `move` keyword **doesn't mean** that the closure will implement the `FnOnce`
 <br>
 
 ### Example
-```Rust
+```rust
 fn main() {        
     let mut v: Vec<u64> = vec![1; 3];
     let mut print_v = || { v.push(1); println!("v = {:?}", v); };
@@ -336,7 +320,7 @@ v = [1, 1, 1, 1, 1, 1]
 <br>
 
 ### Example
-```Rust
+```rust
 fn main() {        
     let mut v: Vec<u64> = vec![1; 3];
     let mut print_v = move || { v.push(1); println!("v = {:?}", v); };
@@ -374,7 +358,7 @@ error[E0382]: borrow of moved value: `v`
 # How the compiler implements closures
 Where does the compiler store captured variables? The compiler uses a **struct** to store the captured variables.<br>
 Consider example:
-```Rust
+```rust
 fn main() {
     let foo = "foo".to_string();
     let capture_foo = || {
@@ -385,7 +369,7 @@ fn main() {
 ```
 
 It can be **desugared** as:
-```Rust
+```rust
 struct Closure<'a> {
     foo: &'a String
 }
@@ -406,7 +390,7 @@ capture_foo.call();
 
 # Another examples
 ### Function that accepts one closures
-```Rust
+```rust
 fn twice<F: Fn(i32) -> i32>(x: i32, f: F) -> i32 {
     f(x) + f(x)
 }
@@ -421,7 +405,7 @@ fn main() {
 <br>
 
 ### Function that accepts two closures
-```Rust
+```rust
 fn compose<F, G>(x: i32, f: F, g: G) -> i32
     where F: Fn(i32) -> i32, 
           G: Fn(i32) -> i32 

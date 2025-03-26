@@ -1,7 +1,9 @@
 # Table of contents
-- [Table of contents](#table-of-contents)
-- [`PhantomData`](#phantomdata)
-- [Example](#example)
+<!-- TOC -->
+* [Table of contents](#table-of-contents)
+* [`PhantomData`](#phantomdata)
+* [Example](#example)
+<!-- TOC -->
 
 <br>
 

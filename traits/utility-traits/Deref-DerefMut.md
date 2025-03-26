@@ -1,20 +1,22 @@
 # Table of contents
-- [Table of contents](#table-of-contents)
-- [URLs](#urls)
-- [Declarations](#declarations)
-  - [`Deref`](#deref)
-  - [`DerefMut`](#derefmut)
-- [In a nutshell](#in-a-nutshell)
-  - [Example](#example)
-- [Deref coercion](#deref-coercion)
-  - [Deref coercion rules](#deref-coercion-rules)
-  - [Example](#example-1)
-- [Dot `.` operator](#dot--operator)
-  - [Example](#example-2)
-- [Implementations in `std`](#implementations-in-std)
-- [Blanket implementations](#blanket-implementations)
-  - [`impl<T> Deref<Target=T> for &T`](#implt-dereftargett-for-t)
-  - [`impl<T> Deref<Target=T> for &mut T`](#implt-dereftargett-for-mut-t)
+<!-- TOC -->
+* [Table of contents](#table-of-contents)
+* [URLs](#urls)
+* [Declarations](#declarations)
+  * [`Deref`](#deref)
+  * [`DerefMut`](#derefmut)
+* [In a nutshell](#in-a-nutshell)
+  * [Example](#example)
+* [Deref coercion](#deref-coercion)
+  * [Deref coercion rules](#deref-coercion-rules)
+  * [Example](#example-1)
+* [Dot `.` operator](#dot--operator)
+  * [Example](#example-2)
+* [Implementations in `std`](#implementations-in-std)
+* [Blanket implementations](#blanket-implementations)
+  * [`impl Deref<Target=T> for &T`](#impl-dereftargett-for-t)
+  * [`impl Deref<Target=T> for &mut T`](#impl-dereftargett-for-mut-t)
+<!-- TOC -->
 
 <br>
 
@@ -163,7 +165,7 @@ If `x` has type `&i32`, then writing `x.count_ones()` is shorthand for `(*x).cou
 <br>
 
 # Blanket implementations
-## `impl<T> Deref<Target=T> for &T`
+## `impl Deref<Target=T> for &T`
 ```rust
 impl<T: ?Sized> Deref for &T {
     type Target = T;
@@ -176,7 +178,7 @@ impl<T: ?Sized> Deref for &T {
 
 <br>
 
-## `impl<T> Deref<Target=T> for &mut T`
+## `impl Deref<Target=T> for &mut T`
 ```rust
 impl<T: ?Sized> Deref for &mut T {
     type Target = T;

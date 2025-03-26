@@ -10,9 +10,11 @@
     * [Structs Iter/IterMut](#structs-iteritermut)
     * [impl Iterator for Iter/IterMut](#impl-iterator-for-iteritermut)
 * [Traits](#traits)
+  * [**src/core/iter/traits/iterator.rs**](#srccoreitertraitsiteratorrs)
+    * [Iterator](#iterator)
   * [**src/core/iter/traits/collect.rs**](#srccoreitertraitscollectrs)
     * [IntoIterator](#intoiterator)
-      * [Blanket impl for any Iterator](#blanket-impl-for-any-iterator)
+    * [Blanket impl for any Iterator](#blanket-impl-for-any-iterator)
     * [Trait FromIterator](#trait-fromiterator)
 * [Vec](#vec)
   * [**src/alloc/vec/mod.rs**](#srcallocvecmodrs)
@@ -109,6 +111,22 @@ impl<'a, T> Iterator for IterMut<'a, T> {
 <br>
 
 # Traits
+## [**src/core/iter/traits/iterator.rs**](https://doc.rust-lang.org/src/core/iter/traits/iterator.rs.html)
+### Iterator
+```rust
+pub trait Iterator {
+    type Item;
+    fn next(&mut self) -> Option<Self::Item>;
+  
+    fn collect<B: FromIterator<Self::Item>>(self) -> B
+    where
+        Self: Sized,
+    {
+        FromIterator::from_iter(self)
+  }
+}
+```
+
 ## [**src/core/iter/traits/collect.rs**](https://doc.rust-lang.org/src/core/iter/traits/collect.rs.html)
 ### IntoIterator
 ```rust
@@ -120,7 +138,7 @@ pub trait IntoIterator {
 }
 ```
 
-#### Blanket impl for any Iterator
+### Blanket impl for any Iterator
 ```rust
 impl<I: Iterator> IntoIterator for I {
     type Item = I::Item;
@@ -178,11 +196,28 @@ impl<T, A: Allocator> ops::DerefMut for Vec<T, A> {
 <br>
 
 ### impl FromIterator for Vec
+SpecFromIter: https://doc.rust-lang.org/src/alloc/vec/spec_from_iter.rs.html
 ```rust
+pub trait Iterator {
+  type Item;
+  fn next(&mut self) -> Option<Self::Item>;
+
+  fn collect<B: FromIterator<Self::Item>>(self) -> B
+  where Self: Sized,
+  {
+    FromIterator::from_iter(self)
+    <B as FromIterator>::from_iter(self)
+  }
+}
+
+pub trait FromIterator<A>: Sized {
+  fn from_iter<T: IntoIterator<Item = A>>(iter: T) -> Self;
+}
+
 impl<T> FromIterator<T> for Vec<T> {
-    fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Vec<T> {
-        <Self as SpecFromIter<T, I::IntoIter>>::from_iter(iter.into_iter())
-    }
+  fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Vec<T> {
+    <Self as SpecFromIter<T, I::IntoIter>>::from_iter(iter.into_iter())
+  }
 }
 ```
 
@@ -243,10 +278,7 @@ unsafe impl<T: Sync, A: Allocator + Sync> Sync for IntoIter<T, A> {}
 
 ### Struct IntoIter
 ```rust
-pub struct IntoIter<
-    T,
-    A: Allocator = Global,
-> {
+pub struct IntoIter<T, A: Allocator = Global> {
     pub(super) buf: NonNull<T>,
     pub(super) phantom: PhantomData<T>,
     pub(super) cap: usize,

@@ -1,10 +1,12 @@
 # Table of contents
-- [Table of contents](#table-of-contents)
-- [URLs](#urls)
-- [Declaration](#declaration)
-- [In a nutshell](#in-a-nutshell)
-- [Blanket implementations](#blanket-implementations)
-  - [`impl<T> ToString for T `](#implt-tostring-for-t-)
+<!-- TOC -->
+* [Table of contents](#table-of-contents)
+* [URLs](#urls)
+* [Declaration](#declaration)
+* [In a nutshell](#in-a-nutshell)
+* [Blanket implementations](#blanket-implementations)
+  * [`impl ToString for T `](#impl-tostring-for-t-)
+<!-- TOC -->
 
 <br>
 
@@ -32,7 +34,7 @@ Converts the given value to a `String`.
 <br>
 
 # Blanket implementations
-## `impl<T> ToString for T `
+## `impl ToString for T `
 The standard library implements the `ToString` trait on **any type that implements** the `Display` trait:
 ```Rust
 impl<T: fmt::Display + ?Sized> ToString for T {

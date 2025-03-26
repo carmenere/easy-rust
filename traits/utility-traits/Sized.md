@@ -1,12 +1,14 @@
 # Table of contents
-- [Table of contents](#table-of-contents)
-- [URLs](#urls)
-- [Declaration](#declaration)
-- [`Sized`](#sized)
-- [`?Sized`](#sized-1)
-- [Examples](#examples)
-  - [`Sized` trait](#sized-trait)
-  - [`?Sized` generic](#sized-generic)
+<!-- TOC -->
+* [Table of contents](#table-of-contents)
+* [URLs](#urls)
+* [Declaration](#declaration)
+* [`Sized`](#sized)
+* [`?Sized`](#sized-1)
+* [Examples](#examples)
+  * [`Sized` trait](#sized-trait)
+  * [`?Sized` generic](#sized-generic)
+<!-- TOC -->
 
 <br>
 
