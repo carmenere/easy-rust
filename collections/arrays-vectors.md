@@ -87,7 +87,6 @@ let v3: Vec<i64> = Vec::with_capacity(10);
 let v = vec![100; 0];
 ```
 
-
 <br>
 
 ## *Type declaration* syntax
@@ -95,11 +94,3 @@ let v = vec![100; 0];
 ```Rust
 let v3: Vec<i64> = Vec::with_capacity(10);
 ```
-
-<br>
-
-# Slices
-
-
-
-<br>

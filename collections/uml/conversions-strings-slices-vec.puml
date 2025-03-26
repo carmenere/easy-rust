@@ -1,0 +1,52 @@
+@startuml
+allow_mixing
+
+class "Vec<u8>"
+class "&[u8]"
+class "String"
+class "&str"
+
+''''''''''''''''''''''''''''''''''''''''''''''''
+'String -> ...
+''''''''''''''''''''''''''''''''''''''''''''''''
+'String -> &str
+"String" -[#green]-> "&str" : <color:green>.as_str()</color>
+'String -> &[u8]
+"String" -[#blue]-> "&[u8]" : <color:blue>.as_bytes()</color>
+'String -> Vec<u8>
+"String" -[#orange]-> "Vec<u8>" : <color:orange>.into_bytes()</color>
+
+''''''''''''''''''''''''''''''''''''''''''''''''
+'&str ->
+''''''''''''''''''''''''''''''''''''''''''''''''
+'&str -> String
+"&str" --> "String" : String::from(v: &str)
+"&str" --> "String" : .to_string()
+"&str" --> "String" : .to_owned()
+'&str -> &[u8]
+"&str" -[#blue]-> "&[u8]" : <color:blue>.as_bytes()</color>
+'&str -> Vec<u8>
+"&str" -[dotted]-> "Vec<u8>" : <b>transitively:</b>\n.as_bytes().to_owned()
+
+''''''''''''''''''''''''''''''''''''''''''''''''
+'&[u8] ->
+''''''''''''''''''''''''''''''''''''''''''''''''
+'&[u8] -> Vec<u8>
+"&[u8]" --> "Vec<u8>" : .to_vec()
+"&[u8]" --> "Vec<u8>" : .to_owned()
+'&[u8] -> &str
+"&[u8]" -[#green]-> "&str" : <color:green>std::str::from_utf8(v: &[u8])</color>
+'&[u8] -> String
+"&[u8]" -[dotted]-> "String" : <b>transitively:</b>\nString::from_utf8(v: Vec<u8>)
+
+''''''''''''''''''''''''''''''''''''''''''''''''
+'Vec<u8> ->
+''''''''''''''''''''''''''''''''''''''''''''''''
+'Vec<u8> -> String
+"Vec<u8>" --> "String" : String::from_utf8(v: Vec<u8>)
+'Vec<u8> -> &str
+"Vec<u8>" -[dotted]-> "&str" : <b>transitively:</b>\nstd::str::from_utf8(vec.as_slice())
+'Vec<u8> -> &[u8]
+"Vec<u8>" -[#blue]-> "&[u8]" : <color:blue>.as_slice()</color>
+
+@enduml
