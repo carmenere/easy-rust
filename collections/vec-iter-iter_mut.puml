@@ -32,10 +32,10 @@ class "&mut [T]"
 "IntoIterator<&T>" <|.. "&Vec<T>"
 "IntoIterator<&mut T>" <|.. "&mut Vec<T>"
 
-"&Vec<T>" -[dotted]-> "&[T]" : <b>iter()</b> \nvia deref coercion
-"&mut Vec<T>" -[dotted]-> "&mut [T]" : <b>iter_mut()</b>\nvia deref coercion
-'"&Vec<T>" -[dotted]-> "Iter<T>" : iter()
-'"&mut Vec<T>" -[dotted]-> "IterMut<T>" : iter_mut()
+"&Vec<T>" -[dotted]-> "&[T]" : <b>iter()</b>\nvia deref coercion
+"&mut Vec<T>" -[dotted]-> "&mut [T]" : <b>iter_mut()</b> via deref coercion
+"&Vec<T>" -[dotted]-> "Iter<T>" : <b>into_iter()</b>
+"&mut Vec<T>" -[dotted]-> "IterMut<T>" : <b>into_iter()</b>
 "&[T]" -[dotted]-> "Iter<T>" : <b>iter()</b>
 "&[T]" -[dotted]-> "Iter<T>" : <b>into_iter()</b>
 "&mut [T]" -[dotted]-> "IterMut<T>" : <b>iter_mut()</b>
