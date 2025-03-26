@@ -1,0 +1,62 @@
+@startuml
+allow_mixing
+
+interface "DerefMut<Target=[T]>" {
+    + Target = [T]
+    + <b>deref_mut</b>(&mut self) -> &mut [T]
+}
+
+interface "Deref<Target=[T]>" {
+    + Target = [T];
+    + <b>deref</b>(&self) -> &[T];
+}
+
+interface Iterator {
+  + Item = T
+  + <b>next</b>(&mut self) -> Option<T>
+  + <b>collect</b><D: FromIterator<T>>(self) -> D {<D as FromIterator>::from_iter(self)}
+}
+
+interface "IntoIterator<Item=T>" {
+    + Item = T
+    + IntoIter = IntoIter<T>
+    + <b>into_iter</b>(self) -> IntoIter<T>
+}
+
+interface "FromIterator<T>" {
+    + fn <b>from_iter</b><T>(iter: T) -> Self where T: IntoIterator<Item = A>;
+}
+
+class "IntoIter<T>" {
+    + <b>into_iter</b>(&mut self) -> Self
+}
+
+
+class "Vec<T>" {
+  + <b>into_iter</b>(&mut self) -> IntoIter<T>
+  + <b>from_iter</b><I: IntoIterator<Item = T>>(iter: I) -> Vec<T>
+}
+
+"IntoIterator<Item=T>" <|.. "Vec<T>"
+
+"IntoIter<T>" <-[dotted]- "Vec<T>" : into_iter()
+"IntoIter<T>" <-[dotted]- "IntoIter<T>" : into_iter()
+
+Iterator <|.. "IntoIter<T>"
+
+"Deref<Target=[T]>" <|.. "Vec<T>"
+"DerefMut<Target=[T]>" <|.. "Vec<T>"
+
+"FromIterator<T>" <|.. "Vec<T>"
+
+"Vec<T>" -[dotted]-> "Vec<T>" : from_iter()
+
+card "Option<T>"
+card "D: FromIterator<T>"
+
+"Iterator" -[dotted]-> "D: FromIterator<T>" : collect::<D>()
+"Iterator" -[dotted]-> "Option<T>" : next()
+
+"IntoIterator<Item=T>" <|.. "IntoIter<T>" : blanket impl <b>IntoIterator</b> for IntoIter<T>\n because IntoIter<T> implements <b>Iterator<b>
+
+@enduml
