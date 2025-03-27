@@ -1,6 +1,7 @@
 # Contents
 <!-- TOC -->
 * [Contents](#contents)
+* [Diagrams](#diagrams)
 * [Slice](#slice)
   * [**src/core/slice/mod.rs**](#srccoreslicemodrs)
     * [Methods of slice: iter() and iter_mut()](#methods-of-slice-iter-and-iter_mut)
@@ -28,6 +29,17 @@
     * [impl Iterator for IntoIter](#impl-iterator-for-intoiter)
     * [impl AsRef for IntoIter](#impl-asref-for-intoiter)
 <!-- TOC -->
+
+<br>
+
+# Diagrams
+## Vec::into_iterator
+![vec-into_iterator](/img/vec-into_iterator.svg)
+
+<br>
+
+## Vec::iter and Vec::iter_mut
+![vec-iter-iter_mut](/img/vec-iter-iter_mut.svg)
 
 <br>
 

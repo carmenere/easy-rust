@@ -11,7 +11,6 @@
     * [Syntax options for *pre initialized* vectors:](#syntax-options-for-pre-initialized-vectors)
     * [Syntax options for *empty* vectors:](#syntax-options-for-empty-vectors)
   * [*Type declaration* syntax](#type-declaration-syntax-1)
-* [Slices](#slices)
 <!-- TOC -->
 
 <br>

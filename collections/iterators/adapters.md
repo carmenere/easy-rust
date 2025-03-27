@@ -2,17 +2,17 @@
 <!-- TOC -->
 * [Table of contents](#table-of-contents)
 * [Adapters](#adapters)
+* [Method `collect()`](#method-collect)
+  * [`Turbofish`](#turbofish)
+* [Method `drain()`](#method-drain)
 <!-- TOC -->
 
 <br>
 
 # Adapters
 `Iterator` trait provides **adapter methods**, or simply **adapters**.<br>
-
 Calling **adapter** on an **iterator** returns a **new iterator** that **yields its own items** from the first iterator.<br>
-
 Every **adapter** takes **iterator** **implicitly**, because of `self` argument.<br>
-
 In a **chain of adapters**, the only way to get a result is to call `next()` or `collect()` on the **final iterator**.<br>
 
 <br>
@@ -54,3 +54,117 @@ In a **chain of adapters**, the only way to get a result is to call `next()` or 
 |[**flatten**](https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.flatten)|Concatenates **iterator of iterables** into a **single collection of elements** and returns an **iterator** `Flatten` **over** the concatenated single collection of elements.<br>The `flatten()` method requires `Self::Item` to be **iterable**. It yields `Self::Item::Item`, where `Self::Item` is some collection of elements of type `Item`.|
 |[**fuse**](https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.fuse)|What returns `Iterator` after it has already returned `None`?.<br>Most **iterators** just return `None` **again**, but **not all**.<br>The `fuse()` takes any `Iterator` and produces new `Iterator` that will definitely continue to return `None` once it has done so the first time.|
 |[**enumerate**](https://doc.rust-lang.org/std/iter/trait.Iterator.html#method.enumerate)|**Yields** tuple `(usize, Self::Item)`, where element of `usize` type contains the **index** of the **value** of `Self::Item` type.|
+
+<br>
+
+# Method `collect()`
+```rust
+pub trait Iterator {
+    type Item;
+    // ...
+    fn collect<B: FromIterator<Self::Item>>(self) -> B
+    where Self: Sized,
+    {
+        <B as FromIterator>::from_iter(self)
+    }
+}
+```
+
+**Notes**:
+- method `.collect::<U<_>>()` transforms an **iterator** into a **collection** of type `U`, type of _collection's_ **item** is taken from `Self::Item` of iterator;
+- method `.collect::<U<_>>()` of `Iterator` requires its returning **collection** of type `U` to implement `FromIterator`;
+- because `.collect::<U<u8>>()` only **cares about collection** of type `U`, **not** its elements, so, you can use type `_`, e.g. `.collect::<Vec<_>>()`;
+- method `.collect()` can also create instances of types that are **not** typical collections, e.g., `.collect()` can return `Result<SomeCollection<U>, E>`;
+
+<br>
+
+Using `T::from_iter()` as a more readable alternative to `.collect::<T<_>>()`, because `.collect::<T<_>>()` is more general and it can return collection of **any** type, while `T::from_iter()` returns collection only of `T` type:
+```rust
+use std::collections::VecDeque;
+let first = (0..10).collect::<VecDeque<i32>>();
+let second = VecDeque::from_iter(0..10);
+
+assert_eq!(first, second);
+```
+
+<br>
+
+## `Turbofish`
+Because `collect()` is so general, it can cause **problems** with **type inference**.<br>
+Internally, `collect()` just uses `FromIterator`, but it also **infers** the **type** of the **output**.<br>
+Sometimes there **isn't enough** information to infer the type, so you may need to **explicitly** specify the type you want.<br>
+There is *special syntax* in Rust called **turbofish**: `::<SomeType>`.<br>
+Example: `let all_scores = score_table.values().cloned().collect::<Vec<Score>>();`.<br>
+**Turbofish** helps the **inference** algorithm to understand type of item of **resulting collection**.<br>
+
+<br>
+
+**Example**:
+```rust
+fn main() {
+    let numbers: Vec<i32> = vec![
+        1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+    ];
+
+    let even_numbers = numbers
+        .into_iter()
+        .filter(|n| n % 2 == 0)
+        .collect();
+
+    println!("{:?}", even_numbers);
+}
+```
+
+**Output**:
+```bash
+cargo run
+   Compiling playrs v0.1.0 (/Users/an.romanov/Projects/play.rust-lang.org)
+error[E0282]: type annotations needed
+ --> src/main.rs:6:9
+  |
+6 |     let even_numbers = numbers
+  |         ^^^^^^^^^^^^ consider giving `even_numbers` a type
+
+For more information about this error, try `rustc --explain E0282`.
+error: could not compile `playrs` due to previous error
+```
+
+<br>
+
+This is because the compiler **doesn’t know** what type you’re trying to collect your **iterator** into.<br>
+
+This can be fixed in two different ways:
+- by **declaring** the **type** of variable in `let` **binding**:
+```rust
+let even_numbers: Vec<i32> = ...
+```
+- by using a **turbofish**:
+```rust
+let even_numbers = numbers
+    .into_iter()
+    .filter(|n| n % 2 == 0)
+    .collect::<Vec<i32>>();
+```
+
+The `::<Vec<i32>>` part is the **turbofish** and means collect this **iterator** into a `Vec<i32>`.<br>
+
+You can actually replace `i32` with `_` in **turbofish** and let the compiler infer it because it knows the **iterator** yields `i32`:
+```rust
+let even_numbers = numbers
+    .into_iter()
+    .filter(|n| n % 2 == 0)
+    .collect::<Vec<_>>();
+```
+
+<br>
+
+# Method `drain()`
+`into_iter()` **consumes** the **collection** **itself**, `drain()` only **consumes** the **values** in the collection.<br>
+
+Therefore `drain()` allows draining of only a **part of the collection**.<br>
+
+So,
+- use `into_iter()` if you want to *consume* the **entire** collection;
+- use `drain()` if you only want to *consume* **part** of the collection or if you want to *reuse* the **emptied collection** later;
+
+<br>
