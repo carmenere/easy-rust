@@ -229,7 +229,7 @@ for item in &mut collection {
 
 <br>
 
-The `for item in iterable` syntax requires **iterable**, so it works with both **iterables** and **collections** that implement `IntoIterator`.<br>
+The `for item in iterable` syntax requires **iterable**, so it works with both **iterators** (every iterator is iterable too) and **collections** that implement `IntoIterator`.<br>
 The `for item in iterable` syntax is just a syntactic sugar for:
 ```rust
 let mut iterator = iterable.into_iter();
