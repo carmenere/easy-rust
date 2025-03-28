@@ -1,10 +1,12 @@
 # Table of contents
-- [Table of contents](#table-of-contents)
-- [Trait Object](#trait-object)
-  - [Trait Object Lifetime Bounds](#trait-object-lifetime-bounds)
-- [Generics vs. Trait objects](#generics-vs-trait-objects)
-  - [Generic approach](#generic-approach)
-  - [Trait object approach](#trait-object-approach)
+<!-- TOC -->
+* [Table of contents](#table-of-contents)
+* [Trait Object](#trait-object)
+  * [Trait Object Lifetime Bounds](#trait-object-lifetime-bounds)
+* [Generics vs. Trait objects](#generics-vs-trait-objects)
+  * [Generic approach](#generic-approach)
+  * [Trait object approach](#trait-object-approach)
+<!-- TOC -->
 
 <br>
 

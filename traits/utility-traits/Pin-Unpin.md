@@ -1,6 +1,8 @@
 # Table of contents
-- [Table of contents](#table-of-contents)
-- [`std`](#std)
+<!-- TOC -->
+* [Table of contents](#table-of-contents)
+* [URLs](#urls)
+<!-- TOC -->
 
 <br>
 

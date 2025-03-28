@@ -1,0 +1,52 @@
+@startuml
+allow_mixing
+
+interface "Iterator<Item=&T>" {
+  + Item = &'a T
+}
+
+interface "Iterator<Item=&mut T>" {
+  + Item = &'a mut T
+}
+
+interface "IntoIterator<&T>" {
+    + Item = &'a T
+    + IntoIter = Iter<'a, T>
+    + <b>into_iter</b>(self) -> Iter<'a, T> {self.iter()}
+}
+
+interface "IntoIterator<&mut T>" {
+    + Item = &'a mut T
+    + IntoIter = Iter<'a, T>
+    + <b>into_iter</b>(self) -> Iter<'a, T> {self.iter_mut()}
+}
+
+class " [T]" {
+    + <b>iter</b>(&self) -> Iter<T> { Iter::new(self) }
+    + <b>iter_mut</b>(&mut self) -> IterMut<T> { IterMut::new(self) }
+}
+
+class "&[T]"
+class "&mut [T]"
+
+"IntoIterator<&T>" <|.. "&Vec<T>"
+"IntoIterator<&mut T>" <|.. "&mut Vec<T>"
+
+"&Vec<T>" -[dotted]-> "&[T]" : <b>iter()</b>\nvia deref coercion
+"&mut Vec<T>" -[dotted]-> "&mut [T]" : <b>iter_mut()</b> via deref coercion
+"&Vec<T>" -[dotted]-> "Iter<T>" : <b>into_iter()</b>
+"&mut Vec<T>" -[dotted]-> "IterMut<T>" : <b>into_iter()</b>
+"&[T]" -[dotted]-> "Iter<T>" : <b>iter()</b>
+"&[T]" -[dotted]-> "Iter<T>" : <b>into_iter()</b>
+"&mut [T]" -[dotted]-> "IterMut<T>" : <b>iter_mut()</b>
+"&mut [T]" -[dotted]-> "IterMut<T>" : <b>into_iter()</b>
+
+" [T]" <|-- "&[T]"
+" [T]" <|-- "&mut [T]"
+
+"IntoIterator<&T>" <|.. "&[T]"
+"IntoIterator<&mut T>" <|.. "&mut [T]"
+
+"Iterator<Item=&T>" <|.. "Iter<T>"
+"Iterator<Item=&mut T>" <|.. "IterMut<T>"
+@enduml

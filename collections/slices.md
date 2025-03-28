@@ -1,12 +1,14 @@
 # Table of contents
-- [Table of contents](#table-of-contents)
-- [Slice type](#slice-type)
-  - [Slice notation](#slice-notation)
-  - [Slice rules](#slice-rules)
-  - [String slice](#string-slice)
-  - [`impl str`](#impl-str)
-  - [String slice as type of function parameter](#string-slice-as-type-of-function-parameter)
-  - [Get last element of dynamically growing collection](#get-last-element-of-dynamically-growing-collection)
+<!-- TOC -->
+* [Table of contents](#table-of-contents)
+* [Slice type](#slice-type)
+  * [Slice notation](#slice-notation)
+  * [Slice rules](#slice-rules)
+  * [String slice](#string-slice)
+  * [`impl str`](#impl-str)
+  * [String slice as type of function parameter](#string-slice-as-type-of-function-parameter)
+  * [Get last element of dynamically growing collection](#get-last-element-of-dynamically-growing-collection)
+<!-- TOC -->
 
 <br>
 
@@ -50,7 +52,7 @@ Internally, the **reference to a slice** (aka **slice reference**) is a **fat po
 ## Slice notation
 Slice notation: `& <collection>[start..end]`, where:
 - `start..end` is **range operator**, by default it **excludes upper bound** and is equal to `[start, end)`;
-  - to **include** upper bound use `=`, example: `start..=end`;
+    - to **include** upper bound use `=`, example: `start..=end`;
 - `<collection>` name of some collection;
 
 Note that **length of the slice**: `length = end – start`.<br>
@@ -101,7 +103,7 @@ We could use that value 5 with the variable `s` to try to extract the first word
 <br>
 
 ## String slice
-The type `str` is a **string slice**. Semantically `str` can be represented as 
+The type `str` is a **string slice**. Semantically `str` can be represented as
 ```rust
 struct str([u8])
 ```
@@ -184,5 +186,5 @@ fn main() {
 <br>
 
 Notes:
- - `last_mut` method returns a **mutable pointer** to the **last item** in the collection;
- - signature of `last_mut` method: `pub fn last_mut(&mut self) -> Option<&mut T>`.
+- `last_mut` method returns a **mutable pointer** to the **last item** in the collection;
+- signature of `last_mut` method: `pub fn last_mut(&mut self) -> Option<&mut T>`.

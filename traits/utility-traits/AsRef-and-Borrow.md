@@ -1,33 +1,35 @@
 # Table of contents
-- [Table of contents](#table-of-contents)
-- [URLs](#urls)
-- [Declarations](#declarations)
-  - [`Borrow`](#borrow)
-  - [`BorrowMut`](#borrowmut)
-  - [`AsRef`](#asref)
-  - [`AsMut`](#asmut)
-- [In a nutshell](#in-a-nutshell)
-  - [When to use `Borrow` and `BorrowMut`?](#when-to-use-borrow-and-borrowmut)
-  - [When to use `AsRef` and `AsMut`?](#when-to-use-asref-and-asmut)
-- [Implementations in `std`](#implementations-in-std)
-  - [`Borrow` in `HashMap`](#borrow-in-hashmap)
-- [Blanket implementations](#blanket-implementations)
-  - [`Borrow`](#borrow-1)
-    - [`impl<T> Borrow<T> for T`](#implt-borrowt-for-t)
-    - [`impl<T> Borrow<T> for &T`](#implt-borrowt-for-t-1)
-    - [`impl<T> Borrow<T> for &mut T`](#implt-borrowt-for-mut-t)
-  - [`BorrowMut`](#borrowmut-1)
-    - [`impl<T> BorrowMut<T> for T`](#implt-borrowmutt-for-t)
-    - [`impl<T> BorrowMut<T> for &mut T`](#implt-borrowmutt-for-mut-t)
-  - [`AsRef`](#asref-1)
-    - [`impl<T, U> AsRef<U> for &T`](#implt-u-asrefu-for-t)
-    - [`impl<T, U> AsRef<U> for &mut T`](#implt-u-asrefu-for-mut-t)
-  - [`AsMut`](#asmut-1)
-    - [`impl<T, U> AsMut<U> for &mut T`](#implt-u-asmutu-for-mut-t)
-- [Examples](#examples)
-  - [Function that accepts both `&str` and `String`](#function-that-accepts-both-str-and-string)
-  - [`AsRef<Path>>`](#asrefpath)
-  - [More examples](#more-examples)
+<!-- TOC -->
+* [Table of contents](#table-of-contents)
+* [URLs](#urls)
+* [Declarations](#declarations)
+  * [`Borrow`](#borrow)
+  * [`BorrowMut`](#borrowmut)
+  * [`AsRef`](#asref)
+  * [`AsMut`](#asmut)
+* [In a nutshell](#in-a-nutshell)
+  * [When to use `Borrow` and `BorrowMut`?](#when-to-use-borrow-and-borrowmut)
+  * [When to use `AsRef` and `AsMut`?](#when-to-use-asref-and-asmut)
+* [Implementations in `std`](#implementations-in-std)
+  * [`Borrow` in `HashMap`](#borrow-in-hashmap)
+* [Blanket implementations](#blanket-implementations)
+  * [`Borrow`](#borrow-1)
+    * [`impl Borrow for T`](#impl-borrow-for-t)
+    * [`impl Borrow for &T`](#impl-borrow-for-t-1)
+    * [`impl Borrow for &mut T`](#impl-borrow-for-mut-t)
+  * [`BorrowMut`](#borrowmut-1)
+    * [`impl BorrowMut for T`](#impl-borrowmut-for-t)
+    * [`impl BorrowMut for &mut T`](#impl-borrowmut-for-mut-t)
+  * [`AsRef`](#asref-1)
+    * [`impl AsRef for &T`](#impl-asref-for-t)
+    * [`impl AsRef for &mut T`](#impl-asref-for-mut-t)
+  * [`AsMut`](#asmut-1)
+    * [`impl AsMut for &mut T`](#impl-asmut-for-mut-t)
+* [Examples](#examples)
+  * [Function that accepts both `&str` and `String`](#function-that-accepts-both-str-and-string)
+  * [`AsRef<Path>>`](#asrefpath)
+  * [More examples](#more-examples)
+<!-- TOC -->
 
 <br>
 
@@ -186,7 +188,7 @@ assert_eq!(map.get("Foo"), Some(&42));
 
 # Blanket implementations
 ## `Borrow`
-### `impl<T> Borrow<T> for T`
+### `impl Borrow for T`
 Note, then `&self` is a short form for `self: &Self`, but `Self` is equal to `T` in blanket implementation, so `self` is `&T`.<br>
 ```rust
 impl<T: ?Sized> Borrow<T> for T {
@@ -198,7 +200,7 @@ impl<T: ?Sized> Borrow<T> for T {
 
 <br>
 
-### `impl<T> Borrow<T> for &T`
+### `impl Borrow for &T`
 ```rust
 impl<T: ?Sized> Borrow<T> for &T {
     fn borrow(&self) -> &T {
@@ -209,7 +211,7 @@ impl<T: ?Sized> Borrow<T> for &T {
 
 <br>
 
-### `impl<T> Borrow<T> for &mut T`
+### `impl Borrow for &mut T`
 ```rust
 impl<T: ?Sized> Borrow<T> for &mut T {
     fn borrow(&self) -> &T {
@@ -221,7 +223,7 @@ impl<T: ?Sized> Borrow<T> for &mut T {
 <br>
 
 ## `BorrowMut`
-### `impl<T> BorrowMut<T> for T`
+### `impl BorrowMut for T`
 Note, then `&mut self` is a short form for `self: &mut Self`, but `Self` is equal to `T` in blanket implementation, so `self` is `&mut T`.<br>
 ```rust
 impl<T: ?Sized> BorrowMut<T> for T {
@@ -233,7 +235,7 @@ impl<T: ?Sized> BorrowMut<T> for T {
 
 <br>
 
-### `impl<T> BorrowMut<T> for &mut T`
+### `impl BorrowMut for &mut T`
 ```rust
 impl<T: ?Sized> BorrowMut<T> for &mut T {
     fn borrow_mut(&mut self) -> &mut T {
@@ -245,7 +247,7 @@ impl<T: ?Sized> BorrowMut<T> for &mut T {
 <br>
 
 ## `AsRef`
-### `impl<T, U> AsRef<U> for &T`
+### `impl AsRef for &T`
 ```Rust
 impl<T: ?Sized, U: ?Sized> AsRef<U> for &T
 where
@@ -261,7 +263,7 @@ It means: for **any types** `T` and `U`, if `T: AsRef<U>`, then `&T: AsRef<U>` a
 
 <br>
 
-### `impl<T, U> AsRef<U> for &mut T`
+### `impl AsRef for &mut T`
 ```rust
 impl<T: ?Sized, U: ?Sized> AsRef<U> for &mut T
 where
@@ -278,7 +280,7 @@ It means: for **any types** `T` and `U`, if `T: AsRef<U>`, then `&mut T: AsRef<U
 <br>
 
 ## `AsMut`
-### `impl<T, U> AsMut<U> for &mut T`
+### `impl AsMut for &mut T`
 ```rust
 impl<T: ?Sized, U: ?Sized> AsMut<U> for &mut T
 where
