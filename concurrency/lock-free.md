@@ -1,53 +1,11 @@
-# Cache coherence
-**Cache coherence** ensures that all CPU or/and cores maintain a consistent view of memory.<br>
+# Lock free approach
+**Lock free** access to sequence means every thread gets its own index and **always** accesses sequence by its **index**.<br>
 
 <br>
 
-Hardware-based solutions for **cache coherence**:
-- **snooping-based** coherence implementations;
-- **directory-based** coherence implementations;
-
-<br>
-
-Every CPU/core has **cache controller** which tracks the status of each **cache line** in its cache. Each cache controller can send and receives messages from other cache controllers.<br>
-In a **snooping system**, all the _cache controllers_ **monitor** (or **snoop**) the memory bus transactions and react accordingly, to maintain memory coherence.<br>
-
-<br>
-
-There are some **snooping protocols**:
-1. **MESI protocol**.
-2. **MESIF protocol**.
-2. **MOESI protocol**.
-
-<br>
-
-Every _cache line_ in cache has **state**. The letters in the acronyms **MESI** represent **states** of **cache lines**:
-- Modified (**M**)
-- Exclusive (**E**)
-- Shared (**S**)
-- Invalid (**I**)
-
-<br>
-
-A **write** may only be performed freely if the **cache line** is in the **Modified** or **Exclusive** state.<br>
-If it is in the **Shared** state, all other cached copies must be **invalidated** first. This is typically done by a broadcast operation known as **Request For Ownership** (**RFO**).<br>
-A cache that holds a line in the **Modified** state must **snoop** (**intercept**) all attempted reads (from all the other caches in the system) of the corresponding main memory location and insert the data that it holds.<br>
-
-<br>
-
-When **different threads** access **the same cache line simultaneously** it causes to **performance penalty** because of _cache line_ **invalidation**.<br>
- and every time it is updated cache controller must enforce cache cogerency using some algorithem: MESI,
-
-<br>
-
-# CPU cache side effects
-`CACHE_LINE_SIZE=1` means data in **the same** _cache line_.<br>
-`CACHE_LINE_SIZE=64` means data in **different** *cache line*s.<br>
-
-<br>
-
-# Lock free access to array
-**Lock free** sequence means every thread **always** accesses sequence **at specific index**.<br>
+In examples below:
+- `CACHE_LINE_SIZE=1` means that data of all threads are in **the same** _cache line_;
+- `CACHE_LINE_SIZE=64` means that data of all threads are **separated** in **different** _cache lines_;
 
 <br>
 
