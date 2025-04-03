@@ -79,8 +79,8 @@ An **integer** is a number without a fractional component.<br>
 
 <br>
 
-Each **signed** integer of length $N$ bits has following allowed values: [-$2^{N-1}$, $2^{N-1}-1$].<br>
-Each **unsigned** integer of length $N$ bits has following allowed values: [0, $2^{N}-1$].<br>
+Each **signed** integer of length $`N`$ bits has following allowed values: [-$`2^{N-1}`$, $`2^{N-1}-1`$].<br>
+Each **unsigned** integer of length $`N`$ bits has following allowed values: [$`0`$, $`2^{N}-1`$].<br>
 
 <br>
 
