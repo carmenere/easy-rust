@@ -51,7 +51,7 @@ fn main() {
 <br>
 
 ## No UB at runtime
-- **access beyond** ыуйгутсу (array/slice/vector) **boundary** is **defined** - **panic**;
+- **access beyond** sequence's (array/slice/vector) **boundary** is **defined** - **panic**;
 - **integer overflow** is defined - **panic** or **wrap around**;
 
 <br>
