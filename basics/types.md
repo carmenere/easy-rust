@@ -1,15 +1,14 @@
 # Table of contents
 <!-- TOC -->
 * [Table of contents](#table-of-contents)
+* [Data types](#data-types)
 * [Scalars](#scalars)
-* [Number separator](#number-separator)
-  * [Example](#example)
-* [Overflow-checks](#overflow-checks)
-  * [Examples](#examples)
+  * [Integer literals](#integer-literals)
+  * [Integer overflow](#integer-overflow)
 * [Constants](#constants)
-  * [Examples](#examples-1)
+  * [Examples](#examples)
 * [Static](#static)
-  * [Examples](#examples-2)
+  * [Examples](#examples-1)
 * [`const` vs. `static`](#const-vs-static)
 * [Range operator](#range-operator)
 * [Type casting](#type-casting)
@@ -18,32 +17,32 @@
 * [Enums](#enums)
   * [Syntax](#syntax)
     * [*Type declaration* syntax](#type-declaration-syntax)
-      * [Example](#example-1)
+      * [Example](#example)
     * [*Initialization* syntax](#initialization-syntax)
   * [Access to `enum` variant](#access-to-enum-variant)
-      * [Example](#example-2)
+      * [Example](#example-1)
 * [Primitive Type never](#primitive-type-never)
 * [Newtype pattern](#newtype-pattern)
   * [Syntax](#syntax-1)
-      * [Example](#example-3)
+      * [Example](#example-2)
   * [Destructuring let](#destructuring-let)
-      * [Example](#example-4)
+      * [Example](#example-3)
 * [Structs](#structs)
   * [Syntax](#syntax-2)
     * [*Type declaration* syntax](#type-declaration-syntax-1)
-      * [Example](#example-5)
+      * [Example](#example-4)
     * [*Initialization* syntax](#initialization-syntax-1)
       * [`Struct` constructor](#struct-constructor-)
-        * [Example](#example-6)
+        * [Example](#example-5)
       * [Method `new()`](#method-new)
   * [Range operator in structs](#range-operator-in-structs)
-      * [Example](#example-7)
+      * [Example](#example-6)
 * [Tuple structs](#tuple-structs)
   * [Syntax](#syntax-3)
     * [*Type declaration* syntax](#type-declaration-syntax-2)
-      * [Examples](#examples-3)
+      * [Examples](#examples-2)
     * [*Initialization* syntax](#initialization-syntax-2)
-      * [Examples](#examples-4)
+      * [Examples](#examples-3)
 * [Tuples](#tuples)
   * [*Initialization* syntax](#initialization-syntax-3)
     * [Syntax options for *pre initialized* tuples:](#syntax-options-for-pre-initialized-tuples)
@@ -52,40 +51,95 @@
 * [Unit-like structs](#unit-like-structs)
   * [Syntax](#syntax-4)
     * [*Type declaration* syntax](#type-declaration-syntax-4)
-      * [Examples](#examples-5)
+      * [Examples](#examples-4)
     * [*Initialization* syntax](#initialization-syntax-4)
-      * [Examples](#examples-6)
+      * [Examples](#examples-5)
 * [Type aliases](#type-aliases)
 <!-- TOC -->
 
 <br>
 
-# Scalars
-|Type group|Types|
-|:---------|:----|
-|**Integer**|**Signed**: `u8`, `u16`, `u32`, `u64`, `u128`<br>**Unsigned**: `i8`, `i16`, `i32`, `i64`, `i128`.<br>**Sizes of pointers**: `isize`, `usize` and they depend on **arch**.|
-|**Float**|`f32`, `f64`|
-|**Boolean**|`false`<br>`true`|
-|**Character**|**One letter** in **single quotes**.<br>Example: `let ch = 'A';`|
+# Data types
+Rust has **2 categories** of types:
+- **scalar types**: represent a single value;
+- **compound types**: represent a collection of values: arrays/tuples/structs/enums/slices/...;
 
 <br>
 
-# Number separator
-The `_` symbol is called **number separator** and is used in **literals**.
+# Scalars
+Rust has **4** scalar type groups:
+- **integers**;
+- **floats**;
+- **booleans**;
+- **chars**;
 
-## Example
-```Rust
+<br>
+
+An **integer** is a number without a fractional component.<br>
+
+<br>
+
+Each **signed** integer of length $N$ bits has following allowed values: [-$2^{N-1}$, $2^{N-1}-1$].<br>
+Each **unsigned** integer of length $N$ bits has following allowed values: [0, $2^{N}-1$].<br>
+
+<br>
+
+| Scalar type | Length in bits           | Allowed values                |
+|:------------|:-------------------------|:------------------------------|
+| `u8`        | **8** bits               | [$0$, 255]                    |
+| `i8`        | **8** bits               | [$-128$, $+127$]              |
+| `u16`       | **16** bits              | [$0$, $2^{16}-1$]             |
+| `i16`       | **16** bits              | [-$2^{16-1}$, $2^{16-1}-1$]   |
+| `u32`       | **32** bits              | [$0$, $2^{32}-1$]             |
+| `i32`       | **32** bits              | [-$2^{32-1}$, $2^{32-1}-1$]   |
+| `u64`       | **64** bits              | [$0$, $2^{64}-1$]             |
+| `i64`       | **64** bits              | [-$2^{64-1}$, $2^{64-1}-1$]   |
+| `u128`      | **128** bits             | [$0$, $2^{128}-1$]            |
+| `i128`      | **128** bits             | [-$2^{128-1}$, $2^{128-1}-1$] |
+| `usize`     | depends on **arch**      |                               |
+| `isize`     | depends on **arch**      |                               |
+| `f32`       | **32** bits              |                               |
+| `f64`       | **64** bits              |                               |
+| `boolean`   | **8** bits / **1** byte  | `true`, `false`               |
+| `char`      | **32** bits/ **4** bytes | Any single Unicode character  |
+
+<br>
+
+When the **type cannot be inferred** from the context rust **by default** assigns:
+- `i32` for **integers**: `let x = 5 // x is of i32`;
+- `f64` for **floats**: `let x = 5.5 // x is of f64`;
+
+<br>
+
+## Integer literals
+There are several **formats** for **integer literals**:
+- **Decimal**: `55_55`;
+- **Hexadecimal**: `0xaabb`;
+- **Octal**: `0o20`;
+- **Binary**: `0b1010_1000`;
+- **Bytes**: `b'AB'`;
+
+<br>
+
+The `_` symbol is called **number separator** and is used in integer **literals**:
+```rust
 let a = 1_000_000;
+```
+
+<br>
+
+It is possible to **add type at the of literal**:
+```rust
 let b = 1u64;
 let c = 1_u64;
 ```
 
 <br>
 
-# Overflow-checks
+## Integer overflow
 `rustc` flag `-C overflow-checks=yes|no` controls the behavior of **runtime integer overflow** ([RFC 560](https://github.com/rust-lang/rfcs/blob/master/text/0560-integer-overflow.md)):
 - when this flag is **enabled** `overflow-checks=yes` a **panic** will occur on **overflow** (e.g., `255 + 1` causes to **panic**).<br>
-- when this flag is **disabled** `overflow-checks=no` a **two’s complement** is used (e.g., `255 + 1` becomes `0` for an `u8` integer).<br>
+- when this flag is **disabled** `overflow-checks=no` a **two’s complement** (aka **wrap around**) is used (e.g., `255 + 1` becomes `0` for an `u8` integer).<br>
 
 <br>
 
@@ -95,7 +149,7 @@ Rust behaves differently in **debug mode** and **release mode** on **integer ove
 
 <br>
 
-## Examples
+**Examples**:
 ```Rust
 RUSTFLAGS="-C overflow-checks=yes|no" cargo run --release
 
@@ -191,15 +245,8 @@ let flag = v as i32;
 <br>
 
 # Unit type `()`
-**Unit type** or just **Unit** (denoted as `()`) is an **empty tuple**.<br>
-It is **ZST** (**zero-sized type**).
-
-<br>
-
-**Unit** has **exactly one** value – `()`.
-<br>
-
-**Unit** and **its value** are the **same**.
+The **unit type** or just **Unit** is denoted as `()`. The **unit type** has only **one value**, which is also `()`.<br>
+It is **ZST** (**zero-sized type**).<br>
 
 <br>
 
