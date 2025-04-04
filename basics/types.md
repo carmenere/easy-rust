@@ -79,7 +79,7 @@ An **integer** is a number without a fractional component.<br>
 
 <br>
 
-Each **signed** integer of length $`N`$ bits has following allowed values: [-$`2^{N-1}`$, $`2^{N-1}-1`$].<br>
+Each **signed** integer of length $`N`$ bits has following allowed values: [$`-2^{N-1}`$, $`2^{N-1}-1`$].<br>
 Each **unsigned** integer of length $`N`$ bits has following allowed values: [$`0`$, $`2^{N}-1`$].<br>
 
 <br>
@@ -136,10 +136,10 @@ let c = 1_u64;
 
 <br>
 
-## Integer overflow
-`rustc` flag `-C overflow-checks=yes|no` controls the behavior of **runtime integer overflow** ([RFC 560](https://github.com/rust-lang/rfcs/blob/master/text/0560-integer-overflow.md)):
-- when this flag is **enabled** `overflow-checks=yes` a **panic** will occur on **overflow** (e.g., `255 + 1` causes to **panic**).<br>
-- when this flag is **disabled** `overflow-checks=no` a **two’s complement** (aka **wrap around**) is used (e.g., `255 + 1` becomes `0` for an `u8` integer).<br>
+# Integer overflow
+`rustc` provides flag `-C overflow-checks=yes|no` that controls the behavior of **runtime integer overflow** ([RFC 560](https://github.com/rust-lang/rfcs/blob/master/text/0560-integer-overflow.md)):
+- when this flag is **enabled** `overflow-checks=yes` a **panic** will occur on **overflow** (e.g., `255 + 1` causes to **panic**);
+- when this flag is **disabled** `overflow-checks=no` a **two’s complement** (aka **wrap around** or **wraparound arithmetic**) is used (e.g., `255_u8 + 1` becomes `0`);
 
 <br>
 
@@ -154,6 +154,92 @@ Rust behaves differently in **debug mode** and **release mode** on **integer ove
 RUSTFLAGS="-C overflow-checks=yes|no" cargo run --release
 
 RUSTFLAGS="-C overflow-checks=yes|no" cargo run
+```
+
+<br>
+
+std provides 4 sets of methods for explicit handling of overflow:
+- **wrapping_**:
+  - `x.wrapping_abs()`
+  - `x.wrapping_add(y)`
+  - `x.wrapping_add_unsigned(y)`
+  - `x.wrapping_div(y)`
+  - `x.wrapping_div_euclid(y)`
+  - `x.wrapping_mul(y)`
+  - `x.wrapping_neg()`
+  - `x.wrapping_pow(y)`
+  - `x.wrapping_rem(y)`
+  - `x.wrapping_rem_euclid(y)`
+  - `x.wrapping_shl(y)`
+  - `x.wrapping_shr(y)`
+  - `x.wrapping_sub(y)`
+  - `x.wrapping_sub_unsigned(y)`
+- **saturating_**:
+  - `x.saturating_abs(y)`
+  - `x.saturating_add(y)`
+  - `x.saturating_add_unsigned(y)`
+  - `x.saturating_div(y)`
+  - `x.saturating_mul(y)`
+  - `x.saturating_neg(y)`
+  - `x.saturating_pow(y)`
+  - `x.saturating_sub(y)`
+  - `x.saturating_sub_unsigned(y)`
+- **overflowing_**: returns a tuple `(T, bool)` that consists of **two's complement result** and a **boolean** indicating if an overflow occurred:
+  - `x.overflowing_abs()`
+  - `x.overflowing_add(y)`
+  - `x.overflowing_add_unsigned(y)`
+  - `x.overflowing_div(y)`
+  - `x.overflowing_div_euclid(y)`
+  - `x.overflowing_mul(y)`
+  - `x.overflowing_neg()`
+  - `x.overflowing_pow(y)`
+  - `x.overflowing_rem(y)`
+  - `x.overflowing_rem_euclid(y)`
+  - `x.overflowing_shl(y)`
+  - `x.overflowing_shr(y)`
+  - `x.overflowing_sub(y)`
+  - `x.overflowing_sub_unsigned(y)`
+- **checked_**: return `Option<T>` that is `None` when overflow occurred:
+  - `x.checked_abs()`
+  - `x.checked_add(y)`
+  - `x.checked_add_unsigned(y)`
+  - `x.checked_div(y)`
+  - `x.checked_div_euclid(y)`
+  - `x.checked_ilog(y)`
+  - `x.checked_ilog10(y)`
+  - `x.checked_ilog2(y)`
+  - `x.checked_isqrt(y)`
+  - `x.checked_mul(y)`
+  - `x.checked_neg()`
+  - `x.checked_next_multiple_of(y)`
+  - `x.checked_pow(y)`
+  - `x.checked_rem(y)`
+  - `x.checked_rem_euclid(y)`
+  - `x.checked_shl(y)`
+  - `x.checked_shr(y)`
+  - `x.checked_sub(y)`
+  - `x.checked_sub_unsigned(y)`
+
+<br>
+
+**Example**:
+  - `5u8.wrapping_add(10)`
+  - `u8::MAX.wrapping_add(2)`
+  - `i8::MAX.wrapping_add(2)`
+  - `5u8.wrapping_sub(10)`
+  - `u8::MAX.wrapping_sub(2)`
+  - `i8::MAX.wrapping_sub(2)`
+
+<br>
+
+**Example**:
+```rust
+fn main() {
+    println!("u8::MIN={}, u8::MAX={}", u8::MIN, u8::MAX);
+    println!("u8::MIN.wrapping_add(1)={}, u8::MAX.wrapping_add(1)={}", u8::MIN.wrapping_add(1), u8::MAX.wrapping_add(1));
+    println!("i8::MIN={}, i8::MAX={}", i8::MIN, i8::MAX);
+    println!("i8::MIN.wrapping_add(1)={}, i8::MAX.wrapping_add(1)={}", i8::MIN.wrapping_add(1), i8::MAX.wrapping_add(1));
+}
 ```
 
 <br>
