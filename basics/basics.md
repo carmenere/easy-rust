@@ -37,36 +37,13 @@
 <br>
 
 # Assertions
-An **assertion** is a statement that enables you to test your assumptions about your program.
+An **assertion** is a statement that enables you to test your assumptions about your program.<br>
+If assertion is `false`, the program **crashes**.<br>
 
-If assertion is `false`, the program **crashes**.
-
-<table>
-    <tr>
-        <td><b>Assertion macros</b></td>
-        <td><b>Description</b></td>
-    <tr>
-<tr>
-<td>
-
-```rust
-assert!(expr)
-```
-
-</td>
-<td>If <code>expr</code> is <b>false</b> then <code>panic!</code> is called.</td>
-<tr></tr>
-<tr>
-<td>
-
-```rust
-assert_eq!(left, right)
-```
-
-</td>
-<td>If <code>left</code> is <b>not equal</b> <code>right</code> then <code>panic!</code> is called.</td>
-</tr>
-</table>
+| Assertion macros           | Description                                                 |
+|:---------------------------|:------------------------------------------------------------|
+| `assert!(expr);`           | If `expr` is **false** then `panic!` is called.             |
+| `assert_eq!(left, right);` | If `left` is **not equal** `right` then `panic!` is called. |
 
 <br>
 
