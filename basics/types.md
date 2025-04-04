@@ -4,7 +4,7 @@
 * [Data types](#data-types)
 * [Scalars](#scalars)
   * [Integer literals](#integer-literals)
-  * [Integer overflow](#integer-overflow)
+* [Integer overflow](#integer-overflow)
 * [Constants](#constants)
   * [Examples](#examples)
 * [Static](#static)
