@@ -158,7 +158,7 @@ RUSTFLAGS="-C overflow-checks=yes|no" cargo run
 
 <br>
 
-std provides 4 sets of methods for explicit handling of overflow:
+The **std** provides **4** sets of methods for explicit handling of overflow:
 - **wrapping_**:
   - `x.wrapping_abs()`
   - `x.wrapping_add(y)`
