@@ -1,56 +1,16 @@
 # Table of contents
 <!-- TOC -->
 * [Table of contents](#table-of-contents)
-* [Trait Object](#trait-object)
-  * [Trait Object Lifetime Bounds](#trait-object-lifetime-bounds)
 * [Generics vs. Trait objects](#generics-vs-trait-objects)
+* [Trait objects](#trait-objects)
+* [Dyn compatibility](#dyn-compatibility)
+  * [`?Sized` generic](#sized-generic)
+  * [Dynamic dispatch](#dynamic-dispatch)
+  * [Trait Object Lifetime Bounds](#trait-object-lifetime-bounds)
+* [Example](#example)
   * [Generic approach](#generic-approach)
   * [Trait object approach](#trait-object-approach)
 <!-- TOC -->
-
-<br>
-
-# Trait Object
-**Trait object** is **DST**.<br>
-**Trait object** is a **reference** to `dyn SomeTrait`.<br>
-
-<br>
-
-`dyn SomeTrait` **reference** contains **2 pointers**: 
-- a pointer to an **instance** **of** a **type** `T` that implements `SomeTrait`; 
-- a pointer to an `T`'s **vtable**. 
-
-<br>
-
-**Trait object** *declaration* examples:
-- `&dyn SomeTrait`
-- `Box<dyn SomeTrait>`
-
-<br>
-
-Calling a method on a **trait object** uses **dynamic dispatch**.<br>
-
-**Dispatch** is the act of sending something somewhere.<br>
-
-**Dynamic dispatch** means selecting which **implementation** of a **polymorphic** *function* or *method* to use.<br>
-
-In **dynamic dispatch** (aka **late-binding**) cases, the compiler emits code that figures out which method to call at runtime. In Rust, and most other languages, this is done with a `vtable`.<br>
-A `vtable` is a mapping of trait objects to pointers ot their methods.<br>
-
-**vtable** (**virtual method table**) **contains** for each method of `SomeTrait` **pointer to T's implementation** (i.e. a **function pointer**).<br>
-
-The compiler **cannot inline a method call**, because it doesn't know which **concrete type** will be here at runtime!<br>
-Syntax `<dyn SomeTrait>` means any type `T` that implements trait `SomeTrait`.<br>
-So, there can be **different types** `T1` and `T2` that implements `SomeTrait` and both have different pointers to the same metohds of `SomeTrait`.<br>
-
-There is a **runtime cost** when this lookup happens that **doesn’t occur with static dispatch**.
-Dynamic dispatch also prevents the compiler from choosing to inline a method’s code, which in turn prevents some optimizations.<br>
-
-<br>
-
-## Trait Object Lifetime Bounds
-Since a **trait object** can contain references, the **lifetimes** of those references need to be expressed as part of the trait object.<br>
-This **lifetime** is written as `Trait + 'a`.
 
 <br>
 
@@ -60,10 +20,158 @@ For example, monomorphized version of `Vec<T>` can store elements of only partic
 
 There are 2 approaches to eliminate this restriction:
 - use **enum variants** for different types;
-- use **trait objects**.
+- use **trait objects**;
 
 <br>
 
+# Trait objects
+**Trait objects** are **DST**. Like all DSTs, **trait objects** are **used behind fat pointer**; for example `&dyn SomeTrait` or `Box<dyn SomeTrait>`.<br>
+
+**Fat pointer** `&dyn SomeTrait` to **trait object** `dyn SomeTrait` consists of **2 pointers**:
+  - **pointer** to **instance** of some type `T`;
+  - **pointer** to a **vtable** for `<T as SomeTrait>` (for `SomeTrait` that implemented for type `T`);
+
+<br>
+
+A **trait object** can be obtained from a pointer to a concrete type that implements the trait by casting it (e.g. `&x as &Animal`) or coercing it (e.g. using `&x` as an argument to a function that takes `&Animal`).
+
+<br>
+
+# Dyn compatibility
+**Not every** trait can be used to make a _trait object_.<br>
+
+Consider **example**:
+```rust
+fn main() {
+    let v = vec![1, 2, 3];
+    let o = &v as &dyn Clone;
+}
+```
+
+**Error**:
+```shell
+error[E0038]: the trait `Clone` cannot be made into an object
+ --> src/main.rs:4:19
+  |
+4 |     let o = &v as &dyn Clone;
+  |                   ^^^^^^^^^^ `Clone` cannot be made into an object
+  |
+  = note: the trait cannot be made into an object because it requires `Self: Sized`
+```
+
+This is **because**:
+```rust
+pub trait Clone: Sized {}
+```
+
+<br>
+
+Rust **allows** to define `Sized` for traits. Notation for defining `Sized` traits: `trait <name>: Sized { }`.<br>
+But such `Sized` traits are **not dyn compatible**.<br>
+If trait is **dyn compatible** it means that trait **can** be used as **trait objects**.<br>
+So, the `Sized` trait is **not dyn compatible**.<br>
+In older versions of Rust, **dyn compatibility** was called **object safety**, so this trait is **not object safe**.<br>
+
+<br>
+
+To be **dyn compatible** _trait_ **must satisfy** [**following rules**](https://doc.rust-lang.org/reference/items/traits.html#dyn-compatibility).<br>
+
+<br>
+
+So,
+- `Self` type of any trait is `?Sized` **by default**;
+- `Sized` trait (`trait <name>: Sized { }`) **requires** `Self: Sized`;
+
+<br>
+
+**Example**:
+```rust
+trait Foo { }
+trait Bar: Sized { }
+
+struct Impl;
+impl Foo for Impl { }
+impl Bar for Impl { }
+
+let x: &dyn Foo = &Impl; // OK
+let y: &dyn Bar = &Impl; // Error
+```
+
+**Error**:
+```rust
+20 |     trait Bar: Sized { }
+   |           ---  ^^^^^ ...because it requires `Self: Sized`
+   |           |
+   |           this trait cannot be made into an object...
+```
+
+<br>
+
+## `?Sized` generic
+```rust
+struct Bar<T>(T) where T: ?Sized;
+struct BarUse(Bar<[i32]>); // OK
+```
+
+<br>
+
+## Dynamic dispatch
+**Dispatch** is the act of sending something somewhere, <br>
+Calling a method on a **trait object** uses **dynamic dispatch**. **Dynamic dispatch** means that selecting a method of trait for a **concrete type** happens **at runtime**. Why?<br>
+
+Syntax `dyn SomeTrait` means any type `T` that implements trait `SomeTrait`.<br>
+So, the compiler **cannot inline a method call**, because it **doesn't know** which **concrete type** will be here **at compile time**.<br>
+So, there can be instances of **different types** `T1` and `T2` that implements `SomeTrait` and both have different pointers to the same methods of `SomeTrait`.<br>
+
+In Rust, and most other languages, **dynamic dispatch** is done with a **vtable**.<br>
+
+A **vtable** (aka **virtual method table**) is generated by compiler for every **concrete type** and contains for each method of `SomeTrait` **pointer to its implementation**.<br>
+Consider trait object `dyn SomeTrait`. Compiler will generate multiple **vtables** for each type that implements trait `SomeTrait`.<br>
+
+<br>
+
+Consider example:
+```rust
+pub trait Animal {
+    fn eat(&self);
+}
+
+struct Omnivore;
+struct Carnivore;
+
+impl Animal for Omnivore {
+    fn eat(&self) {
+        println!("I'm omnivore.")
+    }
+}
+```
+
+Compiler will generate 2 **vtables**:
+- `<Omnivore as Animal>`;
+- `<Carnivore as Animal>`;
+
+The layout of **fat pointer** `&dyn Animal` for type `Omnivore` is:
+![fat-pointer](/img/fat-pointer.png)
+
+<br>
+
+The layout of **heterogeneous vector** `Vec<Box<dyn Animal>>` is:
+![fat-pointer](/img/heterogeneous-vector.png)
+
+<br>
+
+So, _vtable_ requires **double lookup** to find appropriate method for some **concrete type**.<br>
+So, **static dispatch** is **faster** but **dynamic dispatch** is **more flexible**.<br>
+
+<br>
+
+## Trait Object Lifetime Bounds
+Since a **trait object** can contain references, the **lifetimes** of those references need to be expressed as part of the trait object.<br>
+This **lifetime** is written as `Trait + 'a`.
+
+<br>
+
+# Example
 ## Generic approach
 ```Rust
 pub trait Animal {
