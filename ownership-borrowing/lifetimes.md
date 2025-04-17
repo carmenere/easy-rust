@@ -45,39 +45,49 @@ A **lifetime** is the **scope** within which a **reference** must be **valid**.<
 *Lifetimes* are **denoted** with an **apostrophe**: `'a`, `'b`.<br>
 The **lifetimes** help Rust find **dangling pointers**.<br>
 
+<br>
+
+There are 2 kind of **lifetime parameters**:
+- **input lifetime parameter** is a lifetime associated with a **parameter** of a function;
+- **output lifetime parameter** is a lifetime associated with the **return value** of a function;
+
+<br>
+
+## Lifetime elision
 Technically, **every** reference has some **lifetime** associated with it, but the compiler lets you **elide** them in common cases.<br>
 It is called **lifetime elision** or **implicit lifetime annotation**. It is because the Rust compiler is smart enough to infer lifetimes in many cases.<br>
-But sometimes it is needed to specify lifetimes **explicitly**.<br>
 
-**Lifetimes rules**:
+<br>
+
+**Elision rules**:
 1. **Each** function’s parameter that is **reference** gets its **own** *lifetime parameter* (aka **elided lifetime**).
 2. If there is exactly **one input** *lifetime parameter*, it is assigned to **all output** *lifetime parameters*.
 3. If there are **multiple input** *lifetime parameters*, but one of them is `&self` or `&mut self`, the **lifetime** of `self` is assigned to **all output** *lifetime parameters*.
 
 <br>
 
-## Lifetimes in functions
-For function there are 2 kind of **lifetime parameters**:
-- **Input lifetime parameter** is a lifetime associated with a **parameter** of a function. 
-- **Output lifetime parameter** is a lifetime associated with the **return value** of a function.
+**Example**:<br>
+According to elision rules:
+```rust
+fn run<'a>(&self, x: &'a Foo) -> &i32
+```
+the compiler will assign the `'b` to `&self` and `-> &i32` itself:
+```rust
+fn run<'a, 'b>(&'b self, x: &'a Foo) -> &'b i32
+```
 
 <br>
 
-From Rust point of view, signature:`fn f (s1: &str, s2: &str) → &str` is **equal** to signature:`fn f<'a, 'b> (s1: &'a str, s2: &'b str) → &'??? str`<br>
+But sometimes it is needed to specify lifetimes **explicitly**.<br>
+
+From Rust point of view, signature: `fn f (s1: &str, s2: &str) → &str` is **equal** to signature: `fn f<'a, 'b> (s1: &'a str, s2: &'b str) → &'??? str`<br>
 So, `rustc` sets to `s1` and `s2` **different** lifetimes and `rustc` **doesn't** know what lifetime to assign to **returning value**.<br>
 That is why compiler return error. So we must **explicitly** set lifetimes for input and output parameters.<br>
 Example: `fn f<'a> (s1: &'a str, s2: &'a str) → &'a str`.<br>
 
 <br>
 
-From Rust point of view, this code:
-```rust
-fn run<'a>(&self, x: &'a Foo) -> &i32
-```
-is equivalent to:
-```rust
-fn run<'a, 'b>(&'b self, x: &'a Foo) -> &'b i32
-```
+
 
 <br>
 
@@ -117,17 +127,13 @@ fn main() {
 
 # Lifetimes and scopes
 In everyday speech, the word **lifetime** can be used in two distinct – but similar – ways:
-- the **lifetime of a reference**, corresponding to the span of time in which that reference is **used** and **valid**;
-- the **lifetime of a value**, corresponding to the span of time before that value is **destroyed**;
+- the **lifetime of a reference**;
+- the **lifetime of a value** aka (**liveness scope**);
 
 To distinguish these cases, we refer to *lifetime of a value* as **scope**.<br>
 
-A **scope of value** means **Lexical Lifetime** (**LL**) which **begins** when value is **created** by `let var = value;` assigning to variable and **ends** when it is **destroyed** (closing curly bracket `}` or `drop()`).<br>
+A **scope of value** means **Lexical Lifetime** (**LL**) which **begins** when value is **created** and **ends** when it is **destroyed** (closing curly bracket `}` or `drop()`).<br>
 A **lifetime of a reference** means **Non-Lexical Lifetime** (**NLL**) which **begins** when **reference** is **created** by `let` keyword and **ends** when it is **used last time**. Each `let` statement **implicitly** introduces a **scope**.<br>
-
-In fact, **scopes** and **lifetimes** are **different concepts**:
-- in rust code, **all** objects, including constants, owned variables and references, **have scopes**;
-- **lifetime parameters** are associated with **references** to express **relationships between scopes**;
 
 <br>
 
@@ -551,7 +557,7 @@ Below, notation `​scope(rs1)` ⊆ `'a` means `'a: rs1`.<br>
 - `​'a` ⊆ `scope(x)`;
 - `​scope(r)` ⊆ `scope(x)`;
 
-The compiler tries to associate a lifetime `'a` with reference `r` that satisfies this** **system of inequalities****.<br>
+The compiler tries to associate a lifetime `'a` with reference `r` that satisfies this **system of inequalities**.<br>
 But there is no solution, because the inequality `​scope(r)` ⊆ `scope(x)` is **false** and compiler fails.<br>
 ​​
 
