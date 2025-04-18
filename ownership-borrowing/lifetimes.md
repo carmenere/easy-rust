@@ -340,7 +340,7 @@ fn main() {
 }
 ```
 
-In the above example, universal region is extended until last use of `r` and liveness scope of value is longer than region `'a`.<br>
+In the above example, **universal region** `'a` is **extended** until last use of `r` and **liveness scope** of value is **longer** than region `'a`.<br>
 
 <br>
 
