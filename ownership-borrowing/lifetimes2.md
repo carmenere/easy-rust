@@ -6,11 +6,23 @@
   * [Liveness](#liveness)
   * [Regions](#regions)
   * [Universal region](#universal-region)
+  * [Example](#example)
+* [Subtyping and variance](#subtyping-and-variance)
+  * [Notations](#notations)
+  * [Variance over lifetime `'a`](#variance-over-lifetime-a)
+  * [Variance over generic type `T`](#variance-over-generic-type-t)
+* [Nested references](#nested-references)
+  * [Nested references coercions](#nested-references-coercions)
+    * [Example 1](#example-1)
+    * [Example 2](#example-2)
+    * [Example 3](#example-3)
+  * [Dereferencing nested references](#dereferencing-nested-references)
 * [Region inference](#region-inference)
   * [Liveness constraints](#liveness-constraints)
-  * [Subtyping and variance](#subtyping-and-variance)
   * [Location-aware subtyping constraints](#location-aware-subtyping-constraints)
   * [Example on subtyping constraints](#example-on-subtyping-constraints)
+* [Drop as last use](#drop-as-last-use)
+* [Borrowing a variable for longer than its scope](#borrowing-a-variable-for-longer-than-its-scope)
 <!-- TOC -->
 
 <br>
@@ -36,7 +48,7 @@ _Liveness scope_ **starts** from the point where **value** is **created** and **
 **Example**:
 ```rust
 fn main() {
-    let mut v;                               //---------------------------------------+-- lexical scope of viable v
+    let mut v; //---------------------------------------------------------------------+-- lexical scope of viable v
     {                                        //                                       |
         v = Box::new(10);                    //--------+-- liveness scope of Box<10>  |
         println!("{}", v);                   //        |   that is bound to v         |
@@ -49,7 +61,7 @@ fn main() {
         v = Box::new(30); println!("{}", v); //--------+-- liveness scope of Box<30>  |
                                              //        |   that is bound to v         |
     }                                        //<-------+                              |
-}                                            //<--------------------------------------+
+} //<---------------------------------------------------------------------------------+
 ```
 
 <br>
@@ -167,7 +179,8 @@ In the function `foo` above the **function argument** `x` and **returning result
 
 <br>
 
-**Example of extending universal region in the caller**:
+## Example
+Consider code:
 ```rust
 fn foo<'a>(x: &'a String) -> &'a String {
   x
@@ -186,8 +199,315 @@ fn caller() {
   println!("{}", r);    // <---+
   let s = &mut s;
 }
+
 fn main() {
   caller()
+}
+```
+
+In the above example, universal region is extended until last use of `r` and liveness scope of value is longer than region `'a`.<br>
+
+<br>
+
+But, in the code below, **liveness scope** of value **cannot** be extended to the region `'a`:
+```rust
+fn caller() {
+  let r = {
+    let mut s = String::from("abc"); //---+-- lexical scope of s and 
+    let r = foo(&s);   // ----+-- 'a     |    liveness scope of String::from("abc")
+    // +-- foo()--+    //     |          |
+    // |   ....   |    //     |          |
+    // +----------+    //     |          |
+    println!("{}", r); //     |          |
+    r                  //     |          |
+  }; //<----------------------|----------+
+  println!("{}", r); // <-----+
+}
+```
+
+<br>
+
+# Subtyping and variance
+**Subtyping** is the idea that one type (aka **subtype**) `Sub` can be used in place of another `Super`. Notation: `Sub <: Super`.<br>
+**Regions** (**lifetimes**) are connected through **subtyping**: in Rust **lifetimes** relate to each other as: `'long <: 'short` or `'long: 'short`.<br>
+
+The fact that `'l <: 's` implies that `&'l T <: &'s T`. This is known as **variance**.<br>
+**Variance** defines **subtyping relationships** between **types**.<br>
+
+There are **three** kinds of **variance**:
+- if type `T` is a **subtype** of `U` **and** type `F<T>` is also **subtype** of `F<U>`, then type `F<T>` is **covariant** over `T`; 
+- if type `T` is a **subtype** of `U`, **but** type `F<U>` is a **subtype** of `F<T>`, then type `F<T>` is **contravariant** over `T`
+- if **no subtyping relation can be derived** between `F<U>` and `F<T>` types, then type `F<T>` is **invariant** over `T`;
+
+<br>
+
+In Rust **variance** can be over **lifetime** and/or over **generic type**:
+
+| Type                | over `'a`   | over `T`      |
+|:--------------------|:------------|:--------------|
+| `&'a T`             | _covariant_ | _covariant_   |
+| `&'a mut T`         | _covariant_ | **invariant** |
+| `*const T`          | n/a         | _covariant_   |
+| `*mut T`            | n/a         | **invariant** |
+| `UnsafeCell<T>`     | n/a         | **invariant** |
+| `Cell<T>`           | n/a         | **invariant** |
+| `Box<T>`            | n/a         | _covariant_   |
+| `Vec<T>`            | n/a         | _covariant_   |
+| `PhantomData<T>`    | n/a         | _covariant_   |
+| `[T]` and `[T; n]`  | n/a         | _covariant_   |
+| `dyn Trait<T> + 'a` | _covariant_ | **invariant** |
+
+Explanations:
+- the **raw pointers** have **no** lifetime;
+- types `UnsafeCell<T>` and `Cell<T>` are **invariant** over `T`, they follow the logic of `&mut T` because of **interior mutability**;
+
+<br>
+
+> Note:<br>
+> The **functional type** `fn(T) -> U` is **contravariant** over `T` and **covariant** over `U`.<br>
+
+<br>
+
+## Notations
+Notations:
+- `'l` means `'long`;
+- `'m` means `'medium`;
+- `'s` means `'short`;
+
+<br>
+
+Constraints:
+- `'l: 'm`;
+- `'l: 's`;
+- `'m: 's`;
+
+<br>
+
+## Variance over lifetime `'a`
+**Variance over generic lifetime parameter** `'a`:
+- type `&'a T` is **covariant** over `'a`, in other words, if `'l` **outlives** `'s`, then `&'l T` is a **subtype** of `&'s T`;
+- type `&'a mut T` is also **covariant** over `'a`, in other words, if `'l` **outlives** `'s`, then `&'l mut T` is a **subtype** of `&'s mut T`;
+
+In other words, `&'l T` can be used wherever `&'s T` is expected and `&'l mut T` can be used wherever `&'s mut T` is expected, because `'l` **lives at least as long as** `'s`. But **not vice versa**.<br>
+
+For example, since `'static` **outlives** the lifetime parameter `'a`, `&'static str` is a **subtype** of `&'a str`. So we can assign `'static` to reference with **shorter** lifetime.<br>
+
+<br>
+
+Consider function:
+```Rust
+fn max<'a, 'b>(x: &'a i32, y: &'b i32) -> &'a i32 {
+    if *x > *y {
+        x
+    } else {
+        y
+    }
+}
+```
+
+The signature of function promises that **returned value** has lifetime `'a`, but in fact it receives 2 arguments with **different** lifetimes `'a` and `'b` and **conditionally returns one of them**.<br>
+According to **variance over lifetime** passing value of type `&'b i32` in place where type `&'a i32` is expected implies `'b: 'a`.<br>
+
+<br>
+
+## Variance over generic type `T`
+**Variance over generic type** `T`:
+- type `&'a T` is **covariant** over `T`, in other words, if `T` is a **subtype** of `U` then, then `&'a T` is a **subtype** of `&'a U`.
+- type `&'a mut T` is **invariant** over `T`, in other words, if `T` is a **subtype** of `U` then, then **neither** `&'a mut T` is a _subtype_ of `&'a mut U` **nor** `&'a mut U` is a _subtype_ of `&'a mut T`.
+
+A type `&'a T` can be used wherever `&'a U` is expected. **But** `&'a mut T` **cannot** be used wherever `&'a mut U` is expected and **vice versa**.<br>
+
+<br>
+
+Consider `T = &'l str` and `U = &'s str` and `T` is a **subtype** of `U`, this means that:
+- `&'a &'l str` is a **subtype** of `&'a &'s str`;
+- `&'a mut &'l str` **cannot** be a **subtype** of `&'a mut &'s str`, even if `&'l str` is a **subtype** of `&'s str`;
+
+<br>
+
+**Explanation**:
+```rust
+fn foo<'s,'l>(r: &'s mut &'l u32) {
+    let x = 1;
+    *r = &x;
+}
+```
+
+If we allow `&'s mut &'l u32` to be coerced into `&'s mut &'x u32`, where `'x` is a lifetime of local var `x`, then we can get **dangling pointer**: after `foo` returns we have `r` pointing to `x` which is deallocated.<br>
+
+<br>
+
+# Nested references
+Consider **struct** that **contains reference**:
+```rust
+struct S<'l, T> { 
+    x: &'l T 
+}
+```
+
+And consider **reference to struct**:
+```rust
+&'s S<'l>
+```
+
+The **lifetime** `'l` associated with the **inner member of struct** must **outlive** the **lifetime** `'s` associated with an **outer reference to struct**: `'l: 's`.<br>
+
+When you have a type with a **nested reference** such as `&'s &'l U`, compilers infers `'l: 's`.<br>
+In other words, compiler consider that the **outer** reference has **shorter lifetime** `'s` and the **inner** reference has **longer lifetime** `'l`: `&'s &'l U`.<br>
+
+<br>
+
+## Nested references coercions
+Consider **nested references**:
+- a `&'m &'l U` coerces to a `&'s &'s U`;
+- a `&'m mut &'l mut U` coerces to a `&'s mut &'l mut U`, but **not** to a `&'s mut &'s mut U`;
+
+This is because `&mut T` is **invariant** in `T`, which means **any lifetimes** in `T` **cannot** change (**grow** or **shrink**) at all.<br>
+In the example, `T = &'l mut U`, and the `'l` **cannot be changed**.<br>
+
+<br>
+
+### Example 1
+Consider code:
+```rust
+fn assign<T>(input: &mut T, val: T) {
+    *input = val;
+}
+
+fn main() {
+    let mut hello: &'static str = "hello";
+    {
+        let world = String::from("world");
+        assign(&mut hello, &world);
+    }
+    println!("{hello}");
+}
+```
+
+**Explanation**:
+- `&mut hello` becomes `&mut &'static str` and `&world` becomes `&'world str`;
+- the statement `*input = val;` means `*(&mut &'static str) = &'world str;`;
+- after dereferencing `*input = val;` is transformed to `&'static str = &'world str;`;
+
+So, we attempt to assign value of type `&'world str` to value of type `&'static str`, but this **violates constraint** `'static: 'world`, because `'static` is the **longest lifetime**.<br>
+
+<br>
+
+**This works**:
+```rust
+fn main() {
+    let mut hello: &'static str = "hello";
+    {
+        let world: &'static str = &"world";
+        assign(&mut hello, &world);
+    }
+    println!("{hello}");
+}
+```
+
+<br>
+
+### Example 2
+Consider code:
+```rust
+fn bar(v: &mut Vec<&'static str>) {
+    let w: &mut Vec<&'_ str> = v; // call the lifetime 'w
+    let local = String::from("world");
+    w.push(&local);
+}
+```
+
+If `'w` was allowed to be **shorter** than `'static`, we'd end up with a **dangling reference** in `*v` after `bar` returns.<br>
+
+<br>
+
+### Example 3
+```rust
+#[derive(Debug)]
+struct Movie<'a> {
+    title: &'a str,
+    rating: u8,
+}
+
+#[derive(Debug)]
+struct Reviewer<'a, 'b: 'a> {
+    movie: &'a Movie<'b>,
+    name: &'a str,
+}
+
+impl<'a, 'b> Reviewer<'a, 'b> {
+    fn new(name: &'a str, movie: &'b Movie) -> Self {
+        Reviewer { movie: movie, name: name }
+    }
+}
+
+fn main() {
+    let movie = Movie {
+        title: "Foo",
+        rating: 10,
+    };
+
+    println!("{:?}", Reviewer::new("Bar", &movie));
+}
+```
+
+Here `'b` specifies that lifetimes of the `Movie` struct **outlives** the `Reviewer` struct.
+
+<br>
+
+## Dereferencing nested references
+You can get a `&'l U` from a `&'s &'l U`. Just copy it out!<br>
+But you **cannot** get a `&'l mut U` through dereferencing a `&'s &'l mut U`. You can only **reborrow** a `&'s mut U`.<br>
+
+Recall that once a shared reference exist, any number of copies of it could simultaneously exist. Therefore, so long as the **outer** shared reference exists, the **inner** `&mut` must **not be usable**. And once the **outer** reference **expires**, the inner `&mut` is active and **must again be exclusive**, so it **must not** be possible to obtain a `&'long U` either.<br>
+
+That's why code below **doesn't** compile:
+```rust
+fn deref0<'long, 'short>(v: &'short &'long mut u32) -> &'long u32 { 
+    *v
+}
+```
+
+**Error**:
+```
+lifetime may not live long enough
+consider adding the following bound: 'short: 'long
+```
+
+<br>
+
+**But, this works**:
+```rust
+fn deref1<'long, 'short>(v: &'short &'long mut u32) -> &'short u32 { 
+    *v
+}
+```
+
+And this works:
+```rust
+fn deref2<'long, 'short>(v: &'short &'long u32) -> &'long u32 { 
+    *v
+}
+```
+
+<br>
+
+**Explanation**:
+- consider we can deref `&'short &'long mut u32` to `&'long u32`;
+- this means that caller can get **immutable ref** `&'long u32` **with the same lifetime as** `&'long mut u32`;
+
+In **example** below `a_mut` is used when value is borrowed as `&'long u32` in `a_ref`:
+```rust
+fn reborrow_unsound<'short, 'long, T>(r: &'short &'long mut T) -> &'long T {
+    unsafe { &*(*r as *const T) }
+}
+
+fn main() {
+    let mut a = String::from("hello");
+    let a_mut = &mut a;
+    let a_ref = reborrow_unsound(&a_mut);
+    *a_mut = String::from("world");
+    println!("{a_ref}");
 }
 ```
 
@@ -232,33 +552,6 @@ Example of **liveness constraints computation**:
 <br>
 
 As a result **region** `'R` will contain **all points** in the **MIR CFG** where this **region** is **valid**;
-
-<br>
-
-## Subtyping and variance
-**Subtyping** is the idea that one type `Sub` can be used in place of another `Super`. Notation: `Sub <: Super`.<br>
-**Regions** (**lifetimes**) are connected through **subtyping**: in Rust **lifetimes** relate to each other as: `'long <: 'short` or `'long: 'short`.<br>
-The fact that `'l <: 's` implies that `&'l T <: &'s T`. This is known as **variance**.<br>
-**Variance rules** define **subtyping relationships** between **types**.<br>
-
-<br>
-
-In **reference type variance** can be over **lifetime** and over **inner type**.<br>
-
-For example:
-- **reference type** `&'a T` is _covariant_ over `'a` and also _covariant_ over `T`;
-- **reference type** `&'a mut T` is _covariant_ over `'a` and also **invariant** over `T`;
-- **raw pointer** `*const T` has **no** lifetime, it is _covariant_ over `T`;
-- **raw pointer** `*mut T` has **no** lifetime, it is **invariant** over `T`;
-- `Box<T>` _covariant_ over `T`;
-- `Vec<T>` _covariant_ over `T`;
-- `UnsafeCell<T>` **invariant** over `T`, it follows the logic of `&mut T` because of **interior mutability**;
-- `Cell<T>` **invariant** over `T`, it follows the logic of `&mut T` because of **interior mutability**;
-- **functional type** `fn(T) -> U` is **contravariant** over `T` and _covariant_ over `U`;
-
-<br>
-
-The **borrow** must last **at most as long as the liveness scope** of **borrowed value**, in other words, the **reference cannot live longer than referent**.<br>
 
 <br>
 
@@ -406,3 +699,52 @@ So, compiler creates **set of subtyping constraint**:
 This **set of subtyping constraint** means:
 - whenever `'a` is **valid** the **values** `s1` and `s2` **must be considered borrowed**;
 - universal region `'a` is **extended by** `'r`;
+
+<br>
+
+# Drop as last use
+There are times when the last use of a variable will in fact be its destructor. Consider an example like this:
+
+struct Foo<'a> { field: &'a u32 }
+impl<'a> Drop for Foo<'a> { .. }
+
+fn main() {
+let mut x = 22;
+let y = Foo { field: &x };
+x += 1;
+}
+This code would be legal, but for the destructor on y, which will implicitly execute at the end of the enclosing scope. The error message might be shown as follows:
+
+error[E0506]: cannot write to `x` while borrowed
+--> <anon>:4:5
+|
+6 |     let y = Foo { field: &x };
+|                          -- borrow of `x` occurs here
+7 |     x += 1;
+|     ^ write to `x` occurs here, while borrow is still active
+8 | }
+| - borrow is later used here, when `y` is dropped
+
+
+
+# Borrowing a variable for longer than its scope
+Consider this example:
+
+let p;
+{
+let x = 3;
+p = &x;
+}
+println!("{}", p);
+In this example, the reference p refers to x with a lifetime that exceeds the scope of x. In short, that portion of the stack will be popped with p still in active use. In today’s compiler, this is detected during the borrow checker by a special check that computes the “maximal scope” of the path being borrowed (x, here). This makes sense in the existing system since lifetimes and scopes are expressed in the same units (portions of the AST). In the newer, non-lexical formulation, this error would be detected somewhat differently. As described earlier, we would see that a StorageDead instruction frees the slot for x while p is still in use. We can thus present the error in the same “three-point style”:
+
+error[E0506]: variable goes out of scope while still borrowed
+--> <anon>:4:5
+|
+3 |     p = &x;
+|          - `x` borrowed here
+4 | }
+| ^ `x` goes out of scope here, while borrow is still in active use
+5 | println!("{}", p);
+|                - borrow used here, after invalidation
+
