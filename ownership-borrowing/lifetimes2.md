@@ -1,45 +1,28 @@
 <!-- TOC -->
-* [Compiler pipeline](#compiler-pipeline)
-* [Lexical scope. Liveness scope](#lexical-scope-liveness-scope)
-* [Lifetimes](#lifetimes)
-* [Internals of NLL](#internals-of-nll)
+* [Definitions](#definitions)
+  * [At most. At least](#at-most-at-least)
+  * [Lexical scope. Liveness scope](#lexical-scope-liveness-scope)
+  * [Lifetimes](#lifetimes)
+  * [Liveness](#liveness)
   * [Regions](#regions)
+  * [Universal region](#universal-region)
+* [Region inference](#region-inference)
   * [Liveness constraints](#liveness-constraints)
+  * [Subtyping and variance](#subtyping-and-variance)
   * [Location-aware subtyping constraints](#location-aware-subtyping-constraints)
   * [Example on subtyping constraints](#example-on-subtyping-constraints)
-* [Region inference](#region-inference)
-  * [Universal regions](#universal-regions)
-  * [Region variables](#region-variables)
-  * [Region constraints](#region-constraints)
-  * [Region inference algorithm](#region-inference-algorithm)
 <!-- TOC -->
 
 <br>
 
-# Compiler pipeline
-Rust's chain of transformations:
-`AST` -> `HIR` -> `MIR` -> `LLVM IR`<br>
+# Definitions
+## At most. At least
+**At most as long as** means **less than or equal to** (**<=**) or **cannot be longer**.<br>
+**At least as long as** means **greater than or equal to** (**>=**) or **cannot be shorter**.<br>
 
 <br>
 
-**Compiler pipeline**:<br>
-![HIR_MIR](/img/HIR-MIR.png)
-
-<br>
-
-**Transformations**:
-- the **HIR** is constructed from **AST**;
-- the **MIR** is constructed from **HIR**;
-- the **LLVM IR** is constructed from **MIR**;
-
-<br>
-
-The **HIR** (**high-level IR**) is used for **type inference** and **type checking**.<br>
-The **MIR** (**mid-level IR**) is used for **borrow checking** and **optimizations** use. Internaly of the compiler the **MIR** is represented as **CFG**.<br>
-
-<br>
-
-# Lexical scope. Liveness scope
+## Lexical scope. Liveness scope
 **Lexical scope** usually refers to **variables** (**identifier**).<br>
 _Lexical scope_ is a **part of code** where particular **variable** is **valid**. So, **lexical scope** is a **scope of variable**.<br>
 _Lexical scope_ **starts** from the point where **variable** is **declared** by `let` keyword and **ends** to the end of lexical scope `}`.<br>
@@ -57,36 +40,43 @@ fn main() {
     {                                        //                                       |
         v = Box::new(10);                    //--------+-- liveness scope of Box<10>  |
         println!("{}", v);                   //        |   that is bound to v         |
-        drop(v);                             //        |                              |
+        drop(v);                             //<-------+                              |
+                                             //                                       |
         v = Box::new(20);                    //--------+-- liveness scope of Box<20>  |
         println!("{}", v);                   //        |   that is bound to v         |
-    }                                        //--------+                              |
+    }                                        //<-------+                              |
     {                                        //                                       |
         v = Box::new(30); println!("{}", v); //--------+-- liveness scope of Box<30>  |
-    }                                        //--------+   that is bound to v         |
-}                                            //---------------------------------------+
+                                             //        |   that is bound to v         |
+    }                                        //<-------+                              |
+}                                            //<--------------------------------------+
 ```
+
+<br>
 
 **In common** _lexical scope_ **is not equal** _liveness scope_, because variables can be **dropped** or **reassigned**.<br>
 But **in particular** _lexical scope_ **can be equal to** _liveness scope_.<br>
 
-
 <br>
 
-# Lifetimes
+## Lifetimes
 A **reference type** has a **lifetime** which is a **part of its type**.<br>
-The borrow must last **at most** (<=) as long as the **liveness scope** of borrowed value.<br>
+The borrow must last **at most as long as** the **liveness scope** of **borrowed value** (**referent**). 
+
+<br>
 
 Lifetimes appear in various places:
-- a lifetime can be a **part** of the **reference type**: `let mut p: &'p T`;
-- a lifetime can be a **part** of the **borrow expression** (aka **reference** or **borrow**): `p = &'foo foo;`;
-
-The **lifetime** of the **reference** must be **at most as long as** the **liveness scope** of the **value** the **reference points to**.<br>
-In other words, **lifetime** of the **borrow expression** cannot be **longer** than the **liveness scope** of the borrowed value (referent).<br>
+- a **lifetime** can be a **part** of the **reference type**: `let mut p: &'p T`;
+- a **lifetime** can be a **part** of the **borrow expression** (aka **reference** or **borrow**): `p = &'foo foo;`;
 
 <br>
 
-# Internals of NLL
+The **lifetime** of the **reference** must be **at most as long as** the **liveness scope** of the **value** the **reference points to**.<br>
+In other words, **lifetime** of the **borrow expression** cannot be **longer** than the **liveness scope** of the **borrowed value**.<br>
+
+<br>
+
+## Liveness
 The key ingredient to understanding how **NLL** should work is understanding **liveness**.<br>
 A **variable** is **live** if the current **value** that **it holds** may be **used later**.<br>
 
@@ -107,57 +97,27 @@ print(*p);
 // `p` is DEAD here: its value will not be used.
 ```
 
-The key point is that variable `p` becomes **dead** in the span **before** it is **reassigned**.<br>
+The key point is that variable `p` becomes **dead before** it is **reassigned**.<br>
 So how does **liveness** relate to **NLL**? The key rule is this: **whenever a variable is live, all references that it may contain are live**.<br>
-
-A new **NLL**-based borrow-checker processes **MIR** rather than the **AST**. The code above in **MIR** will look like:
-```shell
-// let mut foo: i32;
-// let mut bar: i32;
-// let p: &i32;
-
-A
-[ p = &foo     ]
-[ if condition ] ----\ (true)
-       |             |
-       |     B       v
-       |     [ print(*p)     ]
-       |     [ ...           ]
-       |     [ p = &bar      ]
-       |     [ ...           ]
-       |     [ goto C        ]
-       |             |
-       +-------------/
-       |
-C      v
-[ print(*p)    ]
-[ return       ]
-```
-
-The `A`, `B` and `C` are **basic blocks**.<br>
 
 <br>
 
 ## Regions
 We can think about **lifetime of a reference** as a **region of the CFG** or just **region**.<br>
 Each **region** can be represented as a **set of points** in the **CFG**.<br>
-Each **point** in the **CFG** can be represented by **block**/**index**.<br>
-Note that in _MIR_ **each basic block** will also have **point** for the **terminator** (**goto**/**return** statements).<br>
+Each **point** in the **CFG** is represented by the **pair** of a **basic block** and an **index** (**basic block**/**index**).<br>
+The term **region** is often used instead of **lifetime**.<br>
 
 <br>
 
-For example, in the _MIR_ above:
-- `A/0` refers to `p = &foo`;
-- `B/2` refers to `p = &bar`;
-- `A/1`, `B/4`, and `C/1` refer to **terminators** in `A`, `B` and `C` respectively;
+For each **reference type** compiler _implicitly assign_ a **region as part of the type**.<br>
+For each **borrow expression** like `&foo` compiler _implicitly assign_ a **region** to represent the **lifetime of the borrow**.<br>
 
 <br>
 
-The term **region** is often used in place of **lifetime**.<br>
-For each **reference type** compiler create a **region** to represent the **lifetime as part of the type** of such variable.<br>
-For each **borrow expression** like `&foo` compiler create a **region** to represent the **lifetime of the borrow**.<br>
+A new **NLL-based borrow-checker** processes **MIR** rather than the **AST**.<br>
 
-**CFG with regions** looks like:
+The code in section `Liveness` above being transformed to **MIR** will look like:
 ```shell
 // let mut foo: i32;
 // let mut bar: i32;
@@ -181,64 +141,206 @@ C      v
 [ return       ] C/1
 ```
 
+**Explanation**:
+- the `A`, `B` and `C` are **basic blocks**;
+- `A/0` refers to `p = &foo`;
+- `B/2` refers to `p = &bar`;
+- `A/1`, `B/4`, and `C/1` refer to **terminators** in `A`, `B` and `C` respectively;
+
+<br>
+
+## Universal region
+Consider code:
+```rust
+fn foo<'a>(x: &'a u32) -> &'a i32 {
+x
+}
+```
+here region `'a` is a **universal region** (aka **named lifetime parameter**).<br>
+
+If function returns **type** that **includes** a **universal region**, e.g. `&'a i32`, this means that compiler will add **element** `end('a)` to its **region variable** `'a`.<br>
+If region includes element `end('a)`, then this implies that `'a` must be **extended** until the **end** of `'a` in the **caller**, in other words the **region** `'a` must be **extended** beyond function body **until last use** of returned reference in the **caller**. <br>
+
+<br>
+
+In the function `foo` above the **function argument** `x` and **returning result** are both **references** and both have **the same region** `'a`, this implies that the **referent** `x` points to **must remain borrowed** until **last use** of **returned reference** in the **caller**.<br>
+
+<br>
+
+**Example of extending universal region in the caller**:
+```rust
+fn foo<'a>(x: &'a String) -> &'a String {
+  x
+}
+
+fn caller() {
+  let mut s = String::from("abc");
+  let r = {
+    let r = foo(&s);    // ----+-- 'a
+    // +-- foo()--+     //     |
+    // |   ....   |     //     |
+    // +----------+     //     |
+    println!("{}", r);  //     |
+    r                   //     |
+  };                    //     |
+  println!("{}", r);    // <---+
+  let s = &mut s;
+}
+fn main() {
+  caller()
+}
+```
+
+<br>
+
+# Region inference
+**NLL-aware borrow checker** uses **region inference algorithm** which solves the **set of constraints** created by compiler.<br>
+
+The **region inference algorithm** uses **fixed-point approach**:
+- each **region variable** begins as an **empty set**;
+- repeatedly growing the **region variables** until they are big enough to satisfy all constraints;
+
+<br>
+
+The **set of constraints** consists of **3** kinds of constraints:
+- **liveness constraints**, which arise from **liveness**;
+- **outlives constraints**, which arise from **subtyping rules**;
+- **member constraints**, which arise from `impl Trait`;
+
+<br>
+
+[**More details about region inference is here**](https://rustc-dev-guide.rust-lang.org/borrow_check/region_inference.html).<br>
+
 <br>
 
 ## Liveness constraints
-A liveness constraint arises when some variable whose type includes a region R is live at some point P. This simply means that the value of R must include the point P. Liveness constraints are computed by the MIR type checker.
+A **liveness constraint** arises when some **variable whose type includes a region** `'R` is **live** at some **point** `P`.<br>
 
-**Rules**:
-- **if a variable is live on entry to a point** `P`, **then all regions in its type must include** `P`.<br>
-- **for each borrow expression like** `&'foo foo`, the **region** `'foo` **must include the point of borrow**.<br>
+**Liveness constraints** are:
+- **if some variable is live on entry to a point** `P`, then **all regions in its type must include** `P`;
+  - this simply means that all **region variables corresponding to variable's regions in its type must include the point** `P`;
+  - also phrase **live on entry to a point** means that points where **variable occurs in lvalue** must be **excluded** from **region variables**;
+- **for each borrow expression like** `&'foo foo`, the **region** `'foo` **must include the point of borrow**;
+
+**Liveness constraints** are **computed** by the **MIR type checker**.<br>
+
+Example of **liveness constraints computation**:
+- for each variable `v` whose **type includes a region** `'R` the compiler creates **region variable** and initializes it with **empty set**: `'R = {}`;
+- the **region** `'R` would be **live** at precisely the same points where **variable** `v` is **live**;
+- every time compiler sees variable `v` at point `P` it adds `P` to **region variable** `'R`: `'R = 'R Union {P}`;
 
 <br>
 
-For the CFG above we have:
-- **variable** `p` and its type has one **region** `'p`;
-- **borrow expression** `&'foo foo` with **region** `'foo`;
-- **borrow expression** `&'bar bar` with **region** `'bar`;
+As a result **region** `'R` will contain **all points** in the **MIR CFG** where this **region** is **valid**;
 
-Taking these 2 above rules into account we obtain:
-- the **variable** `p` is **live on entry to** `A/1`, `B/0`, `B/3`, `B/4`, and `C/0`;
-  - `'p = {A/1, B/0, B/3, B/4, C/0}`
-- **points of borrow**:
-  - `'foo = {A/0}`
-  - `'bar = {B/2}`
+<br>
+
+## Subtyping and variance
+**Subtyping** is the idea that one type `Sub` can be used in place of another `Super`. Notation: `Sub <: Super`.<br>
+**Regions** (**lifetimes**) are connected through **subtyping**: in Rust **lifetimes** relate to each other as: `'long <: 'short` or `'long: 'short`.<br>
+The fact that `'l <: 's` implies that `&'l T <: &'s T`. This is known as **variance**.<br>
+**Variance rules** define **subtyping relationships** between **types**.<br>
+
+<br>
+
+In **reference type variance** can be over **lifetime** and over **inner type**.<br>
+
+For example:
+- **reference type** `&'a T` is _covariant_ over `'a` and also _covariant_ over `T`;
+- **reference type** `&'a mut T` is _covariant_ over `'a` and also **invariant** over `T`;
+- **raw pointer** `*const T` has **no** lifetime, it is _covariant_ over `T`;
+- **raw pointer** `*mut T` has **no** lifetime, it is **invariant** over `T`;
+- `Box<T>` _covariant_ over `T`;
+- `Vec<T>` _covariant_ over `T`;
+- `UnsafeCell<T>` **invariant** over `T`, it follows the logic of `&mut T` because of **interior mutability**;
+- `Cell<T>` **invariant** over `T`, it follows the logic of `&mut T` because of **interior mutability**;
+- **functional type** `fn(T) -> U` is **contravariant** over `T` and _covariant_ over `U`;
+
+<br>
+
+The **borrow** must last **at most as long as the liveness scope** of **borrowed value**, in other words, the **reference cannot live longer than referent**.<br>
 
 <br>
 
 ## Location-aware subtyping constraints
-**Subtyping** is the idea that one type `Sub` can be used in place of another `Super`. Notation: `Sub <: Super`.<br>
+**Variance rules establishes constraints**:
+- if **reference** with **region** `'source` is copied into a **variable** whose **type includes the region** `'target`, then `'source: 'target`;
+  - in other words, whenever reference is copied from one location to another, e.g. `ref1 = ref2`, the lifetime of the **source** reference must **outlive** the lifetime of the **target** location;
+- **reborrow** creates **new** reference with **shorter lifetime**: `'original: reborrowed`;
 
 <br>
 
+Consider types `&'R1 T1` and `&'R0 T0`.<br>
 **Location-aware subtyping constraints** means that the **current location is taken into account**.<br>
-In other words, instead of writing `T1 <: T2` (`T1` is **required** to be a **subtype** of `T2`) we will write `(T1 <: T2) @ P` (`T1` is **required** to be a **subtype** of `T2` **at the point** `P`).<br>
-This in turn will translate to **region constraints** like `(R2 <= R1) @ P`.<br>
-
-A **region constraint** like `('R1: 'R2) @ P` means that, starting from the point `P`, the **region** `'R1` must include all points that are reachable without leaving the region `'R2`.<br>
-The **search stops** if we **exit the region** `'R2`, e.g. **points where variable that has** `'R2` **in its types is dead**. Otherwise, for each point we find, we add it to `'R1`.<br>
+In other words, instead of writing `T1 <: T0` we will write `(T1 <: T0) @ P` (`T1` is **required** to be a **subtype** of `T0` **at the point** `P`).<br>
+This in turn implies **location-aware region constraints**: `('R0 <= 'R1) @ P` or `('R1: 'R0) @ P`.<br>
 
 <br>
 
-**Rules**:
-- the **borrow** must last **at most as long as the liveness scope** of **borrowed value**, in other words, the **reference cannot live longer than referent**;
-- whenever references are copied from one location to another, e.g. `ref1 = ref2`, the lifetime of the **source** reference must **outlive** the lifetime of the **target** location;
-  - in other words, if reference with **region** `'source` is copied into a **variable** whose **type includes the region** `'target`, then `'source: 'target`;
-- **reborrow** creates new reference with shorter lifetime: `'original: reborrowed`
+A **location-aware region constraint** `('R1: 'R0) @ P` means that, starting from the point `P`, the **region** `'R1` must include all points that are reachable **without leaving the region** `'R0`.<br>
+Note, that region `'R0` may contain **holes** which must be interpreted as **points** where `'R0` is **dead**.<br>
+In other words, **hole** means we **leave** (**exit**) **region** `'R0` and all points after hole are **not** reachable.<br>
+So, constraint `('R1: 'R0) @ P` means that compiler must add **to** `'R1` points **from** `'R0` that are **only** in range: `[P, First_hole)`.<br>
 
 <br>
 
-For our CFG above at point `A/0`, we have `p = &'foo foo`, so:
-- the type of `&'foo foo` is `&'foo i32`;
-- the type of `p` is `&'R2 i32`;
-- so:
-  - **location-aware subtyping constraint**: `(&'foo i32 <: &'p i32) @ A/1`;
-  - which in turn implies **region constraint**: `('foo: 'p) @ A/1`;
+When **reference** with **lifetime** `'ref` is **assigned** to variable whose **type includes a region** `'v`, the compiler **adds location-aware region constraint** `'ref: 'v` to **set of constraints**.<br>
 
 <br>
 
-A **region constraint** `('foo: 'p) @ A/1` means that, starting from the point `A/1`, the region `'foo` must include all points that are reachable **without leaving the region** `'p`.
-The **search stops** if we **exit the region** `'p`, e.g. **points where variable that has** `'p` **in its types is dead**. Otherwise, for each point we find, we add it to `'foo`.<br>
+Consider **MIR CFG**:
+```shell
+// let mut foo: i32;
+// let mut bar: i32;
+// let p: &'p i32;
+
+A
+[ p = &'foo foo  ]            A/0
+[ if condition ] ----\ (true) A/1
+       |             |
+       |     B       v
+       |     [ print(*p)     ] B/0
+       |     [ ...           ] B/1
+       |     [ p = &'bar bar ] B/2
+       |     [ ...           ] B/3
+       |     [ goto C        ] B/4
+       |             |
+       +-------------/
+       |
+C      v
+[ print(*p)    ] C/0
+[ return       ] C/1
+```
+
+For this CFG we have:
+- **variable** `p` and its type has one **region** `'p`;
+- **borrow expression** `&'foo foo` with **region** `'foo`;
+- **borrow expression** `&'bar bar` with **region** `'bar`;
+
+<br>
+
+Taking **liveness constraints** into account we obtain **region variables**:
+- the **variable** `p` is **live on entry to** `A/1`, `B/0`, `B/3`, `B/4`, and `C/0`;
+  - `'p = {A/1, B/0, B/3, B/4, C/0}`
+- **points of borrow**:
+  - `'foo = {A/0}`;
+  - `'bar = {B/2}`;
+
+<br>
+
+Taking **region constraints** into account we obtain:
+- at point `A/0`, we have `p = &'foo foo`:
+  - the type of `&'foo foo` is `&'foo i32`;
+  - the type of `p` is `&'p i32`;
+  - so:
+    - **location-aware subtyping constraint**: `(&'foo i32 <: &'p i32) @ A/1`;
+    - which in turn implies **region constraint**: `('foo: 'p) @ A/1`;
+- at point `B/2`, we have `p = &'bar bar`:
+  - the type of `&'bar bar` is `&'bar i32`;
+  - the type of `p` is `&'p i32`;
+  - so:
+    - **location-aware subtyping constraint**: `(&'bar i32 <: &'p i32) @ B/3`;
+    - which in turn implies **region constraint**: `('bar: 'p) @ B/3`;
 
 <br>
 
@@ -260,8 +362,8 @@ Finally, the **full set of constraints** is:
 
 **Explanation**.<br>
 The variable `foo` is **borrowed for the region** `'foo`, which does **not include** `B/3` and `B/4`.<br>
-Though the `'p` includes `B/3` and `B/4`, but you **cannot reach** `B/3` and `B/4` **from** `A/1` **without going through** `B/1`, and `'p` **does not include** `B/1` (because `p` is **dead** at `B/1`).<br>
-Similarly, `bar` is **borrowed for the region** `'bar`, which begins at B/4 and extends to C/0 (and need not include earlier points, which are not reachable).<br>
+Though the `'p` includes `B/3` and `B/4`, but they **unreachable** from `B/0` because `'p` has **hole** in `B/1`.<br>
+Similarly, `bar` is **borrowed for the region** `'bar`, which begins at `B/4` and extends to `C/0` (and need not include earlier points, which are not reachable).<br>
 
 <br>
 
@@ -291,8 +393,9 @@ fn main() {
 <br>
 
 Assume that compiler will assign **region** `'s1` for borrow expression `&s1` and **region** `'s2` for borrow expression `&s2`.<br>
-Because references are passed to functions it means they are assigned to variables `x` and `y` with **region** `'a` in their types.<br>
+Because references are passed to functions it means they are assigned to variables `x` and `y` with the same **region** `'a` in their types.<br>
 The **result** of function has **region** `'a` is assigned to variable `result` that has **region** `'r` in its type.<br>
+
 So, compiler creates **set of subtyping constraint**:
 - `'s1: 'a`
 - `'s2: 'a`
@@ -302,52 +405,4 @@ So, compiler creates **set of subtyping constraint**:
 
 This **set of subtyping constraint** means:
 - whenever `'a` is **valid** the **values** `s1` and `s2` **must be considered borrowed**;
-- region `'a` is **extended by** `'r`;
-
-<br>
-
-# Region inference
-[**Region inference**](https://rustc-dev-guide.rust-lang.org/borrow_check/region_inference.html).<br>
-
-<br>
-
-## Universal regions
-Consider code:
-```rust
-fn foo<'a>(x: &'a u32) {
-// ...
-}
-```
-here `'a` is a **universal region** (aka **named lifetime**).
-
-<br>
-
-## Region variables
-The kinds of **region elements** are as follows:
-- any **location** in the **MIR CFG**;
-    - a **location** is just the **pair** of a **basic block** and an **index**;
-- **element** `end('a)`
-  - each **universal region** `'a` contains element `end('a)`;
-  - if the value for some **region** `R0` includes `end('a)`, then this implies that `R0` must **extend** until the **end** of `'a` in the **caller**;
-
-<br>
-
-## Region constraints
-There are **3** kind of constraints that are used in **NLL**:
-- **liveness constraints**, which arise from **liveness**:
-  - for each variable `p` whose **type includes a region** `'R` the compiler creates **region variable** and assigns to it **empty set**: `'p = {}`;
-  - the **region** `'p` would be **live** at precisely the same points where **variable** `p` is **live**;
-  - every time compiler sees variable `p` at point `P` it adds `P` to set: `'p = 'p Union {P}`;
-  - as a result **region** `'p` will contain **all points** in the **MIR CFG** where this **region** is **valid**;
-- **outlives constraints**, which arise from **subtyping rules**:
-  - when **reference** with **lifetime** `'ref` is **assigned** to variable whose **type includes a region** `'v`, the compiler **adds outlives constraints** `'ref: 'v` to **set of constraints**.<br>
-- **member constraints**, which arise from `impl Trait`;
-
-<br>
-
-## Region inference algorithm
-Once the **set of constraints** is created, the **region inference algorithm** solves it. This is done via **fixed-point iteration**:
-- each **region** begins as an **empty set**
-- repeatedly growing the regions until they are big enough to satisfy all constraints;
-
-<br>
+- universal region `'a` is **extended by** `'r`;
