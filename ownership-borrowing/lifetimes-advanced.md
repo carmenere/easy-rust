@@ -703,48 +703,4 @@ This **set of subtyping constraint** means:
 <br>
 
 # Drop as last use
-There are times when the last use of a variable will in fact be its destructor. Consider an example like this:
-
-struct Foo<'a> { field: &'a u32 }
-impl<'a> Drop for Foo<'a> { .. }
-
-fn main() {
-let mut x = 22;
-let y = Foo { field: &x };
-x += 1;
-}
-This code would be legal, but for the destructor on y, which will implicitly execute at the end of the enclosing scope. The error message might be shown as follows:
-
-error[E0506]: cannot write to `x` while borrowed
---> <anon>:4:5
-|
-6 |     let y = Foo { field: &x };
-|                          -- borrow of `x` occurs here
-7 |     x += 1;
-|     ^ write to `x` occurs here, while borrow is still active
-8 | }
-| - borrow is later used here, when `y` is dropped
-
-
-
-# Borrowing a variable for longer than its scope
-Consider this example:
-
-let p;
-{
-let x = 3;
-p = &x;
-}
-println!("{}", p);
-In this example, the reference p refers to x with a lifetime that exceeds the scope of x. In short, that portion of the stack will be popped with p still in active use. In today’s compiler, this is detected during the borrow checker by a special check that computes the “maximal scope” of the path being borrowed (x, here). This makes sense in the existing system since lifetimes and scopes are expressed in the same units (portions of the AST). In the newer, non-lexical formulation, this error would be detected somewhat differently. As described earlier, we would see that a StorageDead instruction frees the slot for x while p is still in use. We can thus present the error in the same “three-point style”:
-
-error[E0506]: variable goes out of scope while still borrowed
---> <anon>:4:5
-|
-3 |     p = &x;
-|          - `x` borrowed here
-4 | }
-| ^ `x` goes out of scope here, while borrow is still in active use
-5 | println!("{}", p);
-|                - borrow used here, after invalidation
-
+If destructor is implemented, then the last use of a variable will in its **destructor**, which will implicitly execute at the end of the enclosing scope.<br>
