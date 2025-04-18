@@ -5,9 +5,7 @@
 * [Declaration](#declaration)
 * [`Sized`](#sized)
 * [`?Sized`](#sized-1)
-* [Examples](#examples)
-  * [`Sized` trait](#sized-trait)
-  * [`?Sized` generic](#sized-generic)
+* [`?Sized` generic](#sized-generic)
 <!-- TOC -->
 
 <br>
@@ -27,8 +25,8 @@ pub trait Sized { }
 <br>
 
 # `Sized`
-The `Sized` trait is the **marker trait** and it indicates that the **size** of type is **known** *at compile time*.<br>
-The `Sized` trait is implemented **automatically** by the compiler for most types. In other words, most of types have **implicit** `Sized` bound **by default**.<br>
+The `Sized` trait is the **marker trait** and indicates that the **size** of type is **known** *at compile time*.<br>
+The `Sized` trait is implemented **automatically** by the compiler for most types. In other words, most types have **implicit** `Sized` bound **by default**.<br>
 
 Also Rust adds the `Sized` bound to all **generics** (`T: Sized`). In other words, any **type parameter** (except `Self` in traits) or **associated type** has **implicit** `Sized` bound **by default**:
 ```rust
@@ -39,50 +37,36 @@ struct FooUse(Foo<[i32]>); // Error: the trait `Sized` is not implemented for `[
 <br>
 
 # `?Sized`
-**DST** (**dynamically sized types**, aka **unsized types**) are types that **grow** or **shrink dynamically** *at runtime* and their **sizes** are **not known** *at compile time*.<br>
-All **DST** don't implement `Sized`.<br>
+Most types have a **fixed size** that is _known_ **at compile time** and implement the trait `Sized`.<br>
+If **size** is _known_ **only at run-time** such types are called a **dynamically sized type** (**DST**), or, informally, **unsized types**.<br>
+All **DST** types **don't** implement `Sized`.<br>
 The special syntax `?Sized` is used to **remove** default `Sized` bound. So, **DST** use `?Sized` bound.<br>
 
-Examples of **DST**:
-- slices `[T]`;
-- `trait <name> {}`;
-- `String`;
+<br>
 
-So, a trait **doesn't** have an implicit `Sized` bound as this is **incompatible** with **trait objects**.<br>
-Although Rust **allows** define `Sized` for traits, but such `Sized` traits **cannot** be used as **trait objects** later. The `Sized` trait is **not** **dyn compatible**. In older versions of Rust, **dyn compatibility** was called **object safety**, so this trait is **not object safe**. <br>
-Notation for defining `Sized` traits: `trait <name>: Sized { }`.<br>
-
-So,
-- `Self` type of any trait is `?Sized` **by default**;
-- `Sized` trait (`trait <name>: Sized { }`) **requires** `Self: Sized`;
+> **Note**:<br>
+> Variables, function parameters, const items, and static items must be `Sized`.
 
 <br>
 
-# Examples
-## `Sized` trait
-```rust
-trait Foo { }
-trait Bar: Sized { }
-
-struct Impl;
-impl Foo for Impl { }
-impl Bar for Impl { }
-
-let x: &dyn Foo = &Impl; // OK
-let y: &dyn Bar = &Impl; // Error
-```
-
-**Error**:
-```rust
-20 |     trait Bar: Sized { }
-   |           ---  ^^^^^ ...because it requires `Self: Sized`
-   |           |
-   |           this trait cannot be made into an object...
-```
+**Unsized types**:
+- **slices**: `[T]`;
+- **trait objects**: `dyn SomeTrait`;
 
 <br>
 
-## `?Sized` generic
+Pointers to instances of DST types `&dyn SomeTrait` and `&[T]` are **fat pointers**.<br>
+**Fat pointers** are **sized** but have **twice the size**:
+- **fat pointer to slice** `&[T]` consists of **2 elements**:
+  - **pointer** to **first element** of slice;
+  - **number of elements** in slice (this is of `isize`/`usize`);
+- **fat pointer** `&dyn SomeTrait` to **trait object** `dyn SomeTrait` consists of **2 pointers**:
+  - **pointer** to **instance** of some type `T`;
+  - **pointer** to a **vtable** for `<T as SomeTrait>` (for `Trait` that implemented for type `T`);
+
+<br>
+
+# `?Sized` generic
 ```rust
 struct Bar<T>(T) where T: ?Sized;
 struct BarUse(Bar<[i32]>); // OK
