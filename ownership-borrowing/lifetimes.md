@@ -1,21 +1,19 @@
 # Table of contents
 <!-- TOC -->
 * [Table of contents](#table-of-contents)
-* [Intro](#intro)
+* [Definitions](#definitions)
+  * [At most. At least](#at-most-at-least)
+  * [Lexical scope. Liveness scope](#lexical-scope-liveness-scope)
+  * [References rules](#references-rules)
   * [Lifetimes](#lifetimes)
   * [Lifetime elision](#lifetime-elision)
   * [Lifetimes in structs](#lifetimes-in-structs)
   * [Lifetimes in impl blocks](#lifetimes-in-impl-blocks)
-  * [Lifetimes and scopes](#lifetimes-and-scopes)
-  * [Iterator invalidation](#iterator-invalidation)
-* [Definitions](#definitions)
-  * [At most. At least](#at-most-at-least)
-  * [Lexical scope. Liveness scope](#lexical-scope-liveness-scope)
-  * [Lifetimes](#lifetimes-1)
   * [Liveness](#liveness)
   * [Regions](#regions)
   * [Universal region](#universal-region)
   * [Example](#example)
+  * [Iterator invalidation](#iterator-invalidation)
 * [Subtyping and variance](#subtyping-and-variance)
   * [Notations](#notations)
   * [Variance over lifetime `'a`](#variance-over-lifetime-a)
@@ -45,19 +43,107 @@
 
 <br>
 
-# Intro
+# Definitions
+## At most. At least
+**At most as long as** means **less than or equal to** (**<=**) or **cannot be longer**.<br>
+**At least as long as** means **greater than or equal to** (**>=**) or **cannot be shorter**.<br>
+
+<br>
+
+## Lexical scope. Liveness scope
+**Lexical scope** usually refers to **variables** (**identifier**).<br>
+_Lexical scope_ is a **part of code** where particular **variable** is **valid**. So, **lexical scope** is a **scope of variable**.<br>
+_Lexical scope_ **starts** from the point where **variable** is **declared** by `let` keyword and **ends** to the end of lexical scope `}`.<br>
+
+**liveness scope** usually refers to the **actual value** that a **variable is bound to**.<br>
+_Liveness scope_ is a **part of code** where particular **value** is **valid**.<br>
+_Liveness scope_ **starts** from the point where **value** is **created** and **ends** where **value** is **dropped** or **reassigned**.<br>
+
+<br>
+
+**Example**:
+```rust
+fn main() {
+    let mut v; //---------------------------------------------------------------------+-- lexical scope of viable v
+    {                                        //                                       |
+        v = Box::new(10);                    //--------+-- liveness scope of Box<10>  |
+        println!("{}", v);                   //        |   that is bound to v         |
+        drop(v);                             //<-------+                              |
+                                             //                                       |
+        v = Box::new(20);                    //--------+-- liveness scope of Box<20>  |
+        println!("{}", v);                   //        |   that is bound to v         |
+    }                                        //<-------+                              |
+    {                                        //                                       |
+        v = Box::new(30); println!("{}", v); //--------+-- liveness scope of Box<30>  |
+                                             //        |   that is bound to v         |
+    }                                        //<-------+                              |
+} //<---------------------------------------------------------------------------------+
+```
+
+<br>
+
+**In common** _lexical scope_ **is not equal** _liveness scope_, because variables can be **dropped** or **reassigned**.<br>
+But **in particular** _lexical scope_ **can be equal to** _liveness scope_.<br>
+
+<br>
+
+## References rules
+There are 2 kind of references:
+- **shared references** (aka **immutable references**): `&`;
+- **exclusive references** (aka **mutable references**): `&mut`;
+
+<br>
+
+References obey the **references rules**:
+- **any reference** (aka **borrow**) **cannot outlive** the **value** it points to (aka **referent**, **lender**);
+- an **exclusive references cannot be aliased**;
+  - **What aliased mean**?
+  - In general, _variables_ and _pointers_ **alias** if they **point to overlapping regions of memory**.
+
+<br>
+
+Rust **enforces these rules** through **lifetimes**.<br>
+
+<br>
+
 ## Lifetimes
-Every **reference** (aka **borrow** or **borrower**) must be **valid** until the **lender** (aka **referent**) is **destroyed**.<br>
-A **lifetime** is the **scope** within which a **reference** must be **valid**.<br>
 *Lifetimes* are **denoted** with an **apostrophe**: `'a`, `'b`.<br>
-In the expression `x: &'a T`, instead of saying `'a` is the **lifetime** of `x`, we should say: `'a` is a **lifetime parameter associated** with the type of `x`.<br>
-The **lifetimes** help Rust find **dangling pointers**.<br>
+
+<br>
+
+**Lifetimes** appear in various places:
+- a **lifetime** can be a **part** of the **reference type**: `let mut p: &'p T;`;
+- a **lifetime** can be a **part** of the **borrow expression** (aka **reference** or **borrow**): `p = &'foo foo;`;
 
 <br>
 
 There are 2 kind of **lifetime parameters**:
 - **input lifetime parameter** is a lifetime associated with a **parameter** of a function;
 - **output lifetime parameter** is a lifetime associated with the **return value** of a function;
+
+<br>
+
+According to **references rules**: the **lifetime** of the **reference** must be **at most as long as** the **liveness scope** of the **value** the **reference points to**.<br>
+In other words, **lifetime** of the **borrow expression** cannot be **longer** than the **liveness scope** of the **borrowed value**.<br>
+In other words, **lifetimes** and **values** are linked to one another: if you make a reference to a value, the lifetime of that reference **cannot outlive** that value. Otherwise, your reference would be pointing into freed memory.<br>
+
+<br>
+
+In everyday speech, the word **lifetime** can be used in 3 distinct – but similar – ways:
+- the **lifetime of a reference**;
+- the **lifetime of a value**;
+- the **lifetime of a variable**;
+
+<br>
+
+To distinguish these cases:
+- refer to *lifetime of a value* as **liveness scope**;
+- refer to *lifetime of a variable* as **lexical scope**;
+
+<br>
+
+A **lexical scope** means **lexical lifetime** (**LL**) which **begins** from the point at which **variable** was declared by `let` keyword until the **end of scope**: closing curly bracket `}`.<br>
+A **lifetime of a reference** means **Non-Lexical Lifetime** (**NLL**) which **begins** when **reference** is **created** by `let` keyword and **ends** when it is **used last time**.<br>
 
 <br>
 
@@ -134,99 +220,6 @@ fn main() {
     println!("x is: {}", f.x());
 }
 ```
-
-<br>
-
-## Lifetimes and scopes
-In everyday speech, the word **lifetime** can be used in two distinct – but similar – ways:
-- the **lifetime of a reference**;
-- the **lifetime of a value** aka (**liveness scope**);
-
-To distinguish these cases, we refer to *lifetime of a value* as **scope**.<br>
-
-A **scope of value** means **lexical lifetime** (**LL**) which **begins** when value is **created** and **ends** when it is **destroyed** (closing curly bracket `}` or `drop()`).<br>
-A **lifetime of a reference** means **Non-Lexical Lifetime** (**NLL**) which **begins** when **reference** is **created** by `let` keyword and **ends** when it is **used last time**. Each `let` statement **implicitly** introduces a **scope**.<br>
-
-<br>
-
-**Lifetimes** and **scopes** are linked to one another: if you make a reference to a value, the lifetime of that reference **cannot outlive** that value. Otherwise, your reference would be pointing into freed memory.<br>
-
-<br>
-
-## Iterator invalidation
-**NLL** prevents a common error called **iterator invalidation**, where the program modifies a collection while iterating over it.<br>
-
-Rust rejects following code, because it borrows `v` both **immutably** and **mutably**:
-```Rust
-let mut v = vec![1, 2];
-
-// Borrows `v` immutably
-for i in &v {
-    // Error: borrows `v` mutably, but `v` was already borrowed.
-    v.push(*i);
-}
-```
-
-<br>
-
-# Definitions
-## At most. At least
-**At most as long as** means **less than or equal to** (**<=**) or **cannot be longer**.<br>
-**At least as long as** means **greater than or equal to** (**>=**) or **cannot be shorter**.<br>
-
-<br>
-
-## Lexical scope. Liveness scope
-**Lexical scope** usually refers to **variables** (**identifier**).<br>
-_Lexical scope_ is a **part of code** where particular **variable** is **valid**. So, **lexical scope** is a **scope of variable**.<br>
-_Lexical scope_ **starts** from the point where **variable** is **declared** by `let` keyword and **ends** to the end of lexical scope `}`.<br>
-
-**liveness scope** usually refers to the **actual value** that a **variable is bound to**.<br>
-_Liveness scope_ is a **part of code** where particular **value** is **valid**.<br>
-_Liveness scope_ **starts** from the point where **value** is **created** and **ends** where **value** is **dropped** or **reassigned**.<br>
-
-<br>
-
-**Example**:
-```rust
-fn main() {
-    let mut v; //---------------------------------------------------------------------+-- lexical scope of viable v
-    {                                        //                                       |
-        v = Box::new(10);                    //--------+-- liveness scope of Box<10>  |
-        println!("{}", v);                   //        |   that is bound to v         |
-        drop(v);                             //<-------+                              |
-                                             //                                       |
-        v = Box::new(20);                    //--------+-- liveness scope of Box<20>  |
-        println!("{}", v);                   //        |   that is bound to v         |
-    }                                        //<-------+                              |
-    {                                        //                                       |
-        v = Box::new(30); println!("{}", v); //--------+-- liveness scope of Box<30>  |
-                                             //        |   that is bound to v         |
-    }                                        //<-------+                              |
-} //<---------------------------------------------------------------------------------+
-```
-
-<br>
-
-**In common** _lexical scope_ **is not equal** _liveness scope_, because variables can be **dropped** or **reassigned**.<br>
-But **in particular** _lexical scope_ **can be equal to** _liveness scope_.<br>
-
-<br>
-
-## Lifetimes
-A **reference type** has a **lifetime** which is a **part of its type**.<br>
-The borrow must last **at most as long as** the **liveness scope** of **borrowed value** (**referent**).
-
-<br>
-
-Lifetimes appear in various places:
-- a **lifetime** can be a **part** of the **reference type**: `let mut p: &'p T`;
-- a **lifetime** can be a **part** of the **borrow expression** (aka **reference** or **borrow**): `p = &'foo foo;`;
-
-<br>
-
-The **lifetime** of the **reference** must be **at most as long as** the **liveness scope** of the **value** the **reference points to**.<br>
-In other words, **lifetime** of the **borrow expression** cannot be **longer** than the **liveness scope** of the **borrowed value**.<br>
 
 <br>
 
@@ -364,6 +357,22 @@ fn caller() {
     r                  //     |          |
   }; //<----------------------|----------+
   println!("{}", r); // <-----+
+}
+```
+
+<br>
+
+## Iterator invalidation
+**NLL** prevents a common error called **iterator invalidation**, where the program modifies a collection while iterating over it.<br>
+
+Rust rejects following code, because it borrows `v` both **immutably** and **mutably**:
+```Rust
+let mut v = vec![1, 2];
+
+// Borrows `v` immutably
+for i in &v {
+    // Error: borrows `v` mutably, but `v` was already borrowed.
+    v.push(*i);
 }
 ```
 
