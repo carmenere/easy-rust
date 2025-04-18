@@ -956,6 +956,9 @@ This **set of subtyping constraint** means:
 # Drop as last use
 If destructor is implemented, then the last use of a variable will in its **destructor**, which will implicitly execute at the end of the enclosing scope.<br>
 
+A reference is alive from the point it is created to it is last use. **But** if we store reference to a struct that **has a destructor**, then reference is considered **alive until** the **end of current scope** (untill calling destructor at).<br>
+To convince the compiler that reference is **no longer valid** call `drop()` **explicitly**.<br>
+
 <br>
 
 # Anonymous lifetimes
