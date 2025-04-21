@@ -1,10 +1,12 @@
 # Table of contents
-- [Table of contents](#table-of-contents)
-- [1. NLL of p0 and NLL of p1 start and end at the point at which they were borrowed and do not intersect with NLL of owner](#1-nll-of-p0-and-nll-of-p1-start-and-end-at-the-point-at-which-they-were-borrowed-and-do-not-intersect-with-nll-of-owner)
-- [2. Scopes do not intersect because NLL of p0 and NLL of p1 start and end at the point at which they were borrowed](#2-scopes-do-not-intersect-because-nll-of-p0-and-nll-of-p1-start-and-end-at-the-point-at-which-they-were-borrowed)
-- [3. Owner is used after NLL of p0 ends](#3-owner-is-used-after-nll-of-p0-ends)
-- [4. Mutable reference has move semantics in assignment](#4-mutable-reference-has-move-semantics-in-assignment)
-- [5. Mutable reference implicitly reborrowed (type coercion) when passing in function](#5-mutable-reference-implicitly-reborrowed-type-coercion-when-passing-in-function)
+<!-- TOC -->
+* [Table of contents](#table-of-contents)
+* [1. NLL of p0 and NLL of p1 start and end at the point at which they were borrowed and do not intersect with NLL of owner](#1-nll-of-p0-and-nll-of-p1-start-and-end-at-the-point-at-which-they-were-borrowed-and-do-not-intersect-with-nll-of-owner)
+* [2. Scopes do not intersect because NLL of p0 and NLL of p1 start and end at the point at which they were borrowed](#2-scopes-do-not-intersect-because-nll-of-p0-and-nll-of-p1-start-and-end-at-the-point-at-which-they-were-borrowed)
+* [3. Owner is used after NLL of p0 ends](#3-owner-is-used-after-nll-of-p0-ends)
+* [4. Mutable reference has move semantics in assignment](#4-mutable-reference-has-move-semantics-in-assignment)
+* [5. Mutable reference implicitly reborrowed (type coercion) when passing in function](#5-mutable-reference-implicitly-reborrowed-type-coercion-when-passing-in-function)
+<!-- TOC -->
 
 <br>
 

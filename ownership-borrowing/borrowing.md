@@ -1,53 +1,47 @@
 # Table of contents
-- [Table of contents](#table-of-contents)
-- [Owned types. Borrowed types](#owned-types-borrowed-types)
-- [References](#references)
-    - [Example 1](#example-1)
-    - [Example 2.](#example-2)
-- [Operators](#operators)
-- [Borrowing rules](#borrowing-rules)
-    - [Examples](#examples)
-      - [Lend the value inside scope of shared reference](#lend-the-value-inside-scope-of-shared-reference)
-      - [Move by mutable reference](#move-by-mutable-reference)
-      - [Move by shared reference](#move-by-shared-reference)
-      - [Copy value](#copy-value)
-      - [More complex example](#more-complex-example)
-- [Reborrowing](#reborrowing)
-- [Semantics for references](#semantics-for-references)
-- [Dangling references](#dangling-references)
+<!-- TOC -->
+* [Table of contents](#table-of-contents)
+* [Owned types. Borrowed types](#owned-types-borrowed-types)
+* [References](#references)
+  * [Example 1](#example-1)
+  * [Example 2.](#example-2)
+* [Operators](#operators)
+* [Borrowing rules](#borrowing-rules)
+  * [Examples](#examples)
+    * [Lend the value inside scope of shared reference](#lend-the-value-inside-scope-of-shared-reference)
+    * [Move by mutable reference](#move-by-mutable-reference)
+    * [Move by shared reference](#move-by-shared-reference)
+    * [Copy value](#copy-value)
+    * [More complex example](#more-complex-example)
+* [Reborrowing](#reborrowing)
+* [Semantics for references](#semantics-for-references)
+* [Dangling references](#dangling-references)
+<!-- TOC -->
 
 <br>
 
 # Owned types. Borrowed types
 There are **2 kinds of types** in Rust:
-- **Owned type** means **non-reference type**, e.g. `i32`, `String`, `Vec`, etc.
-- **Borrowed type** means **any reference type** *regardless of mutability*, e.g. `&i32`, `&mut i32`, etc.
+- **owned type** means **non-reference type**, e.g. `i32`, `String`, `Vec`, etc;
+- **borrowed type** means **any reference type** *regardless of mutability*, e.g. `&i32`, `&mut i32`, etc;
 
 <br>
 
 # References
-A **reference** is the **address** of **some value**.<br>
+A **reference** (aka **borrow**) is an **address** of **some value** (aka **referent**, **lender**).<br>
 **Reference doesn’t own value it points to**, i.e., when *reference* **goes out of scope**, the **borrow ends**, and the **value** *reference* points to **isn't destroyed**.<br>
 **References** allow to pass values to functions **without transferring ownership**.<br>
 
-There are **2 kinds of references** in Rust:
-1. **Shared reference** (aka **immutable reference**):
-```Rust
-&T
-&'a T   // with lifetime
-```
-2. **Mutable reference**:
-```Rust
-&mut T
-&'a mut T   // with lifetime
-```
-
+There are 2 kind of references:
+- **shared references** (aka **immutable references**): `&T` or `&'a T`;
+- **exclusive references** (aka **mutable references**): `&mut T` or `&'a mut T`;
+- 
 <br>
 
-**Borrowing** is the action of **creating a reference** to some value, called **lender**.<br>
+**Borrowing** is the action of **creating a reference** to some value.<br>
 **Borrower** is an **identifier** (**variable**) which **owns** some **reference**.<br>
 Both, **immutable** and **mutable** **borrowers** can contain **mutable** or **immutable** **references**.<br>
-If an **identifier** (**variable**) declared as **immutable**, it **isn’t possible** to assign a **mutable reference** to **it**.<br>
+If a **borrower** declared as **immutable**, it **isn’t possible** to assign a **mutable reference** to **it**.<br>
 
 <br>
 
@@ -65,7 +59,7 @@ let mut b: &mut T;
 
 <br>
 
-### Example 1
+## Example 1
 ```Rust
 fn main() {
     let mut val = 100;
@@ -87,7 +81,7 @@ Here:
 
 <br>
 
-### Example 2.
+## Example 2.
 ```Rust
 fn main() {
     let t = String::from("hello");
@@ -110,37 +104,44 @@ Here:
 <br>
 
 # Borrowing rules
-Borrowing rules:<br>
-1. Scope of **mutable reference** `&mut T` **can’t** *intersect* with scope of any other reference to type `T`.
-2. Scope of **shared reference** `&T` **can** *intersect* with scope of any other **shared reference** to type `T`.
-3. Reference **can’t outlive value it points to**, i.e. the **borrow** must be **valid** **until** the **lender** is **destroyed**.
-   - For example, function **cannot** return reference to value it owns.
-4. Since reference **doesn't own** the value it points to, **reference cannot move the value**. But **reference can copy value**.
+The **borrowing rules**:
+1. **Any** reference **cannot outlive** the **value** it points to;
+   - for example, function **cannot** return reference to value it owns;
+2. An **exclusive** references **cannot be aliased**; 
+3. **Any** reference **doesn't own** the **value** it points to;
+   - in other words, the **value** reference points to **cannot be moved through dereferencing**;
+   - when *reference* **goes out of scope**, the **borrow ends**, and the **value** *reference* points to **isn't destroyed**;
+
+**What aliased mean**? _Variables_ and _pointers_ **alias** if they **point to overlapping regions of memory**.<br>
 
 <br>
 
-In other words, rules 1 and 2 are means: **at any given time** there can be:<br>
+Rules 1 and 2 **prevent data races** at compile time.<br>
+Rule 3 **prevents from dangling references**.<br>
+
+<br>
+
+In other words, rules **1** and **2** are means: **at any given time** there can be:<br>
 a. **only 1** *mutable reference* `&mut T`;<br>
 **OR**<br>
 b. **any number** of *shared references* `&T`.<br>
 
-Rules 1 and 2 **prevent data races** at compile time.<br>
-Rule 3 **prevents from dangling references**.<br>
+<br>
 
 **Owner restrictions** during borrowing:
 1. During a **shared borrow**, the **owner can’t**:
    - **mutate** the *value*;
    - **mutably lend** the *value* (but still can **immutably lend** the *value*);
-   - **move** the *value*.
+   - **move** the *value*;
 
 2. During a **mutable borrow**, the **owner can’t**:
    - have **any access** (**read** or **mutate**) to the *value*;
-   - **lend** (**mutably** or **immutably**) the *value*.
+   - **lend** (**mutably** or **immutably**) the *value*;
 
 <br>
 
-### Examples
-#### Lend the value inside scope of shared reference
+## Examples
+### Lend the value inside scope of shared reference
 ```Rust
 fn main() {
     let mut owner = 5;
@@ -152,7 +153,7 @@ fn main() {
 
 <br>
 
-#### Move by mutable reference
+### Move by mutable reference
 ```Rust
 fn main() {
     struct Foo(i32);
@@ -181,7 +182,7 @@ error: could not compile `playrs` due to previous error
 
 <br>
 
-#### Move by shared reference
+### Move by shared reference
 ```Rust
 fn main() {
     struct Foo(i32);
@@ -210,7 +211,7 @@ error: could not compile `playrs` due to previous error
 
 <br>
 
-#### Copy value
+### Copy value
 ```Rust
 fn main() {
     let mut i1 = 100;
@@ -229,7 +230,7 @@ cargo run
 
 <br>
 
-#### More complex example
+### More complex example
 ```Rust
 fn main() {
     enum Foo {
