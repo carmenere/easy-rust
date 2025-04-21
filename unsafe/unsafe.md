@@ -1,24 +1,56 @@
 # Table of contents
-- [Table of contents](#table-of-contents)
-- [`unsafe` keyword](#unsafe-keyword)
-- [Dereference raw pointer](#dereference-raw-pointer)
-- [Call unsafe function or method](#call-unsafe-function-or-method)
-- [FFI](#ffi)
-- [Take 2 mut pointers to different parts of the same vector](#take-2-mut-pointers-to-different-parts-of-the-same-vector)
-  - [Example implementation of split\_at\_mut:](#example-implementation-of-split_at_mut)
-- [r/w access to static variables](#rw-access-to-static-variables)
-- [Implement an unsafe trait](#implement-an-unsafe-trait)
+<!-- TOC -->
+* [Table of contents](#table-of-contents)
+* [Unsafe Rust](#unsafe-rust)
+* [`unsafe` keyword](#unsafe-keyword)
+* [Dereference raw pointer](#dereference-raw-pointer)
+* [Call unsafe function or method](#call-unsafe-function-or-method)
+* [FFI](#ffi)
+* [Take 2 mut pointers to different parts of the same vector](#take-2-mut-pointers-to-different-parts-of-the-same-vector)
+  * [Example implementation of split_at_mut:](#example-implementation-of-split_at_mut)
+* [r/w access to static variables](#rw-access-to-static-variables)
+* [Implement an unsafe trait](#implement-an-unsafe-trait)
+* [Splitting borrows](#splitting-borrows)
+<!-- TOC -->
+
+<br>
+
+# Unsafe Rust
+Rust consists of 2 parts:
+- **Safe Rust**;
+- **Unsafe Rust**;
+
+The main distinction between **Safe Rust** and **Unsafe rust** is **Safe Rust can't cause to UB**. It is also known as **soundness property**.<br>
+
+**Sound vs. Unsound**:
+- the code is **sound** if it **can't** cause to UB;
+- the code is **unsound** if it **can** cause to UB;
+
+<br>
+
+For example, **all FFI functions are unsafe** because the other langs can do **arbitrary operations** that the **Rust can't check**.<br>
+
+<br>
+
+There is special lint `unsafe_code` to statically guarantee that **only Safe Rust is used**:
+```rust
+#![forbid(unsafe_code)]
+```
 
 <br>
 
 # `unsafe` keyword
-The `unsafe` block **disables some of the compiler's safety checks**. The Rust language has a **set of rules** that need to be followed to avoid UB. It is possible to **bypass** some of *these rules* **inside** `unsafe` block.<br>
+The separation between Safe Rust and Unsafe Rust is **controlled** by the `unsafe` keyword.<br>
+The Rust language has a **set of rules** that need to be followed to **avoid UB**.<br>
+The `unsafe` block **disables some of the compiler's safety checks**.<br>
 **Unsafe** doesn't mean that the code is incorrect or never safe to use, but rather that the **compiler doesn't validate** for you that the code is safe.<br>
 If the code **violates** *these rules*, it is called **unsound**.<br>
 
 When calling any `unsafe` function, read its documentation carefully and make sure you fully understand its **safety requirements**: the assumptions you need to uphold, as the caller, to avoid UB.<br>
 
-The `unsafe` keyword gives 5 abilities:
+<br>
+
+The `unsafe` keyword (**Unsafe Rust**) allows:
 1. **Dereference raw pointer**.
 2. **Call unsafe function or method**.
 3. **Modify a mutable static variable**.
@@ -177,4 +209,14 @@ unsafe impl Foo for u64 {
 fn main() {
 
 }
+```
+
+<br>
+
+# Splitting borrows
+Using _Unsafe Rust_ we can **bypass** mutual exclusion to borrow **disjoint fields** of a struct or **disjoint slices** of collection simultaneously.<br>
+
+For example, there is `split_at_mut` method for `Vec` which divides one mutable slice into two at `mid`:
+```rust
+split_at_mut(&mut self, mid: usize) -> (&mut [T], &mut [T])
 ```

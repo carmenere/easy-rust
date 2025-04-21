@@ -8,6 +8,9 @@
 <br>
 
 # `PhantomData`
+Sometimes we have a situation when **type var** or **lifetimes** are **logically associated with a struct**, but **not** actually part of a field.<br>
+
+Consider example:
 ```Rust
 struct Tagged<T>(usize);
 ```
@@ -23,27 +26,33 @@ error[E0392]: parameter `T` is never used
   = help: consider removing `T` or using a marker such as `std::marker::PhantomData`
 ```
 
-That’s right, we’re **not** allowed to have a **type parameter** that goes **unused**.<br>
+That’s right, compiler **does not** allow to have a **type var** that is **unused** within **struct** or **enum**.<br>
 
-<br>
+There is special type `PhantomData` that **allows to declare unused lifetimes** or **type vars** for structs/enums.<br>
 
-If we want to have an **unused type parameter** we **have to** add a `PhantomData` to it like so:
-```Rust
-use std::marker::PhantomData;
-struct Tagged<T>(usize, PhantomData<T>);
-```
-
-<br>
-
-Declaration of `PhantomData` in `core`:
-```Rust
-pub struct PhantomData<T: ?Sized>;
-```
-
-<br>
-
-`PhantomData` is **marker type**. It is **ZST**.<br>
+`PhantomData` is **marker type**. It is **ZST**, in other words **it consumes no space at runtime**.<br>
 Adding a `PhantomData<T>` to your type tells the compiler that your type acts like it stores a value of type `T`, even though it doesn’t really.<br>
+
+Also `PhantomData` tells to **drop checker** that the _defined type_ **owns value of generic type** `T`.<br>
+
+<br>
+
+From the compiler point of view type `A` **doesn't** own type `T` in the code below:
+```rust
+struct A<T> {
+    data: *const T
+}
+```
+
+<br>
+
+But if we add `PhantomData<T>`, then **drop checker** consider that **type** `A` **owns** `T`:
+```rust
+struct A<T> {
+    data: *const T,
+    _d: PhantomData<T>,
+}
+```
 
 <br>
 
