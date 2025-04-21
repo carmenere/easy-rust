@@ -1,10 +1,11 @@
 # Table of contents
 <!-- TOC -->
 * [Table of contents](#table-of-contents)
+* [Borrow checker](#borrow-checker)
 * [Definitions](#definitions)
   * [At most. At least](#at-most-at-least)
   * [Lexical scope. Liveness scope](#lexical-scope-liveness-scope)
-  * [References rules](#references-rules)
+  * [Borrowing rules](#borrowing-rules)
   * [Lifetimes](#lifetimes)
   * [Lifetime elision](#lifetime-elision)
   * [Lifetimes in structs](#lifetimes-in-structs)
@@ -43,6 +44,14 @@
 
 <br>
 
+# Borrow checker
+**Borrow checker** is responsible for enforcing:
+1. **Ownership rules**.
+2. **Borrowing rules**.
+3. **Subtyping and variance rules**.
+
+<br>
+
 # Definitions
 ## At most. At least
 **At most as long as** means **less than or equal to** (**<=**) or **cannot be longer**.<br>
@@ -51,13 +60,24 @@
 <br>
 
 ## Lexical scope. Liveness scope
-**Lexical scope** usually refers to **variables** (**identifier**).<br>
-_Lexical scope_ is a **part of code** where particular **variable** is **valid**. So, **lexical scope** is a **scope of variable**.<br>
-_Lexical scope_ **starts** from the point where **variable** is **declared** by `let` keyword and **ends** to the end of lexical scope `}`.<br>
+**Lexical scope** has **explicit boundaries**: **opening** curly bracket `{` and **closing** curly bracket `}`.<br>
 
-**liveness scope** usually refers to the **actual value** that a **variable is bound to**.<br>
-_Liveness scope_ is a **part of code** where particular **value** is **valid**.<br>
+<br>
+
+**Variable** or **variable’s identifier** or **identifier** are the synonyms.<br>
+**Scope of variable** (or **variable scope**, or just **scope**) is the **range** within a program for which a variable is **valid**.<br>
+_Scope_ is always **lexical**, because it has **explicit boundaries**: _scope_ **starts** from the point at which **variable** was **declared** by `let` keyword **until** the **end of scope**: closing curly bracket `}`.
+
+<br>
+
+**Liveness scope** is a **part of code** where particular **value** is **valid**.<br>
+**Liveness scope** refers to the **actual value** that a **variable is bound to**.<br>
 _Liveness scope_ **starts** from the point where **value** is **created** and **ends** where **value** is **dropped** or **reassigned**.<br>
+
+<br>
+
+**In common** _scope of variable_ **is not equal** _liveness scope_, because variables can be **dropped** or **reassigned**.<br>
+But **in particular** _scope of variable_ **can be equal to** _liveness scope_.<br>
 
 <br>
 
@@ -82,23 +102,22 @@ fn main() {
 
 <br>
 
-**In common** _lexical scope_ **is not equal** _liveness scope_, because variables can be **dropped** or **reassigned**.<br>
-But **in particular** _lexical scope_ **can be equal to** _liveness scope_.<br>
-
-<br>
-
-## References rules
+## Borrowing rules
 There are 2 kind of references:
 - **shared references** (aka **immutable references**): `&`;
 - **exclusive references** (aka **mutable references**): `&mut`;
 
 <br>
 
-References obey the **references rules**:
-- **any reference** (aka **borrow**) **cannot outlive** the **value** it points to (aka **referent**, **lender**);
-- an **exclusive references cannot be aliased**;
-  - **What aliased mean**?
-  - In general, _variables_ and _pointers_ **alias** if they **point to overlapping regions of memory**.
+The **borrowing rules**:
+1. **Any** reference **cannot outlive** the **value** it points to;
+   - for example, function **cannot** return reference to value it owns;
+2. An **exclusive** references **cannot be aliased**;
+3. **Any** reference **doesn't own** the **value** it points to;
+   - in other words, the **value** reference points to **cannot be moved through dereferencing**;
+   - when *reference* **goes out of scope**, the **borrow ends**, and the **value** *reference* points to **isn't destroyed**;
+
+**What aliased mean**? _Variables_ and _pointers_ **alias** if they **point to overlapping regions of memory**.<br>
 
 <br>
 
@@ -123,7 +142,7 @@ There are 2 kind of **lifetime parameters**:
 
 <br>
 
-According to **references rules**: the **lifetime** of the **reference** must be **at most as long as** the **liveness scope** of the **value** the **reference points to**.<br>
+According to **borrowing rules**: the **lifetime** of the **reference** must be **at most as long as** the **liveness scope** of the **value** the **reference points to**.<br>
 In other words, **lifetime** of the **borrow expression** cannot be **longer** than the **liveness scope** of the **borrowed value**.<br>
 In other words, **lifetimes** and **values** are linked to one another: if you make a reference to a value, the lifetime of that reference **cannot outlive** that value. Otherwise, your reference would be pointing into freed memory.<br>
 
