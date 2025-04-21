@@ -35,7 +35,7 @@ A **reference** (aka **borrow**) is an **address** of **some value** (aka **refe
 There are 2 kind of references:
 - **shared references** (aka **immutable references**): `&T` or `&'a T`;
 - **exclusive references** (aka **mutable references**): `&mut T` or `&'a mut T`;
-- 
+
 <br>
 
 **Borrowing** is the action of **creating a reference** to some value.<br>
@@ -121,7 +121,7 @@ Rule 3 **prevents from dangling references**.<br>
 
 <br>
 
-In other words, rules **1** and **2** are means: **at any given time** there can be:<br>
+In other words, rules **1** and **2** mean: **at any given time** there can be:<br>
 a. **only 1** *mutable reference* `&mut T`;<br>
 **OR**<br>
 b. **any number** of *shared references* `&T`.<br>

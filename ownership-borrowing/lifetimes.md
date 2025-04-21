@@ -109,9 +109,13 @@ There are 2 kind of references:
 
 <br>
 
-References obey the **borrowing rules**:
-- **any reference** (aka **borrow**) **cannot outlive** the **value** it points to (aka **referent**, **lender**);
-- an **exclusive references cannot be aliased**;
+The **borrowing rules**:
+1. **Any** reference **cannot outlive** the **value** it points to;
+   - for example, function **cannot** return reference to value it owns;
+2. An **exclusive** references **cannot be aliased**;
+3. **Any** reference **doesn't own** the **value** it points to;
+   - in other words, the **value** reference points to **cannot be moved through dereferencing**;
+   - when *reference* **goes out of scope**, the **borrow ends**, and the **value** *reference* points to **isn't destroyed**;
 
 **What aliased mean**? _Variables_ and _pointers_ **alias** if they **point to overlapping regions of memory**.<br>
 

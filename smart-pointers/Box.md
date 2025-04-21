@@ -47,7 +47,7 @@ Notes:
 <br>
 
 A `Box` can be useful when you:
-- have a time whose size cannot be known at compile time;
+- have a type whose size cannot be known at compile time;
 - want to transfer ownership of a large amount of data, to avoid copying large amounts of data on the stack, instead store the data on the heap in a `Box`, so only pointer is moved;
 
 <br>
