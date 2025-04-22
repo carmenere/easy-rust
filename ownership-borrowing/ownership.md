@@ -142,7 +142,10 @@ _Scope_ is always **lexical**, because it has **explicit boundaries**: _scope_ *
 <br>
 
 ## Ownership rules
-**Ownership** enables Rust to make **memory safety guarantees** without needing GC and in many cases, get the performance of C.<br>
+The idea of **ownership** is that, although **multiple aliases** to resource may exist **simultaneously**, some actions on the resource (such as **drop**) should require **permission** that is **uniquely owned** by one alias at any point during the execution of the program.<br>
+Although the **permission** is **uniquely owned**, it **can be transferred**.<br>
+
+<br>
 
 Ownership rules:
 1. **Each value** in Rust **has** an **identifier** that’s called its **owner**.
@@ -428,7 +431,7 @@ Compiler calls `std::mem::drop` to drop each value at the end of scope. If `T` i
 <br>
 
 ### Double free problem
-Rust must call ``.drop()`` **exactly one time** and there is a problem.<br>
+Rust must call `.drop()` **exactly one time** and there is a problem.<br>
 Consider following example:
 ```Rust
 {
@@ -437,16 +440,22 @@ Consider following example:
 }
 ```
 
-For which var ``x`` or ``y`` should Rust call the **destructor**? We cannot call the destructor for both because this will result in a **double free**. 
-
-To overcome **double free** there are concept of **ownership** and **2nd ownership rule**. So, if variable was moved it is no longer valid and it cannot be used further inside scope and compiler doesn’t call destructor for it at the end of scope.
+For which var `x` or `y` should Rust call the **destructor**? We cannot call the destructor for both because this will result in a **double free**.<br>
+To overcome **double free** there are concept of **ownership** and **2nd ownership rule**. So, if variable was moved it is no longer valid and it cannot be used further inside scope and compiler doesn’t call destructor for it at the end of scope.<br>
 
 <br>
 
 ### Drop flags
-If the **assignment is conditional**, then Rust can define the variable that should free the memory **only at runtime**.<br>
-To do this, the compiler generates a flag on the stack (**drop flags**), which stores information about which of the alternative objects was actually used and calls the appropriate drop.
+In most cases compiler **knows** all variables for which to call `drop()` **at compile time**.<br>
+But sometimes **call** `drop()` or **not** for value **depends on runtime**.<br>
+For example, in case of the **assignment is conditional** the **variable** that **should free the memory** can be determined **only at runtime**.<br>
 
+**Drop flags** allow Rust to track whether a variable should be dropped or not **at runtime**.<br>
+**Drop flags** store information about which of the alternative variables was actually used.<br>
+
+<br>
+
+**Example**:
 ```Rust
 let x: Box<i32>;
 let y: Box<i32>;

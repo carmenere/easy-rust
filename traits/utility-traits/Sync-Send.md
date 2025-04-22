@@ -25,17 +25,30 @@
 
 # Send and Sync
 From compiler point of view **thread** is a **scope** `{}`.<br>
-`rustc` uses `Sync` and `Send` **traits** to determine is it **safe** or **not** to **move** or **share** by **immutable reference** some **value** to **another thread** (**scope**):
-- `Sync` means that **sharing** (by **immutable reference**) *between threads* is **safe**. `Sync` allows an object to to be used by two threads `A` and `B` at the **same** time;
-- `Send` means that **passing** (by **value**) to *another thread* is **safe**, in other words type `T` it can be **created** in **one** thread (**scope**) and **dropped** in **another** thread (**scope**). `Send` allows an object to be used by two threads `A` and `B` at **different** times:
-  - thread `A` can **create** and use an object;
-  - then object is sent to thread `B` and thread `B` **can** use the object while thread `A` **cannot**;
+
+**Rule**: type `&T` is `Send` if `T` is `Sync`.<br>
 
 <br>
 
-> **Note**:<br>
-> `T` is `Send` if **ownership** of a value of that type can be transferred to another thread.<br>
-> `T` is `Sync` if and only if `&T` is `Send`.<br>
+If type `T` implements `Send` it means that `T` is a **thread safe** and can be passed to another thread, in other words, **can cross a thread boundary**:
+- if `T` is a `Copy` it can be **copied** to another thread;
+- if `T` is **not** `Copy` it can **only** be **moved** to another thread, in other words, **ownership** of a value of type `T` is transferred to another thread;
+
+<br>
+
+If type `T` implements `Sync` it means that shared reference `&T` is a **thread safe** and can be **copied** to another thread.<br>
+
+<br>
+
+So:
+- `Sync`
+  - means that **sharing** by **immutable reference** *between threads* is **safe**;
+  - allows an object to be used by two threads `A` and `B` at the **same** time;
+- `Send`
+  - means that **passing** by **value** to *another thread* is **safe**, in other words type `T` it can be **created** in **one** thread (**scope**) and **dropped** in **another** thread (**scope**).
+  - allows an object to be used by two threads `A` and `B` at **different** times:
+    - thread `A` can **create** and use an object;
+    - then object is sent to thread `B` and thread `B` **can** use the object while thread `A` **cannot**;
 
 <br>
 
@@ -170,3 +183,218 @@ impl<T> !Sync for *const T
 where
     T: ?Sized,
 ```
+
+<br>
+
+# Examples
+## Example 1
+Here:
+- `Foo` is `Send`
+- `Foo` is **not** `Sync` (because of `_not_sync: PhantomData<Cell<()>>`)
+- `Foo` is `Copy`
+- `foo` is **copied** to thread
+
+<br>
+
+**Code**:
+```rust
+use std::time::Instant;
+use std::cell::Cell;
+use std::marker::PhantomData;
+
+#[derive(Debug, Copy, Clone)]
+struct Foo {
+    a: i64,
+    _not_sync: PhantomData<Cell<()>>
+}
+
+fn main() {
+    let now = Instant::now();
+
+    let mut num = 1000;
+    let mut foo = Foo{a: 10, _not_sync: PhantomData};
+
+    std::thread::scope(|s| {
+        let r = s.spawn(move || {
+            println!("num = {:p}", {&foo});
+        });
+
+        s.spawn(move || {
+            println!("num = {:p}", {&foo});
+        });
+    });
+
+    let elapsed = now.elapsed();
+    println!("Elapsed: {:.2?}", elapsed);
+}
+```
+
+<br>
+
+This code is **compiled** and its output:
+```shell
+num = 0x16db16b08
+num = 0x16d90ab08
+Elapsed: 350.92µs
+```
+
+Note, that **addresses are different**.<br>
+
+<br>
+
+## Example 2
+Here:
+- `Foo` is `Send`
+- `Foo` is **not** `Sync`
+- `Foo` is **not** `Copy`
+- `foo` is **moved** to thread
+
+<br>
+
+**Code**:
+```rust
+use std::time::Instant;
+use std::cell::Cell;
+use std::marker::PhantomData;
+
+#[derive(Debug)]
+struct Foo {
+    a: i64,
+    _not_sync: PhantomData<Cell<()>>
+}
+
+fn main() {
+    let now = Instant::now();
+
+    let mut num = 1000;
+    // let mut foo = Foo{a: 10};
+    let mut foo = Foo{a: 10, _not_sync: PhantomData};
+
+    std::thread::scope(|s| {
+        let r = s.spawn(move || {
+            println!("num = {:p}", {&foo});
+        });
+
+        s.spawn(move || {
+            println!("num = {:p}", {&foo});
+        });
+    });
+
+    let elapsed = now.elapsed();
+    println!("Elapsed: {:.2?}", elapsed);
+}
+```
+
+<br>
+
+This code is **not** compiled and its output:
+```shell
+error[E0382]: use of moved value: `foo`
+```
+
+<br>
+
+## Example 3
+Here:
+- `Foo` is `Send`
+- `Foo` is **not** `Sync`
+- `Foo` is `Copy`
+- `foo` is passed to thread by **shared reference**
+
+<br>
+
+**Code**:
+```rust
+use std::time::Instant;
+use std::cell::Cell;
+use std::marker::PhantomData;
+
+#[derive(Debug, Clone, Copy)]
+struct Foo {
+    a: i64,
+    _not_sync: PhantomData<Cell<()>>
+}
+
+fn main() {
+    let now = Instant::now();
+
+    let mut num = 1000;
+    // let mut foo = Foo{a: 10};
+    let mut foo = Foo{a: 10, _not_sync: PhantomData};
+
+    std::thread::scope(|s| {
+        let r = s.spawn(|| {
+            println!("num = {:p}", {&foo});
+        });
+
+        s.spawn(|| {
+            println!("num = {:p}", {&foo});
+        });
+    });
+
+    let elapsed = now.elapsed();
+    println!("Elapsed: {:.2?}", elapsed);
+}
+```
+
+<br>
+
+This code is **not** compiled and its output:
+```shell
+error[E0277]: `Cell<()>` cannot be shared between threads safely
+```
+
+<br>
+
+## Example 4
+Here:
+- `Foo` is `Send`
+- `Foo` is `Sync`
+- `Foo` is **not** `Copy`
+- `foo` is passed to thread by **shared reference**
+
+<br>
+
+**Code**:
+```rust
+use std::time::Instant;
+use std::cell::Cell;
+use std::marker::PhantomData;
+
+#[derive(Debug)]
+struct Foo {
+    a: i64,
+}
+
+fn main() {
+    let now = Instant::now();
+
+    let mut num = 1000;
+    // let mut foo = Foo{a: 10};
+    let mut foo = Foo{a: 10};
+
+    std::thread::scope(|s| {
+        let r = s.spawn(|| {
+            println!("num = {:p}", {&foo});
+        });
+
+        s.spawn(|| {
+            println!("num = {:p}", {&foo});
+        });
+    });
+
+    let elapsed = now.elapsed();
+    println!("Elapsed: {:.2?}", elapsed);
+}
+```
+
+<br>
+
+This code is **compiled** and its output:
+```shell
+num = 0x16ee92698
+num = 0x16ee92698
+Elapsed: 245.42µs
+```
+
+Note, that **addresses are the same**.<br>

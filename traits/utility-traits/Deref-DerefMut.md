@@ -145,6 +145,34 @@ In other words,
 
 <br>
 
+Consider call `value.foo()`. The main steps of **method lookup**:
+1. The compiler checks if it can call `T::foo(value)` directly.
+2. If not, for example `T` **hasn't** method `foo` with signature `foo(self)`, the compiler checks `<&T>::foo(value)` and `<&mut >T::foo(value)`.
+3. If not, the compiler dereferences `T` using appropriate implementations of `Deref` trait for `T`: `Deref<Target=U>` and tries again with type `U`.
+4. If not, then compiler unsizes `T`, this means that if `T` has a size known at compile time compiler forgets it. For example, `[i32; 5]` is converted into `[i32]`.
+
+<br>
+
+Example:
+```rust
+let array: Rc<Box<[T; 3]>> = ...;
+let first_entry = array[0];
+```
+
+The `array[0]` is just sugar for `Index` trait: the compiler will convert `array[0]` into `array.index(0)`.<br>
+
+Then compiler **resolves method**:
+1. All `Rc`, `&Rc` and `&mut Rc` **don't** implement `Index`.
+2. Then compiler **dereferences** `Rc<Box<[T; 3]>>` **into** `Box<[T; 3]>`.
+3. All `Box<[T; 3]>`, `&Box<[T; 3]>` and `&mut Box<[T; 3]>` **don't** implement `Index`.
+4. Then compiler **dereferences** `Box<[T; 3]>` **into** `[T; 3]`.
+5. All `[T; 3]`, `&[T; 3]` and `&mut [T; 3]` **don't** implement `Index`.
+6. The compiler **can't dereference** `[T; 3]`.
+7. The compiler **unsizes** `[T; 3]` **to** `[T]`.
+8. The `[T]` **implements** `Index`, so compiler can call the `index()` method.
+
+<br>
+
 ## Example
 If `x` has type `&i32`, then writing `x.count_ones()` is shorthand for `(*x).count_ones()`, because the `count_ones` method requires an `i32`.
 

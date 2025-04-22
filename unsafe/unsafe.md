@@ -1,24 +1,58 @@
 # Table of contents
-- [Table of contents](#table-of-contents)
-- [`unsafe` keyword](#unsafe-keyword)
-- [Dereference raw pointer](#dereference-raw-pointer)
-- [Call unsafe function or method](#call-unsafe-function-or-method)
-- [FFI](#ffi)
-- [Take 2 mut pointers to different parts of the same vector](#take-2-mut-pointers-to-different-parts-of-the-same-vector)
-  - [Example implementation of split\_at\_mut:](#example-implementation-of-split_at_mut)
-- [r/w access to static variables](#rw-access-to-static-variables)
-- [Implement an unsafe trait](#implement-an-unsafe-trait)
+<!-- TOC -->
+* [Table of contents](#table-of-contents)
+* [Unsafe Rust](#unsafe-rust)
+* [`unsafe` keyword](#unsafe-keyword)
+* [Dereference raw pointer](#dereference-raw-pointer)
+* [Call unsafe function or method](#call-unsafe-function-or-method)
+* [FFI](#ffi)
+* [Take 2 mut pointers to different parts of the same vector](#take-2-mut-pointers-to-different-parts-of-the-same-vector)
+  * [Example implementation of split_at_mut:](#example-implementation-of-split_at_mut)
+* [r/w access to static variables](#rw-access-to-static-variables)
+* [Implement an unsafe trait](#implement-an-unsafe-trait)
+* [Bypassing borrow checker rules](#bypassing-borrow-checker-rules)
+  * [Example 2: splitting borrows](#example-2-splitting-borrows)
+  * [Example 2: aliasing mutable reference](#example-2-aliasing-mutable-reference)
+<!-- TOC -->
+
+<br>
+
+# Unsafe Rust
+Rust consists of 2 parts:
+- **Safe Rust**;
+- **Unsafe Rust**;
+
+The main distinction between **Safe Rust** and **Unsafe rust** is **Safe Rust can't cause to UB**. It is also known as **soundness property**.<br>
+
+**Sound vs. Unsound**:
+- the code is **sound** if it **can't** cause to UB;
+- the code is **unsound** if it **can** cause to UB;
+
+<br>
+
+For example, **all FFI functions are unsafe** because the other langs can do **arbitrary operations** that the **Rust can't check**.<br>
+
+<br>
+
+There is special lint `unsafe_code` to statically guarantee that **only Safe Rust is used**:
+```rust
+#![forbid(unsafe_code)]
+```
 
 <br>
 
 # `unsafe` keyword
-The `unsafe` block **disables some of the compiler's safety checks**. The Rust language has a **set of rules** that need to be followed to avoid UB. It is possible to **bypass** some of *these rules* **inside** `unsafe` block.<br>
+The separation between Safe Rust and Unsafe Rust is **controlled** by the `unsafe` keyword.<br>
+The Rust language has a **set of rules** that need to be followed to **avoid UB**.<br>
+The `unsafe` block **disables some of the compiler's safety checks**.<br>
 **Unsafe** doesn't mean that the code is incorrect or never safe to use, but rather that the **compiler doesn't validate** for you that the code is safe.<br>
 If the code **violates** *these rules*, it is called **unsound**.<br>
 
 When calling any `unsafe` function, read its documentation carefully and make sure you fully understand its **safety requirements**: the assumptions you need to uphold, as the caller, to avoid UB.<br>
 
-The `unsafe` keyword gives 5 abilities:
+<br>
+
+The `unsafe` keyword (**Unsafe Rust**) allows:
 1. **Dereference raw pointer**.
 2. **Call unsafe function or method**.
 3. **Modify a mutable static variable**.
@@ -178,3 +212,59 @@ fn main() {
 
 }
 ```
+
+<br>
+
+# Bypassing borrow checker rules
+## Example 2: splitting borrows
+Using _Unsafe Rust_ we can **bypass** mutual exclusion to borrow **disjoint fields** of a struct or **disjoint slices** of collection simultaneously.<br>
+
+For example, there is `split_at_mut` method for `Vec` which divides one mutable slice into two at `mid`:
+```rust
+split_at_mut(&mut self, mid: usize) -> (&mut [T], &mut [T])
+```
+
+<br>
+
+## Example 2: aliasing mutable reference
+Consider example:
+```rust
+fn example(x: &mut i32, y: &mut i32) -> i32 {
+  *x = 20;
+  *y = 10;
+  *x
+}
+```
+
+In **Safe Rust** it is **not possible** to have **2 mutable reference** to the **same value**.<br>
+So, in Safe Rust `x` and `y` **cannot alias**, i.e. Safe Rust guarantees that they are point to **different addresses**.<br>
+So, in Safe Rust the code above returns `20`.<br>
+
+But, in **Unsafe Rust** the code above can return `10`. Why? Because we can use **raw pointers** in **Unsafe Rust** and they are **not** tracked by the type system.<br>
+
+<br>
+
+Consider example:
+```rust
+fn main() {
+    let mut value = 10;
+    let raw_ptr = &mut value as *mut i32;
+    let result = unsafe { example(&mut *raw_ptr, &mut *raw_ptr) };
+    println!("result is {}", result);
+}
+
+fn example(x: &mut i32, y: &mut i32) -> i32 {
+    *x = 20;
+    *y = 10;
+    *x
+}
+```
+
+<br>
+
+In the code above we could pass **2 mutable references** to the **same value** and type system **didn't** stop us.<br>
+And as a result we got `10`.<br>
+
+<br>
+
+However, **dereferencing raw pointers is only permitted** in `unsafe` block. The `unsafe` block serve as **syntactic marker** for potentially **UB**.<br>

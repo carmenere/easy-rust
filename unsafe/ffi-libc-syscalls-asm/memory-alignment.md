@@ -1,7 +1,7 @@
 # Alignment
 **Alignment** refers to the arrangement of data in memory.<br>
 From the software's point of view, **memory** is just **array of bytes**.<br>
-However, CPU **does not** accesses memory **byte by byte**. Instead, it accesses memory by **units** and **unit** is **N bytes** long, **N** can be **1**, **2**, **4**, **8**.<br>
+However, CPU **does not** access memory **byte by byte**. Instead, it accesses memory by **units** and **unit** is **N bytes** long, **N** can be **1**, **2**, **4**, **8**.<br>
 From the CPU's point of view, **memory** is just **array of units** and therefore CPU has its own **memory access granularity**.<br>
 
 The **size** of *unit* **depends** on CPU **arch**:
@@ -11,13 +11,12 @@ The **size** of *unit* **depends** on CPU **arch**:
 
 <br>
 
-## N-byte aligned address 
-If the **address** is **not** *evenly divisible* by the number of **N** (**N** is the size of CPU's **memory access granularity**) it is called an **unaligned address**.<br>
-If the **address** is *evenly divisible* by the number of **N** (**N** is the size of CPU's **memory access granularity**) it is called an **N-byte aligned address**.<br>
+## N-byte aligned address
+If some value is a **multiple** of **N** it means that this value is *evenly divisible* by the **N**.<br>
 
-<br>
-
-The **N-byte aligned address** means that the **data** this address points to is **aligned** on **N-byte boundary**.<br>
+The **N-byte aligned address** means that (**N** is the size of CPU's **memory access granularity**):
+- this **address** is a **multiple** of **N**;
+- the **size of data** that are stored at this address is a **multiple** of **N** too;
 
 <br>
 

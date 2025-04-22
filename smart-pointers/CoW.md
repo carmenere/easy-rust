@@ -1,8 +1,10 @@
 # Table of contents
-- [Table of contents](#table-of-contents)
-- [URLs](#urls)
-- [Declaration](#declaration)
-- [In a nutshell](#in-a-nutshell)
+<!-- TOC -->
+* [Table of contents](#table-of-contents)
+* [URLs](#urls)
+* [Declaration](#declaration)
+* [In a nutshell](#in-a-nutshell)
+<!-- TOC -->
 
 <br>
 

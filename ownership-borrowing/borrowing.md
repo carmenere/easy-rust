@@ -14,6 +14,8 @@
     * [Copy value](#copy-value)
     * [More complex example](#more-complex-example)
 * [Reborrowing](#reborrowing)
+  * [Example 1](#example-1-1)
+  * [Example 2](#example-2-1)
 * [Semantics for references](#semantics-for-references)
 * [Dangling references](#dangling-references)
 <!-- TOC -->
@@ -259,30 +261,12 @@ fn main() {
 <br>
 
 # Reborrowing
-**Reborrowing** is what makes `&mut` **usable**. There's a lot of **implicit reborrowing** in Rust. For example, in function calls **mutable references aren’t moved**, they are **implicitly reborrowed**.<br>
-
-**Shared references** `&T` implement `Copy`, which makes them very flexible.<br>
-**Exclusive references** `&mut T` **do not** implement `Copy`. Instead, you can use them through a **reborrowing**. Technically multiple mutable references to a piece of data can exist at the same time via **reborrowing**. This is what allows you to pass a mutable reference into a function without invaliding the original reference.<br>
-
-For example here:
-```rust
-fn foo<'v>(v: &'v mut Vec<i32>) {
-    v.push(0);         // line 1
-    println!("{v:?}"); // line 2
-}
-```
-
-You're **not** moving `v: &mut Vec<i32>` when you pass it to `push` on line 1, or you couldn't print it on line 2. But you're **not** copying it either, because `&mut _` does not implement `Copy`. Instead `*v` is **reborrowed** for some **shorter lifetime** than `'v`, which ends on line 1.<br>
+**Shared references** `&T` implement `Copy`, which makes them very flexible: just copy it.<br>
+**Exclusive references** `&mut T` **do not** implement `Copy`. Instead, you can use them through a **reborrow**. **Reborrow** is what makes `&mut` **usable**.<br>
+**Reborrow** creates **new** reference with **new shorter lifetime** than lifetime of **original** reference.<br>
+The _original reference_ **cannot** be used **until** _reborrowed reference_ **in use**.<br>
 
 <br>
-
-An **explicit reborrow** would look like this:
-```rust
-Vec::push(&mut *v, 0);
-```
-
-
-The `v` **can't** be used **while** the **reborrow** `&mut *v` **exists**, but after it **expires**, you can use `v` **again**. In this way, both `&mut` are still **exclusive borrows**.<br>
 
 Consider `b` is **borrower**:
 - if `b` contains *shared reference*, it is possible to **reborrow** *shared reference*: `let b1 = &*b`.
@@ -290,10 +274,11 @@ Consider `b` is **borrower**:
 
 <br>
 
-**Reborrow** creates **new** referenece with **new shorter lifitime** than lifetime of original reference.<br>
+There's a lot of **implicit reborrowing** in Rust. For example, in function calls **mutable references aren’t moved**, they are **implicitly reborrowed without invaliding the original reference**.<br>
 
 <br>
 
+## Example 1
 Following code **does not work**:
 ```Rust
 struct Foo {
@@ -325,6 +310,30 @@ fn main() {
     println!("p0 => {}", p0.val);
 }
 ```
+
+<br>
+
+## Example 2
+```rust
+fn foo<'v>(v: &'v mut Vec<i32>) {
+    v.push(0);         // line 1
+    println!("{v:?}"); // line 2
+}
+```
+
+You're **not** moving `v: &mut Vec<i32>` when you pass it to `push` on _line 1_, or you couldn't print it on line 2.<br>
+But you're **not** copying it either, because `&mut _` does not implement `Copy`.<br>
+Instead `*v` is **reborrowed** for some **shorter lifetime** than `'v`, which ends on _line 1_.<br>
+
+<br>
+
+An **explicit reborrow** looks like this:
+```rust
+Vec::push(&mut *v, 0);
+```
+
+The `v` **can't** be used **while** the **reborrow** `&mut *v` **exists**, but after it **expires**, you can use `v` **again**.<br>
+In this way, both `&mut` are still **exclusive borrows**.<br>
 
 <br>
 

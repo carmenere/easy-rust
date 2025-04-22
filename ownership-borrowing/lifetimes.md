@@ -13,7 +13,7 @@
   * [Liveness](#liveness)
   * [Regions](#regions)
   * [Universal region](#universal-region)
-  * [Example](#example)
+    * [Example 1](#example-1)
   * [Iterator invalidation](#iterator-invalidation)
 * [Subtyping and variance](#subtyping-and-variance)
   * [Notations](#notations)
@@ -21,7 +21,7 @@
   * [Variance over generic type `T`](#variance-over-generic-type-t)
 * [Nested references](#nested-references)
   * [Nested references coercions](#nested-references-coercions)
-    * [Example 1](#example-1)
+    * [Example 1](#example-1-1)
     * [Example 2](#example-2)
     * [Example 3](#example-3)
   * [Dereferencing nested references](#dereferencing-nested-references)
@@ -35,20 +35,32 @@
   * [Liveness constraints](#liveness-constraints)
   * [Location-aware subtyping constraints](#location-aware-subtyping-constraints)
   * [Example on subtyping constraints](#example-on-subtyping-constraints)
-* [Drop as last use](#drop-as-last-use)
+* [Drop check](#drop-check)
+* [Unbounded lifetimes](#unbounded-lifetimes)
 * [Anonymous lifetimes](#anonymous-lifetimes)
 * [Higher-Rank Trait Bounds (HRTBs)](#higher-rank-trait-bounds-hrtbs)
-  * [Example 1](#example-1-1)
+  * [Example 1](#example-1-2)
   * [Example 2](#example-2-1)
 <!-- TOC -->
 
 <br>
 
 # Borrow checker
-**Borrow checker** is responsible for enforcing:
+**Race conditions** can only arise from an **unrestricted combination** of **aliasing** and **mutation**.<br>
+Rust's approach to guarantee the **absense of races** and other **memory safety** is to **rule out** the combination of **aliasing** and **mutation**.<br>
+
+**What aliasing mean**? _Variables_ and _pointers_ **alias** if they **point to overlapping regions of memory**.<br>
+
+<br>
+
+**Borrow checker tracks aliasing** in Rust and **is responsible for enforcing**:
 1. **Ownership rules**.
 2. **Borrowing rules**.
 3. **Subtyping and variance rules**.
+
+<br>
+
+The **rules above** enable Rust to make **memory safety guarantees** without needing GC and in many cases, get the performance of C.<br>
 
 <br>
 
@@ -116,8 +128,6 @@ The **borrowing rules**:
 3. **Any** reference **doesn't own** the **value** it points to;
    - in other words, the **value** reference points to **cannot be moved through dereferencing**;
    - when *reference* **goes out of scope**, the **borrow ends**, and the **value** *reference* points to **isn't destroyed**;
-
-**What aliased mean**? _Variables_ and _pointers_ **alias** if they **point to overlapping regions of memory**.<br>
 
 <br>
 
@@ -333,7 +343,7 @@ In the function `foo` above the **function argument** `x` and **returning result
 
 <br>
 
-## Example
+### Example 1
 Consider code:
 ```rust
 fn foo<'a>(x: &'a String) -> &'a String {
@@ -972,17 +982,60 @@ This **set of subtyping constraint** means:
 
 <br>
 
-# Drop as last use
-If destructor is implemented, then the last use of a variable will in its **destructor**, which will implicitly execute at the end of the enclosing scope.<br>
+# Drop check
+**Variables** are **dropped** in the **reverse order** of their definition.<br>
+**Fields of structs** and **tuples** are **dropped** **in order** of their definition.<br>
 
+When struct implement `Drop` trait borrow checker is unable to decide what outlives what, because implementing `Drop` lets the type execute some arbitrary code during its death.<br>
+
+Consider example:
+```rust
+struct Inspector<'a>(&'a u8);
+
+impl<'a> Drop for Inspector<'a> {
+  fn drop(&mut self) {
+    println!("I was only {} days from retirement!", self.0);
+  }
+}
+
+struct World<'a> {
+  inspector: Option<Inspector<'a>>,
+  days: Box<u8>,
+}
+
+fn main() {
+  let mut world = World {
+    inspector: None,
+    days: Box::new(1),
+  };
+  world.inspector = Some(Inspector(&world.days));
+  // Let's say `days` happens to get dropped first.
+  // Then when Inspector is dropped, it will try to read free'd memory!
+}
+```
+
+<br>
+
+The code above **doesn't** compile, because it is possible to access borrowed data inside `drop()` of `Inspector`, but that data can be deallocated at that moment.<br>
+
+<br>
+
+If destructor is implemented, then the last use of a variable will in its **destructor**, which will implicitly execute at the end of the enclosing scope.<br>
 A reference is alive from the point it is created to it is last use. **But** if we store reference to a struct that **has a destructor**, then reference is considered **alive until** the **end of current scope** (untill calling destructor at).<br>
 To convince the compiler that reference is **no longer valid** call `drop()` **explicitly**.<br>
 
 <br>
 
+# Unbounded lifetimes
+**Dereferencing raw pointer** produces a **reference with unbounded lifetime**. Such lifetime becomes **as big as** context demands.<br>
+
+<br>
+
 # Anonymous lifetimes
 Notation `<'_>` is called **anonymous lifetime** or **implicit lifetime**.<br>
-The **implicit lifetime** `<'_>` tells Rust **to figure out the lifetime itself** and it is used to **simplify** `impl` blocks.
+The **implicit lifetime** `<'_>` tells Rust **to figure out the lifetime itself** and it is used to **simplify** `impl` blocks.<br>
+
+<br>
 
 Consider following example:
 ```Rust

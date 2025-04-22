@@ -1,10 +1,13 @@
 # Table of contents
-- [Table of contents](#table-of-contents)
-- [URLs](#urls)
-- [Declaration](#declaration)
-- [In a nutshell](#in-a-nutshell)
-- [Examples](#examples)
-  - [Custom implementation of Box](#custom-implementation-of-box)
+<!-- TOC -->
+* [Table of contents](#table-of-contents)
+* [URLs](#urls)
+* [Declaration](#declaration)
+* [In a nutshell](#in-a-nutshell)
+* [Box memory layout](#box-memory-layout)
+* [Examples](#examples)
+  * [Custom implementation of Box](#custom-implementation-of-box)
+<!-- TOC -->
 
 <br>
 
@@ -18,7 +21,9 @@
 # Declaration
 ```rust
 pub struct Box<T: ?Sized,A: Allocator = Global>(Unique<T>, A);
+```
 
+```rust
 impl<T> Box<T> {
     pub fn new(x: T) -> Self {
         #[rustc_box]
@@ -27,17 +32,52 @@ impl<T> Box<T> {
 }
 ```
 
+**Note**, that `Box` **uses** `Unique`.<br>
+
+<br>
+
+# Box memory layout
+Consider example:
+```rust
+fn main() {
+  let vec = vec![1.0, 2.0, 3.0];
+  let foo = Box::new(vec);
+}
+```
+
+<br>
+
+It will be represented in memory as follows:<br>
+![box](/img/box.png)
+
 <br>
 
 # In a nutshell
-Allocates memory on the **heap** and then places value of type `T` into it.<br>
+The `Box<T>` is just a **pointer** on the **stack** that **points to** value of type `T` which is allocated in the **heap**:
+```rust
+fn main() {
+  println!("size_of::<Box<u64>>: {}", size_of::<Box<u64>>());
+  println!("size_of::<Box<String>>: {}", size_of::<Box<String>>());
+}
+```
 
+**Output**:
+```shell
+size_of::<Box<u64>>: 8
+size_of::<Box<String>>: 8
+```
+
+<br>
+
+**Example**:
 ```Rust
 fn main() {
     let v = Box::new(1);
     println!("v = {}", v);
 }
 ```
+
+<br>
 
 Notes:
 - The value (`1`) is allocated on the **heap**.
@@ -66,6 +106,8 @@ where
     A: Sync,
     T: Sync,
 ```
+
+<br>
 
 # Examples
 ## Custom implementation of Box

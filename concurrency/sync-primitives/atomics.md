@@ -40,7 +40,10 @@ Which **atomic** types are avaliable **depends on the platform**, since they **r
 <br>
 
 # Memory ordering
-Every atomic operation takes an argument of type `std::sync::atomic::Ordering`, which determines memory ordering guarantees.<br>
+Ordering establishes happens before relationships between other atomics.<br>
+Every **atomic operation** takes an argument of type `std::sync::atomic::Ordering`, which determines memory **ordering guarantees**.<br>
+
+Possible values:
 ```rust
 pub enum Ordering {
     Relaxed,
@@ -51,7 +54,32 @@ pub enum Ordering {
 }
 ```
 
-The simplest variant is `Relaxed`, it **guarantees consistency** on a **single atomic variable**, but **doesn't** promise anything about the relative order of operations **between different variables**. It means that if **first thread** writes to variable `foo` and then writes to variable `bar`, **second thread** might see that happen in the opposite order, because these atomic variables are updated **separetly**. So, **second thread** can read **old** value of variable `foo` and **new** value of variable `bar`.<br>
+- `SeqCst` **cannot** be reordered, the most strict;
+- `Acquire`/`Release` are used **for locks**;
+- `Relaxed` **can** be reordered;
+
+The simplest variant is `Relaxed`, it **guarantees consistency** on a **single atomic variable**, but **doesn't** promise anything about the relative order of operations **between different variables**.<br>
+It means that if **first thread** writes to variable `foo` and then writes to variable `bar`, **second thread** might see that happen in the opposite order, because these atomic variables are updated **separetly**.<br>
+So, **second thread** can read **old** value of variable `foo` and **new** value of variable `bar`.<br>
+
+<br>
+
+Example `Acquire`/`Release`:
+```rust
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::thread;
+
+fn main() {
+    let lock = Arc::new(AtomicBool::new(false));
+  
+    while lock.compare_and_swap(false, true, Ordering::Acquire) { 
+      
+    }
+
+    lock.store(false, Ordering::Release);
+}
+```
 
 <br>
 
