@@ -36,15 +36,48 @@ impl<T> Box<T> {
 
 <br>
 
-# In a nutshell
-Allocates memory on the **heap** and then places value of type `T` into it.<br>
+# Box memory layout
+Consider example:
+```rust
+fn main() {
+  let vec = vec![1.0, 2.0, 3.0];
+  let foo = Box::new(vec);
+}
+```
 
+<br>
+
+It will be represented in memory as follows:<br>
+![box](/img/box.png)
+
+<br>
+
+# In a nutshell
+The `Box<T>` is just a **pointer** on the **stack** that **points to** value of type `T` which is allocated in the **heap**:
+```rust
+fn main() {
+  println!("size_of::<Box<u64>>: {}", size_of::<Box<u64>>());
+  println!("size_of::<Box<String>>: {}", size_of::<Box<String>>());
+}
+```
+
+**Output**:
+```shell
+size_of::<Box<u64>>: 8
+size_of::<Box<String>>: 8
+```
+
+<br>
+
+**Example**:
 ```Rust
 fn main() {
     let v = Box::new(1);
     println!("v = {}", v);
 }
 ```
+
+<br>
 
 Notes:
 - The value (`1`) is allocated on the **heap**.
@@ -73,22 +106,6 @@ where
     A: Sync,
     T: Sync,
 ```
-
-<br>
-
-# Box memory layout
-Consider example:
-```rust
-fn main() {
-  let vec = vec![1.0, 2.0, 3.0];
-  let foo = Box::new(vec);
-}
-```
-
-<br>
-
-It will be represented in memory as follows:<br>
-![box](/img/box.png)
 
 <br>
 
