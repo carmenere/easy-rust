@@ -237,7 +237,7 @@ fn example(x: &mut i32, y: &mut i32) -> i32 {
 ```
 
 In **Safe Rust** it is **not possible** to have **2 mutable reference** to the **same value**.<br>
-So, in Safe Rust `x` and `y` cannot alias, i.e. Safe Rust guarantees that they are point to different addresses.<br>
+So, in Safe Rust `x` and `y` **cannot alias**, i.e. Safe Rust guarantees that they are point to **different addresses**.<br>
 So, in Safe Rust the code above returns `20`.<br>
 
 But, in **Unsafe Rust** the code above can return `10`. Why? Because we can use **raw pointers** in **Unsafe Rust** and they are **not** tracked by the type system.<br>
