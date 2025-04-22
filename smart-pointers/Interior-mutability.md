@@ -84,9 +84,8 @@ All **cell types** internally use `UnsafeCell` to wrap their data.<br>
 
 <br>
 
-**All cell types** are **not** *thread safe*. To make cell types thread safe use Mutex.<br>
-So, **cell types are not** `Sync`.<br>
-If `Cell<T>` (or any other **cell type**) was `Sync` then `&Cell<T>` would be `Send` and could be shared between threads.<br>
+**All** _cell types_ **aren't** *thread safe*. To make _cell types_ **thread safe** use `Mutex`.<br>
+In other words, _cell types_ **aren't** `Sync`. If `Cell<T>` (or any other **cell type**) was `Sync` then `&Cell<T>` would be `Send` and could be shared between threads.<br>
 
 <br>
 
