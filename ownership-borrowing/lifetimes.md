@@ -14,7 +14,6 @@
   * [Regions](#regions)
   * [Universal region](#universal-region)
     * [Example 1](#example-1)
-    * [Example: aliasing vector and its element](#example-aliasing-vector-and-its-element)
   * [Iterator invalidation](#iterator-invalidation)
 * [Subtyping and variance](#subtyping-and-variance)
   * [Notations](#notations)
@@ -47,10 +46,21 @@
 <br>
 
 # Borrow checker
-**Borrow checker** is responsible for enforcing:
+**Race conditions** can only arise from an **unrestricted combination** of **aliasing** and **mutation**.<br>
+Rust's approach to guarantee the **absense of races** and other **memory safety** is to **rule out** the combination of **aliasing** and **mutation**.<br>
+
+**What aliasing mean**? _Variables_ and _pointers_ **alias** if they **point to overlapping regions of memory**.<br>
+
+<br>
+
+**Borrow checker tracks aliasing** in Rust and **is responsible for enforcing**:
 1. **Ownership rules**.
 2. **Borrowing rules**.
 3. **Subtyping and variance rules**.
+
+<br>
+
+The **rules above** enable Rust to make **memory safety guarantees** without needing GC and in many cases, get the performance of C.<br>
 
 <br>
 
@@ -118,8 +128,6 @@ The **borrowing rules**:
 3. **Any** reference **doesn't own** the **value** it points to;
    - in other words, the **value** reference points to **cannot be moved through dereferencing**;
    - when *reference* **goes out of scope**, the **borrow ends**, and the **value** *reference* points to **isn't destroyed**;
-
-**What aliased mean**? _Variables_ and _pointers_ **alias** if they **point to overlapping regions of memory**.<br>
 
 <br>
 
@@ -380,50 +388,6 @@ fn caller() {
   println!("{}", r); // <-----+
 }
 ```
-
-<br>
-
-### Example: aliasing vector and its element
-Consider code:
-```rust
-let mut data = vec![1, 2, 3];
-let x = &data[0];
-data.push(4);
-println!("{}", x);
-```
-
-<br>
-
-The `&data[0]` is a syntactic sugar for: `let x = Index::index<'a>(&'a data, 0)`.<br>
-
-<br>
-
-Trait `std::ops::Index`:
-```rust
-pub trait Index<Idx: ?Sized> {
-    type Output: ?Sized;
-  
-    fn index(&self, index: Idx) -> &Self::Output;
-}
-```
-
-<br>
-
-Implementation of `std::ops::Index` for `Vec<T>`:
-```rust
-impl<T, I: SliceIndex<[T]>, A: Allocator> Index<I> for Vec<T, A> {
-    type Output = I::Output;
-  
-    fn index(&self, index: I) -> &Self::Output {
-        Index::index(&**self, index)
-    }
-}
-```
-
-<br>
-
-According to **lifetime elision**, method `index()` returns reference to slice with the same lifetime `'a` as `self` has.
-This means, that `data` is borrowed until `x` is used. Borrow of `data` ends when borrow of `x` ends.
 
 <br>
 

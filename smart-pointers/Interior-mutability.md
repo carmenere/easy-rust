@@ -70,8 +70,8 @@ pub struct RefCell<T: ?Sized> {
 <br>
 
 # Interior mutability
-**Interior mutability** enables mutation inside an **immutable** value.<br>
-In other words, **interior mutability** allows to **bypass** Rust's borrowing rules and **mutate** value through **shared** reference (`&T`).<br>
+**Interior mutability** enables **mutation** through a **shared** (**immutable**) **reference**.<br>
+In other words, **interior mutability bypasses** Rust's borrowing rules and **mutate** value through **shared** reference (`&T`).<br>
 **Types** that **allow** *interior mutability* are called **cell types**.<br>
 All **cell types** internally use `UnsafeCell` to wrap their data.<br>
 **Cell types** come in 3 flavors:
@@ -84,16 +84,19 @@ All **cell types** internally use `UnsafeCell` to wrap their data.<br>
 
 <br>
 
-All **cell types** are **not** *thread safe*. So, they all **not** `Sync`, i.e. they are all **implement** `!Sync`:
+**All cell types** are **not** *thread safe*. So, **cell types are not** `Sync`.<br>
+If `Cell<T>` (or any other **cell type**) was `Sync` then `Cell<T>` would be `Send` and could be shared between threads.<br>
+To make *cell types* **thread safe** use `Mutex`.<br>
+
+<br>
+
+So, **all cell types** implement `!Sync`:
 ```rust
 impl<T>         !Sync for OnceCell<T> {}
 impl<T: ?Sized> !Sync for UnsafeCell<T> {}
 impl<T: ?Sized> !Sync for Cell<T> {}
 impl<T: ?Sized> !Sync for RefCell<T> {}
 ```
-
-To make *cell types* **thread safe** use `Mutex`.
-
 
 <br>
 

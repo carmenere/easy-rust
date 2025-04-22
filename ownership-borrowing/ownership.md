@@ -142,7 +142,10 @@ _Scope_ is always **lexical**, because it has **explicit boundaries**: _scope_ *
 <br>
 
 ## Ownership rules
-**Ownership** enables Rust to make **memory safety guarantees** without needing GC and in many cases, get the performance of C.<br>
+The idea of **ownership** is that, although **multiple aliases** to resource may exist **simultaneously**, some actions on the resource (such as **drop**) should require **permission** that is **uniquely owned** by one alias at any point during the execution of the program.<br>
+Although the **permission** is **uniquely owned**, it **can be transferred**.<br>
+
+<br>
 
 Ownership rules:
 1. **Each value** in Rust **has** an **identifier** that’s called its **owner**.

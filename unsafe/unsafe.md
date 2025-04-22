@@ -10,7 +10,9 @@
   * [Example implementation of split_at_mut:](#example-implementation-of-split_at_mut)
 * [r/w access to static variables](#rw-access-to-static-variables)
 * [Implement an unsafe trait](#implement-an-unsafe-trait)
-* [Splitting borrows](#splitting-borrows)
+* [Bypassing borrow checker rules](#bypassing-borrow-checker-rules)
+  * [Example 2: splitting borrows](#example-2-splitting-borrows)
+  * [Example 2: aliasing mutable reference](#example-2-aliasing-mutable-reference)
 <!-- TOC -->
 
 <br>
@@ -213,10 +215,56 @@ fn main() {
 
 <br>
 
-# Splitting borrows
+# Bypassing borrow checker rules
+## Example 2: splitting borrows
 Using _Unsafe Rust_ we can **bypass** mutual exclusion to borrow **disjoint fields** of a struct or **disjoint slices** of collection simultaneously.<br>
 
 For example, there is `split_at_mut` method for `Vec` which divides one mutable slice into two at `mid`:
 ```rust
 split_at_mut(&mut self, mid: usize) -> (&mut [T], &mut [T])
 ```
+
+<br>
+
+## Example 2: aliasing mutable reference
+Consider example:
+```rust
+fn example(x: &mut i32, y: &mut i32) -> i32 {
+  *x = 20;
+  *y = 10;
+  *x
+}
+```
+
+In **Safe Rust** it is **not possible**** to have **2 mutable reference** to the **same value**.<br>
+So, in Safe Rust `x` and `y` cannot alias, i.e. Safe Rust guarantees that they are point to different addresses.<br>
+So, in Safe Rust the code above returns `20`.<br>
+
+But, in **Unsafe Rust** the code above can return `10`. Why? Because we can use **raw pointers** in **Unsafe Rust** and they are **not** tracked by the type system.<br>
+
+<br>
+
+Consider example:
+```rust
+fn main() {
+    let mut value = 10;
+    let raw_ptr = &mut value as *mut i32;
+    let result = unsafe { example(&mut *raw_ptr, &mut *raw_ptr) };
+    println!("result is {}", result);
+}
+
+fn example(x: &mut i32, y: &mut i32) -> i32 {
+    *x = 20;
+    *y = 10;
+    *x
+}
+```
+
+<br>
+
+In the code above we could pass **2 mutable references** to the **same value** and type system **didn't** stop us.<br>
+And as a result we got `10`.<br>
+
+<br>
+
+However, **dereferencing raw pointers is only permitted** in `unsafe` block. The `unsafe` block serve as **syntactic marker** for potentially **UB**.<br>
