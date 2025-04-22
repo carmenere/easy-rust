@@ -56,10 +56,18 @@ Higher Addresses
 |                 |
 |=================| <- Heap (grows upwards)
 |                 |
-|      Text       |
+|       BSS       | Initializeed to 0 by exec()
+|                 | Uninitialized data occupies no space in binary file
+|=================|
+|                 |
+|   Initialized   | Read from binary file by exec()
+|      data       |
+|                 |    
+|=================|
+|                 |
+|      Text       | Read from binary file by exec()
 |                 |
 |=================| <- 0x08048000
-|                 |
 |                 |
 |=================| <- 0x00000000
 Lower Addresses
@@ -70,9 +78,9 @@ Lower Addresses
 Segments:
 1. **Text segment** (aka **Code segment**). It contains instructions for CPU.
 2. **Data segment**, it is divided into **two** parts:
-- **initialized** data, it contains global and static variables that are initialized. Its not a read-only segment and hence the values can be modified;
+- **initialized** data, it contains **global** and **static** variables that are **statically initialized**. It's **not** a read-only segment and hence the values can be modified **at runtime**.
 - **uninitialized** data (aka **BSS** segment), data in this segment are initialized by the kernel to **0** before the program starts execution;
-    - **uninitialized** data occupies no file space;
+    - **uninitialized** data occupies no space in binary file;
 1. **Heap segment**.
 2. **Stack segment**.
 3. **Kernel segment**. It is mapped into process kernel memory, but **not** accessible to program, it contains process specific data (**pages**, ...).
