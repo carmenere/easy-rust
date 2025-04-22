@@ -1,13 +1,16 @@
 # Table of contents
-- [Table of contents](#table-of-contents)
-- [URLs](#urls)
-- [Declarations](#declarations)
-  - [`RcBox<T>`](#rcboxt)
-  - [`Rc<T>`](#rct)
-- [In a nutshell](#in-a-nutshell)
-  - [Example](#example)
-- [Cloning](#cloning)
-- [Deref](#deref)
+<!-- TOC -->
+* [Table of contents](#table-of-contents)
+* [URLs](#urls)
+* [Declarations](#declarations)
+  * [`RcInner<T>`](#rcinnert)
+  * [`Rc<T>`](#rct)
+* [Rc memory layout](#rc-memory-layout)
+* [In a nutshell](#in-a-nutshell)
+  * [Example](#example)
+* [Cloning](#cloning)
+* [Deref](#deref)
+<!-- TOC -->
 
 <br>
 
@@ -19,40 +22,76 @@
 <br>
 
 # Declarations
-## `RcBox<T>`
+## `RcInner<T>`
 ```rust
 #[repr(C)]
-struct RcBox<T: ?Sized> {
-    strong: Cell<usize>,
-    weak: Cell<usize>,
-    value: T,
+struct RcInner<T: ?Sized> {
+  strong: Cell<usize>,
+  weak: Cell<usize>,
+  value: T,
 }
 ```
+
+**Note**, that `#[repr(C)]` attribute is used for `RcInner`.<br>
 
 <br>
 
 ## `Rc<T>`
 ```rust
-pub struct Rc<T, A = Global>
-where
-    A: Allocator,
-    T: ?Sized,
-{
-    ptr: NonNull<RcBox<T>>,
-    phantom: PhantomData<RcBox<T>>,
-    alloc: A,
+pub struct Rc<
+  T: ?Sized,
+  A: Allocator = Global,
+> {
+  ptr: NonNull<RcInner<T>>,
+  phantom: PhantomData<RcInner<T>>,
+  alloc: A,
+}
+```
+
+**Note**, that `Rc` **uses** `NonNull`.<br>
+
+<br>
+
+# Rc memory layout
+Consider example:
+```rust
+use std::rc::Rc;
+
+fn main() {
+  let vec = vec![1.0, 2.0, 3.0];
+  let foo = Rc::new(vec);
+  let a = Rc::clone(&foo);
+  let b = Rc::clone(&foo);
 }
 ```
 
 <br>
 
-The `Rc<T>` type wraps the value of type `T`. The **value** of type `T` is allocated in the **heap**.
+It will be represented in memory as follows:<br>
+![rc](/img/rc.png)
 
 <br>
 
-
 # In a nutshell
-The `Rc` stands for **Reference Counted**.
+The `Rc` stands for **Reference Counted**.<br>
+The `Rc<T>` is just a **pointer** on the **stack** that **points to** `RcInner<T>` which is allocated in the **heap**:
+```rust
+use std::rc::Rc;
+
+fn main() {
+    println!("size_of::<Rc<u16>>: {}", size_of::<Rc<u16>>());
+    println!("size_of::<Rc<String>>: {}", size_of::<Rc<String>>());
+}
+```
+
+<br>
+
+**Output**:
+```shell
+size_of::<Rc<u16>>: 8
+size_of::<Rc<String>>: 8
+```
+
 The `Rc<T>` type is **thread-unsafe reference-counting pointer**. It uses **non-atomic reference counting**.<br>
 The `Rc<T>` type **keeps track** of the **number of references** to **original value** it wraps.<br>
 The `Rc<T>` type is useful when we **can’t determine** *at compile time* in which **scope** the **value** `T` will be **destroyed**.<br>

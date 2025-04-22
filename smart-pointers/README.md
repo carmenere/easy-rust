@@ -14,3 +14,8 @@ Rust, with its concept of ownership and borrowing, has an additional difference 
 |`Ref<T>`|[std::cell::Ref](https://doc.rust-lang.org/std/cell/struct.Ref.html)|It's for enforcing the *borrowing rules* **at runtime** instead of compile time.|
 |`RefCell<T>`|[std::cell::RefCell](https://doc.rust-lang.org/std/cell/struct.RefCell.html)|It's for **interior mutability** for `non-Copy` types.|
 |`RefMut<T>`|[std::cell::RefMut](https://doc.rust-lang.org/std/cell/struct.RefMut.html)|It's for enforcing the *borrowing rules* **at runtime** instead of compile time.|
+
+<br>
+
+# Smart pointers cheat sheet
+[Smart pointers cheat sheet](https://johnbsmith.github.io/Informatik/Rust/Dateien/Rust-container-cheat-sheet.pdf).<br>

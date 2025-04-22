@@ -1,13 +1,15 @@
 # Table of contents
-- [Table of contents](#table-of-contents)
-- [URLs](#urls)
-- [Declaration](#declaration)
-  - [`RcBox`](#rcbox)
-- [Reference counting loops](#reference-counting-loops)
-  - [Example](#example)
-- [`Weak`](#weak)
-- [Examples](#examples)
-  - [Bypassing reference counting loop](#bypassing-reference-counting-loop)
+<!-- TOC -->
+* [Table of contents](#table-of-contents)
+* [URLs](#urls)
+* [Declaration](#declaration)
+  * [`RcBox`](#rcbox)
+* [Reference counting loops](#reference-counting-loops)
+  * [Example](#example)
+* [`Weak`](#weak)
+* [Examples](#examples)
+  * [Bypassing reference counting loop](#bypassing-reference-counting-loop)
+<!-- TOC -->
 
 <br>
 

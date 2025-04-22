@@ -1,7 +1,9 @@
 # Table of contents
-- [Table of contents](#table-of-contents)
-- [Passing `self` as `Box<Self>`, `Rc<Self>` or `Arc<Self>`](#passing-self-as-boxself-rcself-or-arcself)
-    - [Example](#example)
+<!-- TOC -->
+* [Table of contents](#table-of-contents)
+* [Passing `self` as `Box<Self>`, `Rc<Self>` or `Arc<Self>`](#passing-self-as-boxself-rcself-or-arcself)
+    * [Example](#example)
+<!-- TOC -->
 
 <br>
 
