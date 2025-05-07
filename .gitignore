@@ -9,3 +9,6 @@
 # Cargo
 **/target
 **/Cargo.lock
+
+# direnv
+.envrc
