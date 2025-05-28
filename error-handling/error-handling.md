@@ -167,8 +167,8 @@ To use `?`, **calling** and **called** functions must use `Result<T, E>` as retu
 The `?` operator **automatically** converts the **error** to `Err` variant of `Result` type.<br>
 
 <br>
-A function that returns `Result<T, ErrorOuter>` can only use `?` on a value of type `Result<U, ErrorInner>` if `ErrorOuter` and `ErrorInner` are the same type or if `ErrorOuter` implements `From<ErrorInner>`.<br>
 
+A function that returns `Result<T, ErrorOuter>` can only use `?` on a value of type `Result<U, ErrorInner>` if `ErrorOuter` and `ErrorInner` are the same type or if `ErrorOuter` implements `From<ErrorInner>`.<br>
 A common alternative to a `From` implementation is `Result::map_err`, especially when the conversion only happens in one place.<br>
 
 <br>

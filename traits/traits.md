@@ -138,13 +138,11 @@ fn get_animal(rand_number: f64) -> Box<dyn Animal> {
 
 <br>
 
-Vec::<u8>::with_capacity(1024);
-
 # Associated items
 [**More details here**](https://doc.rust-lang.org/reference/items/associated-items.html).<br>
 
 **Associated items** are the **items declared** in **traits** or defined in **implementations**.<br>
-Kinds **associated items**:
+Kinds of **associated items**:
 - **associated functions**;
 - **methods**;
 - **associated types**;
@@ -422,8 +420,8 @@ fn main () {
 <br>
 
 ## Errors E0790 and E0034
-[**Error E0790**](https://doc.rust-lang.org/error_codes/E0790.html).<br>
-[**Error E0034**](https://doc.rust-lang.org/error_codes/E0034.html).<br>
+[**Error E0790**](https://doc.rust-lang.org/error_codes/E0790.html): some trait `Foo` is implemented on **different** types and we call one of its method `Foo::method1()`;
+[**Error E0034**](https://doc.rust-lang.org/error_codes/E0034.html): some type `X` implements several traits which share name for some methods, for example both traits `Foo` and `Bar` have method with name `abc()` and we call this method on instance `x`: `x.abc()`;
 
 <br>
 
@@ -504,7 +502,7 @@ FooBar, impl Bar, method abc()
 
 ### Example2: type inference
 ```rust
-trait New {
+trait TraitFoo {
     const TYPE: &'static str;
 
     fn new() -> Self;
@@ -521,7 +519,7 @@ struct Y {
     y: String,
 }
 
-impl New for X {
+impl TraitFoo for X {
     const TYPE: &'static str = "X";
     fn new() -> Self {
         Self {
@@ -530,7 +528,7 @@ impl New for X {
     }
 }
 
-impl New for Y {
+impl TraitFoo for Y {
     const TYPE: &'static str = "X";
     fn new() -> Self {
         Self {
@@ -539,15 +537,15 @@ impl New for Y {
     }
 }
 
-fn explicit<T: New>() -> T {
-    let x: T = New::new();
+fn explicit<T: TraitFoo>() -> T {
+    let x: T = TraitFoo::new();
     // or
-    let x = <T as New>::new();
+    let x = <T as TraitFoo>::new();
     x
 }
 
-fn implicit<T: New>() -> T {
-    New::new()
+fn implicit<T: TraitFoo>() -> T {
+    TraitFoo::new()
 }
 
 fn main() {
@@ -566,8 +564,8 @@ fn main() {
 <br>
 
 **Explanations**:
-- in function `implicit()` the call `New::new()` is resolved because it's the **last expression** and compiler associates trait `New` with the returned type `T`, so, here `New::new()` is implicitly means `<T as New>::new()`.<br>
-- in function `explicit()` the call `New::new()` is resolved because in **first** let binding **explicit type declaration** is used and in the **second** let binding **fully qualified path** is used.<br>
+- in function `implicit()` the call `TraitFoo::new()` is resolved because it's the **last expression** and compiler associates trait `TraitFoo` with the returned type `T`, so, here `TraitFoo::new()` is implicitly means `<T as TraitFoo>::new()`.<br>
+- in function `explicit()` the call `TraitFoo::new()` is resolved because in **first** let binding **explicit type declaration** is used and in the **second** let binding **fully qualified path** is used.<br>
 
 <br>
 

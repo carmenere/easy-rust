@@ -27,6 +27,16 @@ There 3 types of tests:
 
 <br>
 
+|Command| Description                                                                |
+|:------|:---------------------------------------------------------------------------|
+|`cargo test --bins --lib`| Runs **only** _unit tests_                                                 |
+|`cargo test --test '*'`| Runs **only** _integration tests_                                          |
+|`cargo test --tests`| Runs _unit tests_ + _integration tests_                                    |
+|`cargo test --doc`| Runs **only** _doc tests_                                                  |
+|`cargo test`| Runs **all**: _unit tests_ + _integration tests_ + _doc tests_                 |
+
+<br>
+
 ## Fail conditions
 The test is considered **failed** if:
 - code inside test **panics**;
