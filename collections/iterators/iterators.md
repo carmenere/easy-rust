@@ -1,24 +1,25 @@
 # Table of contents
 <!-- TOC -->
-* [Table of contents](#table-of-contents)
-* [URLs](#urls)
-* [`Iterator`](#iterator)
-  * [Declaration](#declaration)
-  * [In a nutshell](#in-a-nutshell)
-  * [Example](#example)
-* [`IntoIterator`](#intoiterator)
-  * [Declaration](#declaration-1)
-  * [In a nutshell](#in-a-nutshell-1)
-  * [Blanket implementations](#blanket-implementations)
-    * [`impl<I: Iterator> IntoIterator for I`](#impli-iterator-intoiterator-for-i)
-  * [Example](#example-1)
-* [`FromIterator`](#fromiterator)
-  * [Declaration](#declaration-2)
-  * [In a nutshell](#in-a-nutshell-2)
-* [Loop syntax](#loop-syntax)
-  * [iter()/iter_mut()](#iteriter_mut)
-* [`IntoIterator` for `Vec`](#intoiterator-for-vec)
-* [`IntoIterator` for `[T; N]` and `[T]`](#intoiterator-for-t-n-and-t)
+- [Table of contents](#table-of-contents)
+- [URLs](#urls)
+- [`Iterator`](#iterator)
+  - [Declaration](#declaration)
+  - [In a nutshell](#in-a-nutshell)
+  - [Example](#example)
+- [`IntoIterator`](#intoiterator)
+  - [Declaration](#declaration-1)
+  - [In a nutshell](#in-a-nutshell-1)
+  - [Blanket implementations](#blanket-implementations)
+    - [`impl<I: Iterator> IntoIterator for I`](#impli-iterator-intoiterator-for-i)
+  - [Example](#example-1)
+- [`FromIterator`](#fromiterator)
+  - [Declaration](#declaration-2)
+  - [In a nutshell](#in-a-nutshell-2)
+- [Connection between `collect()` and `from_iter()`](#connection-between-collect-and-from_iter)
+- [Loop syntax](#loop-syntax)
+  - [iter()/iter\_mut()](#iteriter_mut)
+- [`IntoIterator` for `Vec`](#intoiterator-for-vec)
+- [`IntoIterator` for `[T; N]` and `[T]`](#intoiterator-for-t-n-and-t)
 <!-- TOC -->
 
 <br>
@@ -194,6 +195,31 @@ Trait `FromIterator` is used for conversion **from** an `Iterator` **to** _colle
 
 By implementing `FromIterator` for a **collection** type, you define how it will be created **from** an **iterator**.<br>
 `FromIterator::from_iter()` is rarely called explicitly, and `FromIterator::from_iter()` is usually used through `Iterator::collect()` method.<br>
+
+<br>
+
+# Connection between `collect()` and `from_iter()`
+Below `D` is a type of some **collection type**, e.g. `Vec<u8>` or `Vec<Foo>`:
+```rust
+struct SomeIterator {};
+
+impl Iterator for SomeIterator {
+  type Item = T;
+  fn collect <D: FromIterator<Self::Item>>(self) -> D {
+    <D as FromIterator>::from_iter(self.into_iter())
+  }
+}
+```
+
+Below `T` is type of **item of collection**, in other words `T = Self::Item` where `Self` some `Iterator` type:
+```rust
+impl FromIterator<T> for D {
+  fn from_iter<I: IntoIterator<T>>(iter: I) -> Self {
+    ....
+  }
+}
+
+```
 
 <br>
 
