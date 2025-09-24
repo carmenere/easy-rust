@@ -65,10 +65,82 @@ Consider example when linked list that is looped: `a -> b -> c -> a`.<br>
 
 <br>
 
-Consider there is **no** ref from `c` to `a`.<br>
+```rust
+use std::cell::RefCell;
+use std::rc::Rc;
+
+#[derive(Debug)]
+struct Node2 {
+    next: Option<Rc<RefCell<Node2>>>,
+}
+
+impl Drop for Node2 {
+    fn drop(&mut self) {
+        println!("Dropping");
+    }
+}
+
+fn main() {
+    let a = Rc::new(RefCell::new(Node2 {next: None}));
+    println!("a count: {:?}",  Rc::strong_count(&a));
+    let b = Rc::new(RefCell::new(Node2 {next: Some(Rc::clone(&a))}));
+    println!("a count: {:?}",  Rc::strong_count(&a));
+    println!("b count: {:?}",  Rc::strong_count(&b));
+    let c = Rc::new(RefCell::new(Node2 {next: Some(Rc::clone(&b))}));
+
+    // Creates a reference cycle
+    (*a).borrow_mut().next = Some(Rc::clone(&c));
+    println!("a count: {:?}",  Rc::strong_count(&a));
+    println!("b count: {:?}",  Rc::strong_count(&b));
+    println!("c count: {:?}",  Rc::strong_count(&c));
+
+    // Print a will casue stack overlfow
+    // println!("a {:?}",  &a);
+}
+```
+
+<br>
+
+**Output**:
+```rust
+a count: 1
+a count: 2
+b count: 1
+a count: 2
+b count: 2
+c count: 2
+```
+
+<br>
+
+Notice there is no print "Dropping" out during output.<br>
+The instances **can't be dropped** either, because Rc<RefCell<Node>> is still refered to it.<br>
+
+<br>
+
+Consider there is **no** ref from `c` to `a`: comment `(*a).borrow_mut().next = Some(Rc::clone(&c));`.<br>
 Then after `a` had destroyed, its **strong** filed would become **0** and heap allocated value also would be dropped and its in turn trigger drop `Rc` in its **next** filed.<br>
 This in turn **decrements** strong of `b` and so on.<br>
 As result all nodes of list will be droped.<br>
+
+<br>
+
+**Output**:
+```rust
+a count: 1
+a count: 2
+b count: 1
+a count: 2
+b count: 2
+c count: 1
+Dropping
+Dropping
+Dropping
+```
+
+<br>
+
+Notice there is print "Dropping" and **all instances** are **dropped**.<br>
 
 <br>
 
