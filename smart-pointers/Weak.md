@@ -66,7 +66,7 @@ Consider example when linked list that is looped: `a -> b -> c -> a`.<br>
 <br>
 
 Consider there is **no** ref from `c` to `a`.<br>
-Then after `a` had beed destroyed, its **strong** filed would become **0** and heap allocated value also would be dropped and its in turn trigger drop `Rc` in its **next** filed.<br>
+Then after `a` had destroyed, its **strong** filed would become **0** and heap allocated value also would be dropped and its in turn trigger drop `Rc` in its **next** filed.<br>
 This in turn **decrements** strong of `b` and so on.<br>
 As result all nodes of list will be droped.<br>
 
