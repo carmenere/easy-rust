@@ -114,14 +114,15 @@ c count: 2
 <br>
 
 Notice there is no print "Dropping" out during output.<br>
-The instances **can't be dropped** either, because Rc<RefCell<Node>> is still refered to it.<br>
+The instances **can't be dropped** either, because `Rc<RefCell<Node>>` is still refered to it.<br>
 
 <br>
 
-Consider there is **no** ref from `c` to `a`: comment `(*a).borrow_mut().next = Some(Rc::clone(&c));`.<br>
-Then after `a` had destroyed, its **strong** filed would become **0** and heap allocated value also would be dropped and its in turn trigger drop `Rc` in its **next** filed.<br>
-This in turn **decrements** strong of `b` and so on.<br>
-As result all nodes of list will be droped.<br>
+Consider there is **no** ref from `c` instance to `a` instance: **comment out line** `(*a).borrow_mut().next = Some(Rc::clone(&c));`.<br>
+Then after `a` had destroyed, its **strong** *filed* would become **0** and heap allocated value also would be dropped.
+After heap allocated value had dropped the contained in its **next** *filed* `Rc<RefCell<Node>>` value also is dropped.<br>
+This in turn **decrements** *filed* **strong** of `b` instance and so on.<br>
+As result **all nodes** of list are **droped**.<br>
 
 <br>
 
