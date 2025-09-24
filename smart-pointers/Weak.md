@@ -1,14 +1,15 @@
 # Table of contents
 <!-- TOC -->
-* [Table of contents](#table-of-contents)
-* [URLs](#urls)
-* [Declaration](#declaration)
-  * [`RcBox`](#rcbox)
-* [Reference counting loops](#reference-counting-loops)
-  * [Example](#example)
-* [`Weak`](#weak)
-* [Examples](#examples)
-  * [Bypassing reference counting loop](#bypassing-reference-counting-loop)
+- [Table of contents](#table-of-contents)
+- [URLs](#urls)
+- [Declaration](#declaration)
+  - [`RcBox`](#rcbox)
+- [Reference counting loops](#reference-counting-loops)
+  - [Example1](#example1)
+  - [Example2](#example2)
+- [`Weak`](#weak)
+- [Examples](#examples)
+  - [Bypassing reference counting loop](#bypassing-reference-counting-loop)
 <!-- TOC -->
 
 <br>
@@ -42,8 +43,36 @@ To **avoid** *reference counting loop* there is special type [Weak](./Weak.md) i
 
 <br>
 
+## Example1
+Consider example when linked list that is looped: `a -> b -> c -> a`.<br>
 
-## Example
+![ref_cycle](/img/ref_cycle.png)
+
+<br>
+
+1. After `c` goes out of scope the state of list will be as follows:
+![ref_cycle](/img/drop_c.png)
+
+<br>
+
+1. Then after `b` goes out of scope the state of list will be as follows:
+![ref_cycle](/img/drop_b.png)
+
+<br>
+
+3. Then after `a` goes out of scope the state of list will be as follows:
+![ref_cycle](/img/drop_a.png)
+
+<br>
+
+Consider there is **no** ref from `c` to `a`.<br>
+Then after `a` had beed destroyed, its **strong** filed would become **0** and heap allocated value also would be dropped and its in turn trigger drop `Rc` in its **next** filed.<br>
+This in turn **decrements** strong of `b` and so on.<br>
+As result all nodes of list will be droped.<br>
+
+<br>
+
+## Example2
 ```Rust
 use std::{cell::RefCell, sync::Arc};
 
