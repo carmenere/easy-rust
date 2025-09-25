@@ -34,9 +34,9 @@ There 3 types of tests:
 |`cargo test --lib <test_name>`| Runs **only** _unit tests_ from library crate with **common prefix** in their names `<test_name>`|
 |`cargo test --lib tests::<test_name> -- --exact`| Runs **only one** _unit test_ from library crate with exact name `<test_name>`|
 |`cargo test --test '*'`| Runs **only** _integration tests_|
-|`cargo test <integration_test_file_name>`| Runs **only** _integration tests_ from file `tests/<integration_test_file_name>.rs`|
-|`cargo test <integration_test_file_name> -- <test_function_name>`| Runs **only** _integration tests_ from file `tests/<integration_test_file_name>.rs` with **common prefix** in their names `<test_function_name>`|
-|`cargo test <integration_test_file_name> -- <test_function_name> --exact`| Runs **only one** _integration test_ from file `tests/<integration_test_file_name>.rs` with exact name `<test_function_name>`|
+|`cargo test --test <integration_test_file_name>`| Runs **only** _integration tests_ from file `tests/<integration_test_file_name>.rs`|
+|`cargo test --test <integration_test_file_name> -- <test_function_name>`| Runs **only** _integration tests_ from file `tests/<integration_test_file_name>.rs` with **common prefix** in their names `<test_function_name>`|
+|`cargo test --test <integration_test_file_name> -- <test_function_name> --exact`| Runs **only one** _integration test_ from file `tests/<integration_test_file_name>.rs` with exact name `<test_function_name>`|
 |`cargo test --tests`| Runs _unit tests_ + _integration tests_|
 |`cargo test --doc`| Runs **only** _doc tests_|
 |`cargo test`| Runs **all**: _unit tests_ + _integration tests_ + _doc tests_|
