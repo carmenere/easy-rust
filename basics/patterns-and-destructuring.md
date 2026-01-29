@@ -34,6 +34,7 @@
       - [Borrow value inside `Option`](#borrow-value-inside-option)
       - [Nested variant](#nested-variant)
 - [if let](#if-let)
+- [let else](#let-else)
 - [while let](#while-let)
 <!-- TOC -->
 
@@ -43,6 +44,8 @@
 - **scrutinize** /ˈskruː.tɪ.naɪz/ to examine something very carefully;
 - **scrutiny** /ˈskruːtɪnɪ/ careful examination of something;
 - **scrutineer** /ˌskruː.tɪˈnɪər/ a person who scrutinises;
+- **diverge** /ˌdaɪˈvɜːdʒ/ to follow a different direction;
+- **diverging** /daɪˈvɜːdʒɪŋ/
 
 <br>
 
@@ -823,6 +826,81 @@ fn main() {
     }
 }
 ```
+
+<br>
+
+# let else
+`if let` vs. `let else`:
+- in `if let`
+  - the *bindings* are only available **within** the code block `{ }`;
+- in `let else`
+  - the *bindings* are available in the **outer** (*surrounding*) scope **after** the `let else` statement;
+  - the `else` block is mandatory and must be a **diverging expression**;
+
+<br>
+
+The scope of name bindings is the main thing that makes `let else` different from `match` or if `let else` expressions:
+- if *pattern* can match then *unpacked values* are bound to variables and **can** be used further in **current scope** like a normal `let` (in the rest of the current function);
+- otherwise `else` **diverges** (e.g. `return`, `panic!` or calling any *diverging function*), in other words the *program flow* **doesn't** proceed if the *pattern* **fails** to match;
+
+<br>
+
+**Example**:
+```rust
+fn main() {
+    let v = vec![1,2,3];
+
+    for index in 0..10 {
+        let Some(item) = v.get(index) else {
+            continue;
+        };
+        println!("{}", item)
+    }
+}
+```
+
+<br>
+
+**Example**:
+```rust
+fn main() {
+    let number1 = Some(7);
+    let number2: Option<u32> = None;
+
+    let Some(unpacked_value1) = number1 else {
+        return // early exit
+    };
+    println!("{}", unpacked_value1);  // variable unpacked_value1 is accessible here
+
+    let Some(unpacked_value2) = number2 else {
+        return // early exit
+    };
+    println!("{}", unpacked_value2); // variable unpacked_value2 is accessible here
+}
+```
+
+<br>
+
+To understand `let else` you must understand the idea of **diverging code** and **diverging functions**.<br>
+
+**Diverging code** is any code that lets you **escape before** going to the next line, i.e. **diverging code** performs **early return**. For example, keyword `break` or `return` in functions.<br>
+
+**Diverging functions** are functions that return **never type** `!`:
+```rust
+fn diverging_function() -> ! {
+    panic!("This call never returns.");
+}
+```
+
+As opposed to all the other types, this one **cannot be instantiated**, because the set of all possible values this type can have is **empty**.<br>
+Note, that it is different from the `()` type, which has **exactly one** possible **value**.<br>
+
+<br>
+
+Common examples of *diverging functions*:
+- calling the `panic!` macro, which crashes the **current thread**;
+- calling `std::process::exit()`, which terminates the **entire process**;
+- **infinite loops**, such as `loop {}`;
 
 <br>
 
