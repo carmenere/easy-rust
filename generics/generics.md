@@ -23,6 +23,11 @@ fn bark<T: Bark> (b: T) { ... }
 
 <br>
 
+The important part is the `<T>` **after** the function name. Without this, Rust will think that `T` is a *concrete type* (concrete = **not** generic), like `String` or `i8`.<br>
+For the `bark` function, you can say: The function `bark` is **generic over type** `T`.<br>
+
+<br>
+
 ## Generic kinds
 <table>
     <tr>
