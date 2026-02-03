@@ -55,6 +55,9 @@
   - [VecDeque](#vecdeque)
   - [The `?` operator](#the--operator)
 - [Chapter 07](#chapter-07)
+  - [`From` trait](#from-trait)
+  - [The orphan rule](#the-orphan-rule)
+  - [`AsRef` trait](#asref-trait)
 - [Chapter 08](#chapter-08)
 - [Chapter 09](#chapter-09)
 - [Chapter 10](#chapter-10)
@@ -425,7 +428,7 @@ let my_string = "Try to make this a String".into();
 error[E0282]: type annotations needed
 ```
 
-It's because many types can be made from a `&str`. It is possible to make `&str` into a lot of things, so which one do you want?
+It's because **many types can be made from** a `&str`. It is possible to make `&str` into a lot of things, so which one do you want?
 
 <br>
 
@@ -614,13 +617,13 @@ fn main() {
 <br>
 
 **Complex printing** is also possible in Rust if you want to use it. The format is:
-- `{variable:padding alignment minimum.maximum}`
+- `{variable:padding alignment width.precise}`
 
 - Do you want a variable name? Write variable name **first**, like when we wrote `{country}`. Then add a `:` after it if you want to do more things.
 - Do you want a **padding** character?
 - What **alignment** (**left**/**middle**/**right**) do you want for the **padding**?
-- Do you want a **minimum** length for the **padding**?
-- Do you want a **maximum** length for the **padding**?
+- A **width** define **max** length for the **padding**;
+- A **precise** define **max** numbers to print **after** the **dot** for *floats*;
 - Then, at the end, you can add a **question mark** `?` if you want to `Debug` print.
 
 <br>
@@ -663,6 +666,22 @@ fn main() {
 **Output**:
 ```bash
 --a---
+```
+
+<br>
+
+**Code**:
+```rust
+fn main() {
+    let letter = "a";
+    println!("{:-^8.3}", 77.123456789);
+    println!("{:-^6.3}", 77.123456789);
+}
+```
+**Output**:
+```bash
+-77.123-
+77.123
 ```
 
 <br>
@@ -1364,6 +1383,7 @@ All **collections** are contained in the `std::collections` module in the *stand
   - `BTreeSet` is like an **ordered** `HashSet`, i.e. it **orders** its *keys*;
 - `BinaryHeap`
   - it is a **priority queue**;
+  - a `BinaryHeap` always has the **largest value** *at the front*, everything else is **unsorted**;
 - `VecDeque` (pronounced /vec-deck/)
   - it is like a `Vec` that is **optimized for** *popping items both off* the **front** and the **back**;
 
@@ -1738,9 +1758,9 @@ VecDeque::pop_front(): 749.583µs
 <br>
 
 ## The `?` operator
-After anything that returns a `Result` or `Option`, you can add `?`. This will
-- give what is inside the `Result` if it is `Ok`;
-- return the error back if it is `Err` (this is called an **early return**);
+After anything that returns a `Result` or `Option`, you can add `?`. This will:
+- automatically **pulls out** the `Ok` value from a `Result`;
+- if the value inside `Result` is `Err` it will **exit the function early** (**early return**) and return `Err` of the `Result` of function's returning type
 
 <br>
 
@@ -1790,6 +1810,116 @@ fn turn_into_string_and_parse(bytes: Vec<u8>) -> Result<i32, ????> {
 <br>
 
 # Chapter 07
+Rust uses a special syntax called **attributes** to automatically implement traits like `Debug` because they are so common.<br>
+```rust
+#[derive(Debug)]
+struct MyStruct {
+    number: usize,
+}
+```
+
+<br>
+
+But other traits are more difficult for the compiler to guess, so you **can’t** use `derive` to implement them. Those traits **need to be manually implemented** with the
+`impl` keyword. A good example is the `Add` trait (found at `std::ops::Add`), which is used to add two things. Any type that implements the `Add` trait can use the `+` operator to add.<br>
+
+<br>
+
+To make a *trait*, write `trait` and then create some methods for it.<br>
+You can **just** write the function **signature** when making a *trait* or provide **default implementation** of method which **can be overwritten further**.<br>
+*Traits* can be **empty**, aka **marker traits**:
+```rust
+trait X {}
+trait Y {}
+```
+
+So when you create a trait, you must think: *Which methods should I write? And which ones should the user write?*:
+- if you think **most users will use the methods the same way every time**, it makes sense for you to write a **default method** inside the trait;
+- but if you think that **users will use the methods differently every time**, write the **signature**;
+
+<br>
+
+We can pass `&self` inside methods, but we **can’t** do much with it. That’s because Rust **doesn’t** know what type is going to use it. For example, we **can't** access any field on the `self` inside **default implementation** of method.<br>
+
+But we can add *trait bounds* to the trait:
+```rust
+trait A: B {
+
+}
+```
+
+The above code means any type that implements `A` must implement `B` and it allows to call `B`'s methods on `self` in the **default implementations**.<br>
+
+<br>
+
+## `From` trait
+With `From`, you can make a `String` from a `&str`, but you can make many types from many other types.<br>
+
+<br>
+
+## The orphan rule
+The **orphan rule**:
+- you **can** implement **your** *trait* on **someone else’s** *type*;
+- you **can** implement **someone else’s** *trait* on **your** *type*;
+- **however**, you **can’t** implement **someone else’s** *trait* on **someone else’s** *type*;
+
+<br>
+
+The best way to **get around** the *orphan rule* is to **wrap** *someone else’s type* in a **tuple struct**, thereby creating an entirely **new type**.<br>
+This is called the **newtype pattern**.<br>
+
+<br>
+
+## `AsRef` trait
+The `AsRef` trait is used to *give a reference* **from** *one type* **to** *another type*.<br>
+
+Both `String` and `str` implement `AsRef<str>`. Here is how they do it:
+```rust
+impl AsRef<str> for str {
+    fn as_ref(&self) -> &str {
+        self
+    }
+}
+```
+
+```rust
+impl AsRef<str> for String {
+    fn as_ref(&self) -> &str {
+        self
+    }
+}
+```
+
+<br>
+
+Example: a function that can take **both** a `String` and a `&str`:
+```rust
+fn print_it<T: AsRef<str>>(input: T) {
+    println!("{}", input)
+}
+
+fn main() {
+    print_it("Please print me");
+    print_it("Also, please print me".to_string());
+}
+```
+**Output**:
+```rust
+Here is the error: error[E0277]: `T` doesn't implement `std::fmt::Display`.
+```
+
+We got this **error** because `T` is a type that implements `AsRef<str>`, but `T` **may** or **may not** implement `Display`.<br>
+But we can turn it into a reference to a `str`, thanks to the `AsRef` trait. To do that, call the **trait’s method**: `.as_ref()`.<br>
+```rust
+fn print_it<T: AsRef<str>>(input: T) {
+    println!("{}", input.as_ref())
+}
+
+fn main() {
+    print_it("Please print me");
+    print_it("Also, please print me".to_string());
+}
+```
 
 <br>
 
