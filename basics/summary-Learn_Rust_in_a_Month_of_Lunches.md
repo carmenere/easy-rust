@@ -7,6 +7,7 @@
   - [Integers](#integers)
     - [Casting integers](#casting-integers)
   - [Characters](#characters)
+  - [Grapheme clusters](#grapheme-clusters)
     - [Conversions](#conversions)
   - [Type inference](#type-inference)
   - [Floats](#floats)
@@ -212,6 +213,57 @@ What about the size in characters/letters? There is methods `.chars().count()` t
 'Hello' consists of 5 bytes and 5 characters.
 '안녕' consists of 6 bytes BUT 2 characters.
 ```
+
+<br>
+
+## Grapheme clusters
+In Rust, a **grapheme cluster** **cannot** be a `char` because a `char` is defined as a **single** 4-byte code point of Unicode, whereas a **grapheme cluster** is a **sequence** of one or more **code points** that is displayed as a **single character**.<br>
+
+**Namaste** (/na-ma-stay/) is the most common **greeting** in **Hindi**, suitable for both **formal** and **informal** situations.<br>
+*Namaste* in **Sanskrit** is नमस्ते.<br>
+
+The नमस्ते consists of **3 graphemes**:
+- `न` (*na*): grapheme 1 and it corresponds to **1 code point**;
+- `म` (*ma*): grapheme 2 and it corresponds to **1 code point**;
+- `स्ते` (*ste*): grapheme 3 and it is comprised of **4 code point**: `स` + `्` + `त` + `े`;
+
+<br>
+
+**Example**:
+```rust
+fn main() {
+    let namaste = "नमस्ते";
+
+    println!("namaste.as_bytes() = {:?}", namaste.as_bytes());
+    println!("namaste.len() = {}, namaste.as_bytes().len() = {}, namaste.chars().count() = {}", namaste.len(), namaste.as_bytes().len(), namaste.chars().count());
+    namaste.chars().for_each(|ch| println!(r#"{} = {}, {:?}"#, ch, ch.escape_unicode(), ch.to_string().as_bytes()));
+}
+```
+**Output**:
+```rust
+namaste.as_bytes() = [224, 164, 168, 224, 164, 174, 224, 164, 184, 224, 165, 141, 224, 164, 164, 224, 165, 135]
+namaste.len() = 18, namaste.as_bytes().len() = 18, namaste.chars().count() = 6
+न = \u{928}, [224, 164, 168]
+म = \u{92e}, [224, 164, 174]
+स = \u{938}, [224, 164, 184]
+् = \u{94d}, [224, 165, 141]
+त = \u{924}, [224, 164, 164]
+े = \u{947}, [224, 165, 135]
+```
+
+<br>
+
+So, the नमस्ते consists of:
+- **3** *graphemes*;
+- **6** *chars* (or **6** *code points*);
+- **18** *bytes*;
+
+<br>
+
+The following image displays the **bytes**, **code points** and **grapheme clusters** for the same word written in English (`hello`) and Hindi (`नमस्ते`):
+![bytes-points-graphemes](/img/bytes-points-graphemes-2.png)
+
+<br>
 
 <br>
 
