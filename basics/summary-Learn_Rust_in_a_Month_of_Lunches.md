@@ -255,7 +255,7 @@ namaste.len() = 18, namaste.as_bytes().len() = 18, namaste.chars().count() = 6
 
 So, the नमस्ते consists of:
 - **3** *graphemes*;
-- **6** *chars* (щк **6** *code points*);
+- **6** *chars* (or **6** *code points*);
 - **18** *bytes*;
 
 <br>
