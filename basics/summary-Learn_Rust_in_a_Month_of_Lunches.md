@@ -60,7 +60,22 @@
   - [The orphan rule](#the-orphan-rule)
   - [`AsRef` trait](#asref-trait)
 - [Chapter 08](#chapter-08)
+  - [Iterators and loops](#iterators-and-loops)
+  - [Method chaining](#method-chaining)
+    - [.for\_each()](#for_each)
+    - [.skip() and .take()](#skip-and-take)
+    - [.enumerate()](#enumerate)
+    - [collect into HashMap](#collect-into-hashmap)
+  - [Closures and closures inside iterators](#closures-and-closures-inside-iterators)
+    - [.unwrap\_or() and  .unwrap\_or\_else()](#unwrap_or-and--unwrap_or_else)
+  - [Closures: lazy and fast](#closures-lazy-and-fast)
+  - [`|_|` in a closure](#_-in-a-closure)
 - [Chapter 09](#chapter-09)
+  - [`flatten()`](#flatten)
+    - [Flatten Result/Option](#flatten-resultoption)
+      - [Flattening a single nested `Result` or `Option`](#flattening-a-single-nested-result-or-option)
+      - [Flattening an `Iterator` that yields `Result` or `Option`](#flattening-an-iterator-that-yields-result-or-option)
+      - [Collecting a `Vec<Result<T, E>>` into a `Result<Vec<T>, E>`](#collecting-a-vecresultt-e-into-a-resultvect-e)
 - [Chapter 10](#chapter-10)
 - [Chapter 11](#chapter-11)
 - [Chapter 12](#chapter-12)
@@ -1976,12 +1991,411 @@ fn main() {
 <br>
 
 # Chapter 08
+## Iterators and loops
+A `for` loop can receive **iterator** or **iterable** (because every **iterator** is **iterable**):
+- `.into_iter()` for an **iterator of owned values**;
+  - the `for num in vector` is the same as writing `for num in vector1.into_iter()` - it iterates over **owned values**, and `vector1` **no longer exists** after this for loop is done;
+- `.iter()` for an **iterator of references**;
+  - the `for num in mut vector` is the same as writing `for num in vector.iter()` - it iterates over **immutable references**, so `vector` **still exists** after it is over;
+- `.iter_mut()` for an **iterator of mutable references**;
+  - the `for num in &mut vector` is the same as writing `for num in vector.iter_mut()` - it iterates over **mutable references**, so `vector` **still exists** after it is over;
+
+<br>
+
+The core of every iterator is a method called `.next()`, which returns an `Option`. When you use an iterator, it calls `.next()` over and over:
+- if `.next()` returns `Some`, there are still items left, and the iterator **keeps going**;
+- if `None` is returned, the iteration is **finished**;
+
+An iterator gives out a bunch of `Somes` until it is out of items, and then it **only** gives `None`. This is how the `for` loop knows when to stop.<br>
+
+If you wish, you can also **manually call** `.next()` on an iterator:
+```rust
+fn main() {
+    let my_vec = vec!['a', 'b', 'c', 'd'];
+    let mut my_vec_iter = my_vec.iter();
+    assert_eq!(my_vec_iter.next(), Some(&'a'));
+    assert_eq!(my_vec_iter.next(), Some(&'b'));
+    assert_eq!(my_vec_iter.next(), Some(&'c'));
+    assert_eq!(my_vec_iter.next(), Some(&'d'));
+    assert_eq!(my_vec_iter.next(), None); // Now the iterator is out of items, so it returns None.
+    assert_eq!(my_vec_iter.next(), None); // You can keep calling .next() on the iterator, and it will simply return None every time.
+}
+```
+
+<br>
+
+It is possible to make iterators that **never** return `None`, **only** return `None`, and so on.<br>
+
+Here’s an iterator that just gives the number 1 forever:
+```rust
+struct GivesOne;
+impl Iterator for GivesOne {
+    type Item = i32;
+    fn next(&mut self) -> Option<i32> {
+        Some(1)
+    }
+}
+
+fn main() {
+    let mut my_vec_iter = GivesOne;
+
+    assert_eq!(my_vec_iter.next(), Some(1));
+    assert_eq!(my_vec_iter.next(), Some(1));
+    assert_eq!(my_vec_iter.next(), None); // this panics!
+}
+```
+
+But you can use the `.take(N)` method to only call it `N` times.<br>
+
+**Note** that the `GivesOne` struct **doesn’t hold anything**. It’s a good example of one of the ways that an *iterator* **differs** from a *collections*. In this case, the `GivesOne` struct is just an **empty struct** that implements the `Iterator` trait.<br>
+
+<br>
+
+## Method chaining
+- `.collect()` transforms iterator to collection of some type;
+- `.skip(N)` skips over `N` items;
+- `.take(N)` takes the first `N` items;
+- `.map()` lets you do something to every item (including turning it into a different type) and then pass it on to make a new iterator;
+- `.for_each()` lets you do something with every item **without** creating a new iterator;
+  - it allows **modify items** in the **original** `Vec` **without** nedding to make a **new** `Vec`;
+- `.enumerate()` zips items with their indices, in other words it coverts original collection to collection of tuples `(usize, item)`;
+
+<br>
+
+The `.iter()`/`.iter_mut()` plus `.for_each()` is basically a `for` loop.<br>
+
+### .for_each()
+In the example below we don’t need to use `.collect()` to create a new `Vec`, because we change items directly in the original collection:
+```rust
+vector2.iter_mut().for_each(|x| *x +=100);
+```
+Thus, `vector2` is still there after the iterator is over.
+
+<br>
+
+### .skip() and .take()
+```rust
+fn main() {
+    let my_vec = vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    let new_vec = my_vec.into_iter().skip(2).take(2).collect::<Vec<i32>>();
+    println!("{new_vec:?}");
+
+    let v = (1..).skip(10).take(5).collect::<Vec<i32>>();
+    println!("{v:?}");
+}
+```
+**Output**:
+```bash
+[2, 3]
+[11, 12, 13, 14, 15]
+```
+
+<br>
+
+### .enumerate()
+**Example**:
+```rust
+fn main() {
+    let char_vec = vec!['z', 'y', 'x'];
+    char_vec
+    .iter()
+    .enumerate()
+    .for_each(|(index, c)| println!("Index {index} is: {c}"));
+}
+```
+**Output**:
+```bash
+Index 0 is: z
+Index 1 is: y
+Index 2 is: x
+```
+
+<br>
+
+### collect into HashMap
+```rust
+use std::collections::HashMap;
+fn main() {
+    let some_keys = vec![0, 1, 2, 3, 4, 5];
+    let some_values = vec!["zero", "one", "two", "three", "four", "five"];
+    let number_word_hashmap = some_keys
+        .into_iter()
+        .zip(some_values)
+        .collect::<HashMap<_, _>>();
+    println!("The value at key 2 is: {}", number_word_hashmap.get(&2).unwrap());
+}
+```
+
+<br>
+
+You can see that we wrote `<HashMap<_, _>>` because that is enough information for Rust to decide on the type `HashMap<i32, &str>`.<br>
+You can write `.collect::<HashMap<i32, &str>>()` if you want.<br>
+
+<br>
+
+## Closures and closures inside iterators
+**Closures** are functions that don’t need a name — in other words, **anonymous functions**. Sometimes they are called **lambdas** in other languages.<br>
+
+You can **bind a closure to a variable**, and then it looks exactly like a function when you use it:
+```rust
+fn main() {
+    let my_closure = || println!("This is a closure");
+    my_closure();
+}
+```
+
+In the above example closure takes nothing: `||`.<br>
+
+In between the `||`, we can add **signature of closure** for its **input variables**:
+```rust
+fn main() {
+    let my_closure = |x: i32| println!("{x}");
+    my_closure(5);
+    my_closure(5+5);
+}
+```
+
+<br>
+
+For longer *closures*, you can add a **code block**: `|| {}`.<br>
+Also you can add a **returning value** in the signature: `|| -> u64 {}` or `|x: i32| -> u64 {}`.<br>
+
+One thing that makes *closures* special is that they **can capture variables** from their environment that are outside the closure, even if you only write `||`.<br>
+You can think of a closure as a standalone type that can hold references in the same way that a struct can.<br>
+
+<br>
+
+Usually you see *closures* in Rust inside of methods because it is very convenient to have a closure inside. The convenience comes from the fact that the user can write the **body** of the *closure* **differently** each time, *depending on the situation*.<br>
+
+<br>
+
+### .unwrap_or() and  .unwrap_or_else()
+The `.unwrap_or(value)` method returns a default `value` if an `Option` is a `None` or `Result` is an `Err`.<br>
+The `.unwrap_or_else()` method allows us to give a default value, but it uses a **closure** that we can use to write some more **complex logic**.<br>
+
+Consider example:
+```rust
+fn main() {
+    let v = vec![1, 2, 3];
+
+    let fourth = v.get(3).unwrap_or_else(|| {
+        if let Some(val) = v.get(2) {
+            val
+        }
+        else {
+            &0
+        }
+    });
+    println!("{}", fourth);
+}
+```
+
+*First*, we try to get an item at index **3**, *then* if it was `None` we try to get item one index back and *finally* we return a `&0` in case **no items have been found** at either index.<br>
+
+<br>
+
+## Closures: lazy and fast
+A classic example of using `.map()` to make a new `Vec` from an existing `Vec`:
+```rust
+fn main() {
+    let num_vec = vec![2, 4, 6];
+    let double_vec: Vec<i32> = num_vec
+    .iter()
+    .map(|num| num * 2)
+    .collect();
+}
+```
+
+That was pretty easy and prints `[4, 8, 12]`. But let’s see what happens when we **don’t collect** into a `Vec`: the compiler **issues is a warning**:
+```rust
+fn main() {
+    let num_vec = vec![2, 4, 6];
+    num_vec
+    .iter()
+    .enumerate()
+    .map(|(index, num)| format!("Index {index} is {num}"));
+}
+```
+**Output**:
+```rust
+warning: unused `Map` that must be used
+ --> chapter_03/src/main.rs:3:5
+  |
+3 | /     num_vec
+4 | |     .iter()
+5 | |     .enumerate()
+6 | |     .map(|(index, num)| format!("Index {index} is {num}"));
+  | |__________________________________________________________^
+  |
+  = note: iterators are lazy and do nothing unless consumed
+  = note: `#[warn(unused_must_use)]` on by default
+help: use `let _ = ...` to ignore the resulting value
+  |
+3 |     let _ = num_vec
+  |     +++++++
+```
+
+<br>
+
+Consider **chain of 3 methods**:
+```rust
+num_vec.iter().enumerate().map()
+```
+
+<br>
+
+Rust avoids this sort of operation:
+- **iterate** over all the items in the `Vec`;
+- **enumerate** over all the items from the iterator;
+- **map** over all the enumerated i32s;
+
+<br>
+
+Instead, an iterator with a *method* and another *method* and another *method* simply *creates* a **single structure** and waits until we decide what to do with it:
+- `let num_vec = vec![2, 4, 6];` it is a `Vec<i32>`;
+- `.iter()` now it is an `Iter<i32>`;
+- `.enumerate()` now it is an `Enumerate<Iter<i32>>`;
+- `.map()` now it is a `Map<Enumerate<Iter<i32>>>`;
+
+If we add `.collect::<Vec<i32>>()`, it knows what to do.<br>
+
+This is one of the ways that Rust keeps even fancy functional-looking code **as fast as** any other kind of code. This is an example of an idea in Rust called **zero-cost abstractions**.<br>
+
+<br>
+
+## `|_|` in a closure
+The `|_|` in a closure means that the closure needs to take an argument, but you don't want to use it.<br>
 
 <br>
 
 # Chapter 09
+## `flatten()`
+The `.flatten()` operates on `Iterator` whose items implement `IntoIterator`.<br>
 
 <br>
+
+### Flatten Result/Option
+The `.flatten()` can be applied to `Result`/`Option` in different ways:
+- for **single nested** `Result` value;
+- for **iterator** of `Results`;
+- for **collecting** a `Vec<Result<T, E>>` into a `Result<Vec<T, E>>`;
+
+<br>
+
+#### Flattening a single nested `Result` or `Option`
+To **flatten** a **single instance** of a nested `Result` or `Option`, you can use the `.flatten()` method.<br>
+
+The `Option<Option<T>>` implements `.flatten()` itself:
+```rust
+impl<T> Option<Option<T>> {
+    pub const fn flatten(self) -> Option<T> {
+        match self {
+            Some(inner) => inner,
+            None => None,
+        }
+    }
+}
+```
+
+The `.flatten()` method called on the `Option<Option<T>>` **converts** from `Option<Option<T>>` to `Option<T>`:
+```rust
+let x: Option<Option<u32>> = Some(Some(6));
+assert_eq!(Some(6), x.flatten());
+
+let x: Option<Option<Option<u32>>> = Some(Some(Some(6)));
+assert_eq!(Some(Some(6)), x.flatten());
+assert_eq!(Some(6), x.flatten().flatten());
+```
+
+<br>
+
+The `Result<Result<T, E>, E>` implements `.flatten()` itself:
+```rust
+impl<T, E> Result<Result<T, E>, E> {
+    pub const fn flatten(self) -> Result<T, E> {
+        match self {
+            Ok(inner) => inner,
+            Err(e) => Err(e),
+        }
+    }
+}
+```
+
+The `.flatten()` method called on the `Result<Result<T, E>, E>` **converts** from `Result<Result<T, E>, E>` to `Result<T, E>`:
+```rust
+let x: Result<Result<&'static str, u32>, u32> = Ok(Ok("hello"));
+assert_eq!(Ok("hello"), x.flatten());
+```
+
+<br>
+
+#### Flattening an `Iterator` that yields `Result` or `Option`
+The `Option` and `Result` both implement `IntoIterator`.<br>
+
+```rust
+impl<T> IntoIterator for Option<T>
+```
+
+```rust
+impl<T, E> IntoIterator for Result<T, E>
+```
+
+The `Result<T, E>` and `Option` both can be treated as an `Iterator` over **one** or **zero** items.<br>
+
+`Option` implements `IntoIterator`, which yields:
+- **one** item (the `T` **value**) in the case of `Some(T)`;
+- **zero** items in the case of `None`;
+
+`Result<T, E>` implements `IntoIterator`, which yields:
+- **one** item (the `T` **value**) in the case of `Ok(T)`;
+- **zero** items in the case of `Err(E)`;
+
+<br>
+
+**Examples**:
+```rust
+let x = Some("string");
+let v: Vec<&str> = x.into_iter().collect();
+assert_eq!(v, ["string"]);
+
+let x = None;
+let v: Vec<&str> = x.into_iter().collect();
+assert!(v.is_empty());
+```
+
+<br>
+
+**Examples**:
+```rust
+let x: Result<u32, &str> = Ok(5);
+let v: Vec<u32> = x.into_iter().collect();
+assert_eq!(v, [5]);
+
+let x: Result<u32, &str> = Err("nothing!");
+let v: Vec<u32> = x.into_iter().collect();
+assert_eq!(v, []);
+```
+
+<br>
+
+#### Collecting a `Vec<Result<T, E>>` into a `Result<Vec<T>, E>`
+A common use case is to process an **iterator** of **fallible** operations and collect all **successful** results into a `Vec<T>` or **stops** on the **first** `Err` and **returns it**.<br>
+
+Example:
+```rust
+fn main() {
+    let results: Vec<Result<i32, &str>> = vec![Ok(1), Ok(2), Ok(3)];
+    let transposed: Result<Vec<i32>, &str> = results.into_iter().collect();
+    println!("{:?}", transposed); // Output: Ok([1, 2, 3])
+
+    let results_err: Vec<Result<i32, &str>> = vec![Ok(1), Err("error encountered"), Ok(3)];
+    let transposed_err: Result<Vec<i32>, &str> = results_err.into_iter().collect();
+    println!("{:?}", transposed_err); // Output: Err("error encountered")
+}
+```
+
+<br>
+
 
 # Chapter 10
 
