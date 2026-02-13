@@ -3077,8 +3077,7 @@ RefCell { value: true }
 
 <br>
 
-But you have to be **careful** with a `RefCell` because **it checks borrow rules at run time**, not compilation time.<br>
-**Borrow rules**:
+But you have to be **careful** with a `RefCell` because **it checks borrow rules at run time**, not compilation time. The **borrow rules**:
 - **many immutable** borrows is fine;
 - **one mutable** borrow is fine;
 - **mutable** and **immutable** borrows **together** - `RefCell` **panics**;
@@ -3152,7 +3151,8 @@ fn main() {
 
 <br>
 
-When you type `*my_mutex.lock().unwrap() = 6;`, you **never create a variable that holds the lock**, so you don’t need to call `drop()`:
+**To to be sure** that your **code will never has a deadlock** always **immediately change** the value with `*my_mutex.lock().unwrap() = ... ;`.<br>
+When you type `*my_mutex.lock().unwrap() = ... ;`, you **never create a variable that holds the lock**, so you don’t need to call `drop()`:
 ```rust
 use std::sync::Mutex;
 
