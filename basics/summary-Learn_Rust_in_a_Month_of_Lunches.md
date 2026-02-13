@@ -70,7 +70,7 @@
   - [Iterator methods chaining](#iterator-methods-chaining)
   - [`.for_each()`](#for_each)
   - [`.skip()` and `.take()`](#skip-and-take)
-    - [.enumerate()](#enumerate)
+  - [`.enumerate()`](#enumerate)
   - [`.filter_map()` and .ok()](#filter_map-and-ok)
   - [`.ok_or(error)`](#ok_orerror)
   - [`.ok_or_else(error)`](#ok_or_elseerror)
@@ -2281,6 +2281,8 @@ fn main() {
 
 The `.iter()`/`.iter_mut()` plus `.for_each()` is basically a `for` loop.<br>
 
+<br>
+
 ## `.for_each()`
 In the example below we don’t need to use `.collect()` to create a new `Vec`, because we change items directly in the original collection:
 ```rust
@@ -2309,7 +2311,7 @@ fn main() {
 
 <br>
 
-### .enumerate()
+## `.enumerate()`
 **Example**:
 ```rust
 fn main() {
