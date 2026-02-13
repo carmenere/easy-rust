@@ -71,10 +71,10 @@
   - [`.for_each()`](#for_each)
   - [`.skip()` and `.take()`](#skip-and-take)
   - [`.enumerate()`](#enumerate)
-  - [`.filter_map()` and .ok()](#filter_map-and-ok)
+  - [`.filter_map()` and `.ok()`](#filter_map-and-ok)
   - [`.ok_or(error)`](#ok_orerror)
   - [`.ok_or_else(error)`](#ok_or_elseerror)
-  - [`.and_then()`](#and_then)
+  - [`.and_then()` and `.ok()`](#and_then-and-ok)
   - [`.and()`](#and)
   - [`.zip()`](#zip)
     - [`.zip()` and `.cycle()`](#zip-and-cycle)
@@ -2331,7 +2331,7 @@ Index 2 is: x
 
 <br>
 
-## `.filter_map()` and .ok()
+## `.filter_map()` and `.ok()`
 Anything that returns an `Err` becomes `None` after the `.ok()` method and then **gets filtered out** by `.filter_map()`:
 ```rust
 fn main() {
@@ -2465,7 +2465,7 @@ Ok("B")
 
 <br>
 
-## `.and_then()`
+## `.and_then()` and `.ok()`
 ```rust
 fn main() {
     let num_array = ["8", "9", "Hi", "9898989898"];
