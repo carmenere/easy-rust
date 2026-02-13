@@ -66,10 +66,10 @@
   - [`|_|` in a closure](#_-in-a-closure)
 - [Chapter 09](#chapter-09)
   - [Option/Result methods](#optionresult-methods)
-    - [.unwrap\_or() and  .unwrap\_or\_else()](#unwrap_or-and--unwrap_or_else)
+  - [`.unwrap_or()` and  `.unwrap_or_else()`](#unwrap_or-and--unwrap_or_else)
   - [Iterator methods chaining](#iterator-methods-chaining)
-    - [.for\_each()](#for_each)
-    - [.skip() and .take()](#skip-and-take)
+  - [`.for_each()`](#for_each)
+  - [`.skip()` and `.take()`](#skip-and-take)
     - [.enumerate()](#enumerate)
   - [`.filter_map()` and .ok()](#filter_map-and-ok)
   - [`.ok_or(error)`](#ok_orerror)
@@ -2193,7 +2193,7 @@ The `|_|` in a closure means that the closure needs to take an argument, but you
 
 <br>
 
-### .unwrap_or() and  .unwrap_or_else()
+## `.unwrap_or()` and  `.unwrap_or_else()`
 Consider example:
 ```rust
 fn main() {
@@ -2212,6 +2212,8 @@ fn main() {
 ```
 
 *First*, we try to get an item at index **3**, *then* if it was `None` we try to get item one index back and *finally* we return a `&0` in case **no items have been found** at either index.<br>
+
+<br>
 
 <br>
 
@@ -2279,7 +2281,7 @@ fn main() {
 
 The `.iter()`/`.iter_mut()` plus `.for_each()` is basically a `for` loop.<br>
 
-### .for_each()
+## `.for_each()`
 In the example below we don’t need to use `.collect()` to create a new `Vec`, because we change items directly in the original collection:
 ```rust
 vector2.iter_mut().for_each(|x| *x +=100);
@@ -2288,7 +2290,7 @@ Thus, `vector2` is still there after the iterator is over.
 
 <br>
 
-### .skip() and .take()
+## `.skip()` and `.take()`
 ```rust
 fn main() {
     let my_vec = vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
