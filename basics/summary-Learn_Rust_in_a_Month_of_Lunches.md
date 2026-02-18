@@ -106,6 +106,19 @@
     - [Mutex](#mutex)
   - [RwLock](#rwlock)
 - [Chapter 11](#chapter-11)
+  - [Importing and renaming inside a function](#importing-and-renaming-inside-a-function)
+  - [Type aliases](#type-aliases)
+  - [The `todo!` and `unimplemented!` macro](#the-todo-and-unimplemented-macro)
+  - [`Cow`](#cow)
+  - [`Rc`](#rc)
+    - [Weak reference](#weak-reference)
+    - [Avoiding lifetime annotations with `Rc`](#avoiding-lifetime-annotations-with-rc)
+  - [Multiple threads](#multiple-threads)
+    - [Using `JoinHandle`s to wait for threads to finish](#using-joinhandles-to-wait-for-threads-to-finish)
+  - [Closures](#closures)
+    - [Types of closures](#types-of-closures)
+    - [The relationship between `FnOnce`, `FnMut`, and `Fn`](#the-relationship-between-fnonce-fnmut-and-fn)
+    - [Closures are all unique](#closures-are-all-unique)
 - [Chapter 12](#chapter-12)
 - [Chapter 13](#chapter-13)
 - [Chapter 14](#chapter-14)
@@ -3459,6 +3472,508 @@ Couldn't get write access, sorry!
 <br>
 
 # Chapter 11
+## Importing and renaming inside a function
+It is possible to import items inside function. That means that inside the function you can simply write `A`, `B` and so on:
+```rust
+enum Foo {
+    A,
+    B,
+    C,
+}
+
+fn foo(direction: &Foo) {
+    use Foo::*; // Imports everything in Foo
+    match direction {
+        A => (),
+        B => (),
+        C => (),
+    }
+}
+
+fn main() {
+    foo(&Foo::A)
+}
+```
+
+<br>
+
+## Type aliases
+If you have **duplicate names** or you **have some reason to change a type name**, you can use `as` to rename type **during import**:
+```rust
+fn main() {
+    use String as W;
+    let my_string = W::from("Hi!");
+}
+```
+
+<br>
+
+Also there is keyword `type` to set alias for type:
+```rust
+use std::iter::{Take, Skip};
+use std::vec::IntoIter;
+
+type SkipTake = Take<Skip<IntoIter<char>>>;
+
+fn skip_4_take_5_chars(input: Vec<char>) -> SkipTake {
+    input.into_iter().skip(4).take(5)
+}
+
+fn main() {
+    use String as W;
+    let r = skip_4_take_5_chars("abcdef".to_string().chars().collect());
+}
+```
+
+<br>
+
+**A type alias doesn’t create a new type**. It’s just a name to use instead of an existing type. So if you write type `File = String;`, the compiler just sees a `String` whenever `File` is used.<br>
+
+<br>
+
+## The `todo!` and `unimplemented!` macro
+Sometimes, you want to write the **general structure of your code** to help you imagine your project’s final form. Writing the general structure of your code is called **prototyping**.<br>
+There are 2 macro that help achieve this:
+- `todo!`
+  - indicates functionality you **intend to implement later**;
+  - **panics** with a message like **not yet implemented**;
+- `unimplemented!`
+  - indicates functionality that is **not currently implemented**, **possibly permanently**;
+  - **panics** with a message like **not implemented**;
+
+<br>
+
+## `Cow`
+Let’s look at the simplified version of `Cow`:
+```rust
+enum Cow<B> {
+    Borrowed(B),
+    Owned(B),
+}
+```
+
+Then let’s look at the real version of `Cow`:
+```rust
+enum Cow<'a, B>
+where
+    B: 'a + ToOwned + ?Sized,
+{
+    Borrowed(&'a B),
+    Owned(<B as ToOwned>::Owned),
+}
+```
+
+- the `'a` means that `Cow` **can** hold a reference;
+- the `ToOwned` means that `B` **must** be a type that can be turned into an owned type;
+- the `?Sized` means that `B` **might** be dynamically sized type;
+
+<br>
+
+Imagine that you have a function that returns `Cow<'static, str>`:
+- if you tell the function to return `"My message".into()`, it will look at the type: `"My message"` is a `str`, this is a `Borrowed` type, so it selects `Borrowed(&'a B)` and returns `Cow::Borrowed(&'static str)`;
+- if you tell the function to return `format!("My message").into()`, it will look at the type: `format!("My message")` is a `String`, this is a `Owned` type, so it selects `Owned(String)` and returns `Cow::Owned(String)`;
+
+<br>
+
+The `Cow` has some other methods, like `into_owned()` or `into_borrowed()`, so you can change it if you need to.<br>
+
+<br>
+
+**Example**:
+```rust
+use std::borrow::Cow;
+struct User<'a> {
+    name: Cow<'a, str>,
+}
+
+fn main() {
+    let user_1 = "User1";
+    let user_2 = &"User2".to_string();
+    let user_3 = "User3".to_string();
+    
+    let user1 = User {
+        name: user_1.into(),
+    };
+
+    let user2 = User {
+        name: user_2.into(),
+    };
+
+    let user3 = User {
+        name: user_3.into(),
+    };
+
+    for name in [user1.name, user2.name, user3.name] {
+        match name {
+            Cow::Borrowed(n) => {
+                println!("Borrowed name, didn't need an allocation:\n {n}")
+            }
+            Cow::Owned(n) => {
+                println!("Owned name because we needed an allocation:\n {n}")
+            }
+        }
+    }
+}
+```
+**Output**:
+```rust
+Borrowed name, didn't need an allocation:
+ User1
+Borrowed name, didn't need an allocation:
+ User2
+Owned name because we needed an allocation:
+ User3
+```
+
+<br>
+
+## `Rc`
+`Rc` stands for **reference counter** or **reference counted**.<br>
+In Rust, **every variable can only have one owner**:
+```rust
+fn takes_a_string(foo: String) {
+    println!("{}", foo);
+}
+
+fn main() {
+    let user_name = String::from("User MacUserson");
+    takes_a_string(user_name);
+    takes_a_string(user_name); // ❌ ERROR: use of moved value: `user_name`
+}
+```
+
+After `takes_a_string` takes `user_name`, you **can’t use it anymore**. You can give it `user_name.clone()`. However, sometimes
+- the `String` is part of a struct, and you can’t clone the struct;
+- the `String` is really **long**, and you don’t want to clone it;
+
+<br>
+
+An `Rc` gets around this by letting you **have more than one owner**:
+```rust
+use std::rc::Rc;
+
+fn takes_a_string(foo: Rc<String>) {
+    println!("{}", foo);
+    println!("takes_a_string: The number of owners: {}", Rc::strong_count(&foo));
+}
+
+fn main() {
+    let foo = Rc::new(String::from("Foo"));
+    takes_a_string(Rc::clone(&foo));
+    takes_a_string(Rc::clone(&foo));
+    println!("main: The number of owners: {}", Rc::strong_count(&foo));
+}
+```
+**Output**:
+```rust
+Foo
+takes_a_string: The number of owners: 2
+Foo
+takes_a_string: The number of owners: 2
+main: The number of owners: 1
+```
+
+<br>
+
+### Weak reference
+Weak pointers are useful because if two `Rc`s point at each other, they **can’t be deallocated**. This is called a **reference cycle**.<br>
+If *item 1* has an `Rc` to *item 2* and *item 2* has an `Rc` to *item 1*, they can’t get **strong count** to `0` and will never be able to drop their values. In this case, you can to use **weak references**.<br>
+
+There is `Rc::downgrade(&item)` instead of `Rc::clone(&item)` to make **weak references**. Also, there is `Rc::weak_count(&item)` to see the **weak count**.<br>
+
+
+Consider you have instance of `Rc` in variable `foo`, then you can **clone** `Rc` with `Rc::clone(&foo)` or `foo.clone()`. Usually, `Rc::clone(&foo)` is **better** because an `Rc` holds a type that might have its own methods (including `.clone()`). Thus, it’s a good way to show that you are cloning the `Rc`, not the object inside it.<br>
+
+<br>
+
+There is also a method for `Rc` called `strong_count()` that shows you how many owners `Rc` instance has at the moment.<br>
+
+<br>
+
+### Avoiding lifetime annotations with `Rc`
+Using lifetimes in struct forces to declare them everywhere.<br>
+
+<br>
+
+**Consider struct**:
+```rust
+struct Foo<'a> {
+    name: &'a str,
+}
+```
+
+Then Rust will require to add `'a` to every struct that somehow uses `Foo`:
+```rust
+struct Bar<'a> {
+    foo: Foo<'a>,
+}
+
+struct FizzBaz<'a> {
+    foo_list: Vec<Foo<'a>>,
+}
+```
+
+That works just fine, but it took **a lot of typing**.<br>
+
+It is possible to use `Rc` instead and *get rid of* **all** the lifetime annotations **everywhere** else:
+```rust
+use std::rc::Rc;
+
+struct Foo {
+    name: Rc<String>,
+}
+
+struct Bar {
+    foo: Foo,
+}
+
+struct FizzBaz {
+    foo_list: Vec<Foo>,
+}
+```
+
+<br>
+
+## Multiple threads
+You create threads with `std::thread::spawn` and a closure to tell it what to do. Creating threads is also called **spawning threads**.<br>
+
+Example:
+```rust
+fn main() {
+std::thread::spawn(|| {
+println!("I am printing something");
+});
+}
+```
+
+In fact, the **output will be different** every time. Sometimes it will print, and sometimes it won’t. That is because sometimes `main()` finishes **before** the thread finishes, and when `main()` **finishes**, the **whole program is over**.<br>
+Also, sometimes the threads will panic with error `cannot access stdout during`. This error occurs when the *thread tries to do something* just when the *program is
+shutting down*.<br>
+
+The better way to **avoid** termination of *main thread* is to **stop** *main thread* **until** the all spawned are over. The `spawn()` function actually returns something called a `JoinHandle` that lets us do exactly this:
+```rust
+pub fn spawn<F, T>(f: F) -> JoinHandle<T>
+where
+    F: FnOnce() -> T,
+    F: Send + 'static,
+    T: Send + 'static,
+```
+
+<br>
+
+- `'static` means that the closure and its return value must have a lifetime of the whole program;
+  - that’s because **threads can outlive the scope they have been created in**;
+  - since we can’t know when it will return, we need to have them as long as possible, so until the end of the program;
+- `f` is the closure;
+
+<br>
+
+### Using `JoinHandle`s to wait for threads to finish
+Consider example:
+```rust
+fn main() {
+    for _ in 0..10 {
+        let handle = std::thread::spawn(|| {
+            println!("I am printing something");
+        });
+        handle.join();
+    }
+}
+```
+
+In the above example we start a thread, do something, and then call `.join()` to wait and only then we start a new thread.<br>
+
+But we want to **start all the threads at the same time** and **only then call** `.join()` on the threads. To solve this, we can create a `Vec` that will hold all of the `JoinHandles`. Then we can call `.join()` on them:
+```rust
+use std::{thread::{spawn, JoinHandle}, time::Duration};
+
+fn main() {
+    let threads = (1..=10).into_iter().map(|id| {
+        spawn(move || {
+            println!("thread {}", id);
+            id
+        })
+    }).collect::<Vec<_>>();
+
+    threads.into_iter().for_each(|j| {
+        let result = j.join().unwrap();
+        println!("thread with id {} is over", result);
+    });
+}
+```
+**Output**:
+```rust
+thread 2
+thread 1
+thread 5
+thread 6
+thread 4
+thread 8
+thread with id 1 is over
+thread with id 2 is over
+thread 7
+thread 10
+thread 9
+thread 3
+thread with id 3 is over
+thread with id 4 is over
+thread with id 5 is over
+thread with id 6 is over
+thread with id 7 is over
+thread with id 8 is over
+thread with id 9 is over
+thread with id 10 is over
+```
+
+<br>
+
+## Closures
+### Types of closures
+A **closure** is just **sugar** for defining a *struct to contain the environment* (aka **closure's struct** or **closure object**) and *implementing one of the* `Fn*` *traits on it*.<br>
+
+A closure can capture variables in **3 ways**:
+- **by value** (**move**);
+- **by mutable reference** (**&mut**);
+- **by immutable reference** (**&**);
+
+<br>
+
+Rust’s compiler automatically **determines** which `Fn*` **trait** to implements based on **how captured variables are used inside the closure**:
+- `Fn` if *all* captured values ​​are **read**; 
+- `FnMut` if *at least one* captured value is **changed**;
+- `FnOnce` if *at least one* captured value is **moved out** or **dropped**;
+
+<br>
+
+**Closure's struct** that **captures variables by value** looks like:
+```rust
+struct EnvOwn {
+    variable1: Type1,
+    variable2: Type2,
+}
+```
+
+<br>
+
+**Closure's struct** that **captures variables by reference** looks like:
+```rust
+struct EnvRef<'a> {
+    variable1: &'a Type1,
+    variable2: &'a mut Type2, // Note: if an `&mut` reference to `variable2` is used in the closure.
+}
+```
+
+<br>
+
+Take a look at the **signature** of the `call` method in the `Fn*` traits:
+- `FnOnce` -> `FnOnce::call_once(self, ...)`;
+- `Fn` -> `Fn::call(&self, ...)`;
+- `FnMut` -> `FnMut::call_mut(&mut self, ...)`;
+
+<br>
+
+The `self` is the *closure's struct* that contains **captured variables** from closure's **environment**.<br>
+
+<br>
+
+The `move` keword **moves variables** from the stack where the closure is defined into the *closure's struct*.<br>
+When invoked, `FnOnce` moves the **closure object** into the closure's call stack and thus consumes it. So, **closure can be used only once**.<br>
+Both `Fn` and `FnMut` put a reference to **closure object** on the call stack.<br>
+
+<br>
+
+### The relationship between `FnOnce`, `FnMut`, and `Fn`
+```rust
+pub trait FnOnce
+pub trait FnMut: FnOnce
+pub trait Fn: FnMut
+```
+
+`FnOnce` is a **supertrait** of `FnMut` and `FnMut` is a **supertrait** of `Fn`.<br>
+
+<br>
+
+To sum up:
+- `Fn` **must** implement `FnMut` and `FnOnce`;
+- `FnMut` **must** implement **only** `FnOnce`;
+- `FnOnce` **doesn’t need any** other traits to be implemented;
+
+<br>
+
+Note, **all closures implement** `FnOnce`.<br>
+
+<br>
+
+Also it means that:
+- if a **function takes** an `F: FnOnce()` as an argument: it can accept **any closure** matching the signature (`Fn`, `FnMut`, or `FnOnce`);
+- if a **function takes** an `F: FnMut()` as an argument: it can accept `FnMut` or `Fn` (because `Fn` implements `FnMut`);
+- if a **function takes** an `F: Fn()` as an argument: it **only** accepts `Fn`;
+
+<br>
+
+Also it means that:
+- closure implementing `Fn` can be used **anywhere**;
+- closure implementing `FnMut` can be used where `FnOnce` or `FnMut` is expected;
+- closure implementing `FnOnce` can be used where **only** `FnOnce` is expected;
+
+<br>
+
+Note, `FnMut` requires `mut` before argument `mut f`:
+```rust
+fn foo<F: FnMut()>(mut f: F) {
+    f()
+}
+```
+
+<br>
+
+**Example**:
+```rust
+fn main() {
+    let mut s = String::from("hello");
+    let mut closure = move || {
+        s.push_str(", world");
+        println!("inside closure: {}", s);
+    };
+    closure();
+    // println!("{}", s); // ❌ ERROR: borrow of moved value: `s`
+}
+```
+
+<br>
+
+Example of how Rust infer type of clisure:
+`Fn`:<br>
+![Fn](/img/Fn.png)
+
+<br>
+
+`FnMut`:<br>
+![FnMut](/img/FnMut.png)
+
+<br>
+
+`FnOnce`:<br>
+![FnOnce](/img/FnOnce.png)
+
+<br>
+
+`FnOnce` and `mutation`:<br>
+![FnOnce_and_mutation](/img/FnOnce_and_mutation.png)
+
+<br>
+
+**No** `move` and `FnOnce`:<br>
+![no_move_and_FnOnce](/img/no_move_and_FnOnce.png)
+
+<br>
+
+`move` and `FnMut`:<br>
+![move_and_FnMut](/img/move_and_FnMut.png)
+
+<br>
+
+### Closures are all unique
 
 <br>
 
