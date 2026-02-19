@@ -97,13 +97,33 @@
 - [Chapter 10](#chapter-10)
   - [Types of `&str`](#types-of-str)
   - [Lifetimes](#lifetimes)
+    - [Returning borrows](#returning-borrows)
+    - [The anonymous lifetime](#the-anonymous-lifetime)
+    - [Example: implement `Display`](#example-implement-display)
   - [Interior mutability](#interior-mutability)
     - [Cell](#cell)
     - [RefCell](#refcell)
     - [Mutex](#mutex)
   - [RwLock](#rwlock)
 - [Chapter 11](#chapter-11)
+  - [Importing and renaming inside a function](#importing-and-renaming-inside-a-function)
+  - [Type aliases](#type-aliases)
+  - [The `todo!` and `unimplemented!` macro](#the-todo-and-unimplemented-macro)
+  - [`Cow`](#cow)
+  - [`Rc`](#rc)
+    - [Weak reference](#weak-reference)
+    - [Avoiding lifetime annotations with `Rc`](#avoiding-lifetime-annotations-with-rc)
+  - [Multiple threads](#multiple-threads)
+    - [Using `JoinHandle`s to wait for threads to finish](#using-joinhandles-to-wait-for-threads-to-finish)
+  - [Closures](#closures)
+    - [Types of closures](#types-of-closures)
+    - [The relationship between `FnOnce`, `FnMut`, and `Fn`](#the-relationship-between-fnonce-fnmut-and-fn)
+    - [Examples of how Rust infers type of closure](#examples-of-how-rust-infers-type-of-closure)
+    - [Closures are all unique](#closures-are-all-unique)
 - [Chapter 12](#chapter-12)
+  - [Arc](#arc)
+  - [Scoped threads](#scoped-threads)
+  - [Channels](#channels)
 - [Chapter 13](#chapter-13)
 - [Chapter 14](#chapter-14)
 - [Chapter 15](#chapter-15)
@@ -257,7 +277,7 @@ What about the size in characters/letters? There is methods `.chars().count()` t
 <br>
 
 ## Grapheme clusters
-In Rust, a **grapheme cluster** **cannot** be a `char` because a `char` is defined as a **single** 4-byte code point of Unicode, whereas a **grapheme cluster** is a **sequence** of one or more **code points** that is displayed as a **single character**.<br>
+In Rust, a **grapheme cluster cannot** be a `char` because a `char` is defined as a **single** 4-byte code point of Unicode, whereas a **grapheme cluster** is a **sequence** of one or more **code points** that is displayed as a **single character**.<br>
 
 **Namaste** (/na-ma-stay/) is the most common **greeting** in **Hindi**, suitable for both **formal** and **informal** situations.<br>
 *Namaste* in **Sanskrit** is नमस्ते.<br>
@@ -576,7 +596,7 @@ always copies their data when you send these types to a function. `Copy` types a
 You also see the word **trivial** to talk about `Copy` types a lot, such as “It’s **trivial to copy them**.” That means: it’s so easy to copy them that there is no reason not to copy them.<br>
 `Copy` types include `integers`, `floats`, `booleans` (true and false), `char`, and others.<br>
 
-If it is a `Copy` type, the data would be **copied**, **not** **moved**.<br>
+If it is a `Copy` type, the data would be **copied**, **not moved**.<br>
 `Clone` is similar to `Copy` but usually needs more memory.<br>
 
 <br>
@@ -2987,6 +3007,195 @@ There are 2 types of `&str`:
 <br>
 
 ## Lifetimes
+### Returning borrows
+If a function returns a reference it was likely derived from one of its arguments. This means that a reference returned from a function **extends the borrow** for one or more arguments:
+```rust
+fn id(r: &i32) -> &i32 {
+    r
+}
+
+fn main() {
+    let mut number = 10;
+    let number_ref = id(&number);
+    number += 1; // ❌ ERROR: because 'number' is still borrowed here!
+    println!("{}", number_ref);
+}
+```
+
+<br>
+
+**Consider another example**:
+```rust
+fn choose<'a>(r1: &'a i32, r2: &'a i32, flag: bool) -> &'a i32 {
+    if flag {r1} else {r2}
+}
+
+fn main() {
+    let mut number1 = 10;
+    let mut number2 = 20;
+    let number_ref = choose(&number1, &number2, false);
+
+    // number1 += 1; // ❌ ERROR: because 'number1' is still borrowed here!
+    // number2 += 1; // ❌ ERROR: because 'number2' is still borrowed here!
+
+    println!("{}", number_ref);
+}
+```
+
+The `choose()` function returns either `r1` or `r2` depending on the value of `flag`, which means the Rust **can't know at compile time** which one will be return.<br>
+To express this to the compiler we provide the same lifetime **for all** `r1`, `r2` and for *returned value*, this means that *returned reference* **borrows both input references**: `r1` and `r2`.<br>
+In other words, the **borrow** of both `number1` and `number2` **lasts until last usage of** `number_ref`.<br>
+
+<br>
+
+**Example**:
+```rust
+fn foo() -> &'static str {
+    // &"foo".to_string() // ❌ ERROR:
+    "foo" // Ok
+}
+```
+
+The `&'static str` tells Rust we will only return a **string literals** which live for the whole program.<br>
+
+<br>
+
+### The anonymous lifetime
+Consider example:
+```rust
+struct Foo<'a> {
+    name: &'a str,
+}
+
+impl Foo {
+    fn new() -> Self {
+        Self {
+            name: "foo",
+        }
+    }
+}
+```
+
+This code **will not** compile, because you must specify struct with all its lifetimes `Foo<'a>` and also declare lifetimes for whole `impl` block: `impl<'a>`:
+```rust
+impl<'a> Foo<'a> {
+
+}
+```
+
+The **anonymous lifetime** was made so that you don’t always have to write things like `impl<'a> Foo<'a>`. The *anonymous lifetime* is an indicator that references are being used.<br>
+
+**Example**:
+```rust
+struct Foo<'a> {
+    name: &'a str,
+}
+
+impl Foo<'_> {
+    fn new() -> Self {
+        Self {
+            name: "foo",
+        }
+    }
+}
+```
+
+<br>
+
+But why Rust requires to declare lifetimes for whole `impl` block?<br>
+
+Consider **trait** `Bar` that that needs to deal with lifetime:
+```rust
+trait Bar<'a> {
+    fn bar(r1: &'a i32, r2: &'a i32, flag: bool) -> &'a i32 {
+        if flag { r1 } else { r2 }
+    }
+    fn bar2<'z>(r1: &'z i32, r2: &'z i32, flag: bool) -> &'z i32 {
+        if flag { r1 } else { r2 }
+    }
+}
+```
+
+And you want to implement `Bar` on struct `Foo`: the **trait** has its **own lifetimes** to deal with, and the **struct** has its **own lifetimes** to deal with. Both the
+struct and the trait choose to call them `'a`.<br>
+
+So, when you use `impl`, you declare lifetimes and their relationships.<br>
+
+You might implement trait `Bar` like this:
+```rust
+impl<'a> Bar<'a> for Foo<'a> {
+    fn bar(r1: &'a i32, r2: &'a i32, flag: bool) -> &'a i32 {
+        if flag { r1 } else { r2 }
+    }
+
+    fn bar2<'z>(r1: &'z i32, r2: &'z i32, flag: bool) -> &'z i32 {
+        if flag { r1 } else { r2 }
+    }
+}
+```
+
+**This means** the `'a` for the *trait* and the *struct* is the **same lifetime**.<br>
+
+<br>
+
+But you might implement trait `Bar` like this:
+```rust
+impl<'a, 'b> Bar<'a> for Foo<'b> {
+    fn bar(r1: &'a i32, r2: &'a i32, flag: bool) -> &'a i32 {
+        if flag { r1 } else { r2 }
+    }
+
+    fn bar2<'z>(r1: &'z i32, r2: &'z i32, flag: bool) -> &'z i32 {
+        if flag { r1 } else { r2 }
+    }
+}
+```
+
+**This means** there are **2 different lifetimes** here, the *trait* has its own while the *struct* has its own two.<br>
+
+<br>
+
+But you also can use **anonymous lifetime**:
+```rust
+impl Bar<'_> for Foo<'_> {
+    fn bar<'x>(r1: &'x i32, r2: &'x i32, flag: bool) -> &'x i32 {
+        if flag { r1 } else { r2 }
+    }
+
+    fn bar2<'z>(r1: &'z i32, r2: &'z i32, flag: bool) -> &'z i32 {
+        if flag { r1 } else { r2 }
+    }
+}
+```
+
+**Note**, that when you use **anonymous lifetime** you must add lifetime parameter for methods: in the example above it was method `bar`.<br>
+
+<br>
+
+### Example: implement `Display`
+```rust
+struct Foo<'a> {
+    name: &'a str,
+}
+
+impl Foo<'_> {
+    fn new() -> Self {
+        Self {
+            name: "foo",
+        }
+    }
+}
+
+impl std::fmt::Display for Foo<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "I am {}", self.name)
+    }
+}
+
+fn main() {
+    println!("{}", Foo::new())
+}
+```
 
 <br>
 
@@ -3098,7 +3307,7 @@ There are two **ways to be sure** that your **code won’t panic** when using a 
 ### Mutex
 **Mutex** means **mutual exclusion** which means **only one at a time**.<br>
 In rust `Mutex` is another way to change values without declaring `mut`.<br>
-The `Mutex<T>` is safe because it only lets **one thread** **change it at a time**. To do this, it uses a method `.lock()`, which returns `Result<MutexGuard<T>>`.<br>
+The `Mutex<T>` is safe because it only lets **one thread change it at a time**. To do this, it uses a method `.lock()`, which returns `Result<MutexGuard<T>>`.<br>
 
 ```rust
 use std::sync::Mutex;
@@ -3267,10 +3476,711 @@ Couldn't get write access, sorry!
 <br>
 
 # Chapter 11
+## Importing and renaming inside a function
+It is possible to import items inside function. That means that inside the function you can simply write `A`, `B` and so on:
+```rust
+enum Foo {
+    A,
+    B,
+    C,
+}
+
+fn foo(direction: &Foo) {
+    use Foo::*; // Imports everything in Foo
+    match direction {
+        A => (),
+        B => (),
+        C => (),
+    }
+}
+
+fn main() {
+    foo(&Foo::A)
+}
+```
+
+<br>
+
+## Type aliases
+If you have **duplicate names** or you **have some reason to change a type name**, you can use `as` to rename type **during import**:
+```rust
+fn main() {
+    use String as W;
+    let my_string = W::from("Hi!");
+}
+```
+
+<br>
+
+Also there is keyword `type` to set alias for type:
+```rust
+use std::iter::{Take, Skip};
+use std::vec::IntoIter;
+
+type SkipTake = Take<Skip<IntoIter<char>>>;
+
+fn skip_4_take_5_chars(input: Vec<char>) -> SkipTake {
+    input.into_iter().skip(4).take(5)
+}
+
+fn main() {
+    use String as W;
+    let r = skip_4_take_5_chars("abcdef".to_string().chars().collect());
+}
+```
+
+<br>
+
+**A type alias doesn’t create a new type**. It’s just a name to use instead of an existing type. So if you write type `File = String;`, the compiler just sees a `String` whenever `File` is used.<br>
+
+<br>
+
+## The `todo!` and `unimplemented!` macro
+Sometimes, you want to write the **general structure of your code** to help you imagine your project’s final form. Writing the general structure of your code is called **prototyping**.<br>
+There are 2 macro that help achieve this:
+- `todo!`
+  - indicates functionality you **intend to implement later**;
+  - **panics** with a message like **not yet implemented**;
+- `unimplemented!`
+  - indicates functionality that is **not currently implemented**, **possibly permanently**;
+  - **panics** with a message like **not implemented**;
+
+<br>
+
+## `Cow`
+Let’s look at the simplified version of `Cow`:
+```rust
+enum Cow<B> {
+    Borrowed(B),
+    Owned(B),
+}
+```
+
+Then let’s look at the real version of `Cow`:
+```rust
+enum Cow<'a, B>
+where
+    B: 'a + ToOwned + ?Sized,
+{
+    Borrowed(&'a B),
+    Owned(<B as ToOwned>::Owned),
+}
+```
+
+- the `'a` means that `Cow` **can** hold a reference;
+- the `ToOwned` means that `B` **must** be a type that can be turned into an owned type;
+- the `?Sized` means that `B` **might** be dynamically sized type;
+
+<br>
+
+Imagine that you have a function that returns `Cow<'static, str>`:
+- if you tell the function to return `"My message".into()`, it will look at the type: `"My message"` is a `str`, this is a `Borrowed` type, so it selects `Borrowed(&'a B)` and returns `Cow::Borrowed(&'static str)`;
+- if you tell the function to return `format!("My message").into()`, it will look at the type: `format!("My message")` is a `String`, this is a `Owned` type, so it selects `Owned(String)` and returns `Cow::Owned(String)`;
+
+<br>
+
+The `Cow` has some other methods, like `into_owned()` or `into_borrowed()`, so you can change it if you need to.<br>
+
+<br>
+
+**Example**:
+```rust
+use std::borrow::Cow;
+struct User<'a> {
+    name: Cow<'a, str>,
+}
+
+fn main() {
+    let user_1 = "User1";
+    let user_2 = &"User2".to_string();
+    let user_3 = "User3".to_string();
+    
+    let user1 = User {
+        name: user_1.into(),
+    };
+
+    let user2 = User {
+        name: user_2.into(),
+    };
+
+    let user3 = User {
+        name: user_3.into(),
+    };
+
+    for name in [user1.name, user2.name, user3.name] {
+        match name {
+            Cow::Borrowed(n) => {
+                println!("Borrowed name, didn't need an allocation:\n {n}")
+            }
+            Cow::Owned(n) => {
+                println!("Owned name because we needed an allocation:\n {n}")
+            }
+        }
+    }
+}
+```
+**Output**:
+```rust
+Borrowed name, didn't need an allocation:
+ User1
+Borrowed name, didn't need an allocation:
+ User2
+Owned name because we needed an allocation:
+ User3
+```
+
+<br>
+
+## `Rc`
+`Rc` stands for **reference counter** or **reference counted**.<br>
+In Rust, **every variable can only have one owner**:
+```rust
+fn takes_a_string(foo: String) {
+    println!("{}", foo);
+}
+
+fn main() {
+    let user_name = String::from("User MacUserson");
+    takes_a_string(user_name);
+    takes_a_string(user_name); // ❌ ERROR: use of moved value: `user_name`
+}
+```
+
+After `takes_a_string` takes `user_name`, you **can’t use it anymore**. You can give it `user_name.clone()`. However, sometimes
+- the `String` is part of a struct, and you can’t clone the struct;
+- the `String` is really **long**, and you don’t want to clone it;
+
+<br>
+
+An `Rc` gets around this by letting you **have more than one owner**:
+```rust
+use std::rc::Rc;
+
+fn takes_a_string(foo: Rc<String>) {
+    println!("{}", foo);
+    println!("takes_a_string: The number of owners: {}", Rc::strong_count(&foo));
+}
+
+fn main() {
+    let foo = Rc::new(String::from("Foo"));
+    takes_a_string(Rc::clone(&foo));
+    takes_a_string(Rc::clone(&foo));
+    println!("main: The number of owners: {}", Rc::strong_count(&foo));
+}
+```
+**Output**:
+```rust
+Foo
+takes_a_string: The number of owners: 2
+Foo
+takes_a_string: The number of owners: 2
+main: The number of owners: 1
+```
+
+<br>
+
+### Weak reference
+Weak pointers are useful because if two `Rc`s point at each other, they **can’t be deallocated**. This is called a **reference cycle**.<br>
+If *item 1* has an `Rc` to *item 2* and *item 2* has an `Rc` to *item 1*, they can’t get **strong count** to `0` and will never be able to drop their values. In this case, you can to use **weak references**.<br>
+
+There is `Rc::downgrade(&item)` instead of `Rc::clone(&item)` to make **weak references**. Also, there is `Rc::weak_count(&item)` to see the **weak count**.<br>
+
+
+Consider you have instance of `Rc` in variable `foo`, then you can **clone** `Rc` with `Rc::clone(&foo)` or `foo.clone()`. Usually, `Rc::clone(&foo)` is **better** because an `Rc` holds a type that might have its own methods (including `.clone()`). Thus, it’s a good way to show that you are cloning the `Rc`, not the object inside it.<br>
+
+<br>
+
+There is also a method for `Rc` called `strong_count()` that shows you how many owners `Rc` instance has at the moment.<br>
+
+<br>
+
+### Avoiding lifetime annotations with `Rc`
+Using lifetimes in struct forces to declare them everywhere.<br>
+
+<br>
+
+**Consider struct**:
+```rust
+struct Foo<'a> {
+    name: &'a str,
+}
+```
+
+Then Rust will require to add `'a` to every struct that somehow uses `Foo`:
+```rust
+struct Bar<'a> {
+    foo: Foo<'a>,
+}
+
+struct FizzBaz<'a> {
+    foo_list: Vec<Foo<'a>>,
+}
+```
+
+That works just fine, but it took **a lot of typing**.<br>
+
+It is possible to use `Rc` instead and *get rid of* **all** the lifetime annotations **everywhere** else:
+```rust
+use std::rc::Rc;
+
+struct Foo {
+    name: Rc<String>,
+}
+
+struct Bar {
+    foo: Foo,
+}
+
+struct FizzBaz {
+    foo_list: Vec<Foo>,
+}
+```
+
+<br>
+
+## Multiple threads
+You create threads with `std::thread::spawn` and a closure to tell it what to do. Creating threads is also called **spawning threads**.<br>
+
+Example:
+```rust
+fn main() {
+std::thread::spawn(|| {
+println!("I am printing something");
+});
+}
+```
+
+In fact, the **output will be different** every time. Sometimes it will print, and sometimes it won’t. That is because sometimes `main()` finishes **before** the thread finishes, and when `main()` **finishes**, the **whole program is over**.<br>
+Also, sometimes the threads will panic with error `cannot access stdout during`. This error occurs when the *thread tries to do something* just when the *program is
+shutting down*.<br>
+
+The better way to **avoid** termination of *main thread* is to **stop** *main thread* **until** the all spawned are over. The `spawn()` function actually returns something called a `JoinHandle` that lets us do exactly this:
+```rust
+pub fn spawn<F, T>(f: F) -> JoinHandle<T>
+where
+    F: FnOnce() -> T,
+    F: Send + 'static,
+    T: Send + 'static,
+```
+
+<br>
+
+- `'static` means that the closure and its return value must have a lifetime of the whole program;
+  - that’s because **threads can outlive the scope they have been created in**;
+  - since we can’t know when it will return, we need to have them as long as possible, so until the end of the program;
+- `f` is the closure;
+
+<br>
+
+### Using `JoinHandle`s to wait for threads to finish
+Consider example:
+```rust
+fn main() {
+    for _ in 0..10 {
+        let handle = std::thread::spawn(|| {
+            println!("I am printing something");
+        });
+        handle.join();
+    }
+}
+```
+
+In the above example we start a thread, do something, and then call `.join()` to wait and only then we start a new thread.<br>
+
+But we want to **start all the threads at the same time** and **only then call** `.join()` on the threads. To solve this, we can create a `Vec` that will hold all of the `JoinHandles`. Then we can call `.join()` on them:
+```rust
+use std::{thread::{spawn, JoinHandle}, time::Duration};
+
+fn main() {
+    let threads = (1..=10).into_iter().map(|id| {
+        spawn(move || {
+            println!("thread {}", id);
+            id
+        })
+    }).collect::<Vec<_>>();
+
+    threads.into_iter().for_each(|j| {
+        let result = j.join().unwrap();
+        println!("thread with id {} is over", result);
+    });
+}
+```
+**Output**:
+```rust
+thread 2
+thread 1
+thread 5
+thread 6
+thread 4
+thread 8
+thread with id 1 is over
+thread with id 2 is over
+thread 7
+thread 10
+thread 9
+thread 3
+thread with id 3 is over
+thread with id 4 is over
+thread with id 5 is over
+thread with id 6 is over
+thread with id 7 is over
+thread with id 8 is over
+thread with id 9 is over
+thread with id 10 is over
+```
+
+<br>
+
+## Closures
+### Types of closures
+A **closure** is just **sugar** for defining a *struct to contain the environment* (aka **closure's struct** or **closure object**) and *implementing one of the* `Fn*` *traits on it*.<br>
+
+A closure can capture variables in **3 ways**:
+- **by value** (**move**);
+- **by mutable reference** (**&mut**);
+- **by immutable reference** (**&**);
+
+<br>
+
+Rust’s compiler automatically **determines** which `Fn*` **trait** to implements based on **how captured variables are used inside the closure**:
+- `Fn` if *all* captured values ​​are **read**; 
+- `FnMut` if *at least one* captured value is **changed**;
+- `FnOnce` if *at least one* captured value is **moved out** or **dropped**;
+
+<br>
+
+**Closure's struct** that **captures variables by value** looks like:
+```rust
+struct EnvOwn {
+    variable1: Type1,
+    variable2: Type2,
+}
+```
+
+<br>
+
+**Closure's struct** that **captures variables by reference** looks like:
+```rust
+struct EnvRef<'a> {
+    variable1: &'a Type1,
+    variable2: &'a mut Type2, // Note: if an `&mut` reference to `variable2` is used in the closure.
+}
+```
+
+<br>
+
+Take a look at the **signature** of the `call` method in the `Fn*` traits:
+- `FnOnce` -> `FnOnce::call_once(self, ...)`;
+- `Fn` -> `Fn::call(&self, ...)`;
+- `FnMut` -> `FnMut::call_mut(&mut self, ...)`;
+
+<br>
+
+The `self` is the *closure's struct* that contains **captured variables** from closure's **environment**.<br>
+
+<br>
+
+The `move` keword **moves variables** from the stack where the closure is defined into the *closure's struct*.<br>
+When invoked, `FnOnce` moves the **closure object** into the closure's call stack and thus consumes it. So, **closure can be used only once**.<br>
+Both `Fn` and `FnMut` put a reference to **closure object** on the call stack.<br>
+
+<br>
+
+### The relationship between `FnOnce`, `FnMut`, and `Fn`
+```rust
+pub trait FnOnce
+pub trait FnMut: FnOnce
+pub trait Fn: FnMut
+```
+
+`FnOnce` is a **supertrait** of `FnMut` and `FnMut` is a **supertrait** of `Fn`.<br>
+
+<br>
+
+To sum up:
+- `Fn` **must** implement `FnMut` and `FnOnce`;
+- `FnMut` **must** implement **only** `FnOnce`;
+- `FnOnce` **doesn’t need any** other traits to be implemented;
+
+<br>
+
+Note, **all closures implement** `FnOnce`.<br>
+
+<br>
+
+Also it means that:
+- if a **function takes** an `F: FnOnce()` as an argument `f`:
+  - it can accept **any closure** (`Fn`, `FnMut` or `FnOnce`) matching the signature;
+  - but it **can call** `f()` **only once**;
+```rust
+fn foo<F>(f: F)
+where
+    F: FnOnce(),
+{
+    f();
+    // f(); // ❌ ERROR: use of moved value: `f`
+}
+```
+- if a **function takes** an `F: FnMut()` as an argument `f`:
+  - it can **also** accept `Fn` closure matching the signature (because `Fn` implements `FnMut`);
+  - `FnMut` requires `mut` before argument `mut f`:
+```rust
+fn foo<F>(mut f: F)
+where
+    F: FnMut(),
+{
+    f();
+    f();
+}
+```
+- if a **function takes** an `F: Fn()` as an argument `f`: it **only** accepts `Fn`:
+```rust
+fn foo<F>(f: F)
+where
+    F: Fn(),
+{
+    f();
+    f();
+}
+```
+
+<br>
+
+Also it means that:
+- closure implementing `Fn` can be used **anywhere**;
+- closure implementing `FnMut` can be used where `FnOnce` or `FnMut` is expected;
+- closure implementing `FnOnce` can be used where **only** `FnOnce` is expected;
+
+<br>
+
+### Examples of how Rust infers type of closure
+**Fn**:<br>
+![Fn](/img/Fn.png)
+
+<br>
+
+**FnMut**:<br>
+![FnMut](/img/FnMut.png)
+
+<br>
+
+**FnMut** - using `move` keyword:<br>
+![move_and_FnMut](/img/move_and_FnMut.png)
+
+<br>
+
+**FnOnce** - *drop*:<br>
+![FnOnce](/img/FnOnce.png)
+
+<br>
+
+**FnOnce** - *mutation* + *drop*:<br>
+![FnOnce_and_mutation](/img/FnOnce_and_mutation.png)
+
+<br>
+
+**FnOnce** - *transferring ownership out*:<br>
+![no_move_and_FnOnce](/img/no_move_and_FnOnce.png)
+
+<br>
+
+```rust
+fn do_something<F>(f: F)
+where
+    F: FnOnce(),
+{
+    f();
+}
+```
+
+<br>
+
+### Closures are all unique
+Closures are **unique types** that implement the trait `Fn`, not a concrete type `Fn`.<br>
 
 <br>
 
 # Chapter 12
+## Arc
+we used an `Rc` to give a variable **more than one owner**. If we are doing the **same thing** in a **thread**, we need an `Arc`.<br>
+`Arc` stands for **atomic reference counter**. **Atomic** means that it uses **atomic operations**.<br>
+You **can’t** change data with just an `Arc`, though — it’s **just a reference counter**. You must wrap the data in a `Mutex`, and then you wrap the `Mutex` in an `Arc`: `Arc<Mutex<T>>`.<br>
+
+**Example**:
+```rust
+use std::sync::{Arc, Mutex};
+
+fn main() {
+    let my_number = Arc::new(Mutex::new(0));
+    let mut threads = vec![];
+    for _ in 0..2 {
+        let my_number = Arc::clone(&my_number);
+        threads.push(std::thread::spawn(move || {
+            for _ in 0..10 {
+                *my_number.lock().unwrap() += 1;
+            }
+        }));
+    }
+    threads.into_iter().for_each(|h| h.join().unwrap());
+    println!("Value is: {my_number:?}");
+}
+```
+
+<br>
+
+## Scoped threads
+**Regular threads** (**non-scoped threads**) need a `'static` guarantee.<br>
+Unlike *non-scoped threads*, **scoped threads** *can borrow* **non**-`'static` data, as the **scope guarantees all threads will be joined at the end of the scope**.<br>
+
+With **scoped threads**, you start with a **scope**, using `std::thread::scope()`:
+```rust
+fn main() {
+    std::thread::scope(|s| { // The "s" is a name of scope here.
+        s.spawn(|| {
+            sleep(Duration::new(1, 0));
+            println!("1 hello!");
+        });
+
+        s.spawn(|| {
+            println!("2 hello!");
+        });
+    }); // The threads automatically are joined here, so there’s no need to think about JoinHandles.
+}
+```
+**Output**:
+```bash
+2 hello!
+1 hello!
+```
+
+<br>
+
+You still need a `Mutex` because more than one thread is changing some value, but you **don’t need** an `Arc` **anymore**. You **don’t need to use** `move` because the threads **just borrow the values** because the **threads are guaranteed to not exist after the scope is over**.<br>
+
+<br>
+
+## Channels
+You can create a **channel** in Rust with the `channel()` function in `std::sync::mpsc`. The `mpsc` stand for **multiple producer, single consumer**.<br>
+The `channel()` function creates a `Sender` and a `Receiver`. They are tied together, and both hold the same **generic type**.<br>
+
+The `channel()` function signature:
+```rust
+pub fn channel<T>() -> (Sender<T>, Receiver<T>)
+```
+
+The output of the `channel()` function is a `tuple`.<br>
+
+You could specify the type if you want:
+```rust
+fn main() {
+    let (sender, receiver): (Sender<i32>, Receiver<i32>) = channel();
+    sender.send(5);
+    receiver.recv();
+}
+```
+
+<br>
+
+Also you can omitt type declaration: once you send value `sender.send(5);` Rust will be able to infer the type:
+```rust
+fn main() {
+    let (sender, receiver) = channel();
+    sender.send(5);
+    receiver.recv();
+}
+```
+
+<br>
+
+Each of these methods might fail, so they each return a `Result`:
+- the `.send()` method for **sender** returns `Result<(), SendError<i32>>`;
+  - `.send()` will **return** an `Err` if the `Receiver` **has been dropped**;
+- the `.recv()` method for **receiver** returns `Result<i32, RecvError>`;
+  - `.recv()` will **return** an `Err` if the `Sender` **has been dropped AND** there is **no data** to receive;
+    - it means that the **all data has been received** and the **channel has been closed**;
+  - `.recv()` will **return** an `Ok` if the `Sender` **has been dropped AND** there is **still data** to receive;
+  - `.recv()` will **keep blocking** if the `Sender` is **alive AND** there is **no data** to receive;
+
+<br>
+
+A `channel` is like an `Arc` because you **can clone it** and **send the clones into other threads**:
+```rust
+use std::{sync::mpsc::{channel, Receiver, Sender}, thread::sleep, time::Duration};
+
+fn main() {
+    let (sender, receiver) = channel();
+    let sender_clone = sender.clone();
+
+    std::thread::spawn(move || {
+        sender.send("A").unwrap();
+        sleep(Duration::new(1, 0));
+        sender.send("B").unwrap();
+    });
+
+    std::thread::spawn(move || {
+        sender_clone.send("C").unwrap();
+        sender_clone.send("D").unwrap();
+    });
+    
+    while let Ok(res) = receiver.recv() {
+        println!("{res}");
+    }
+}
+```
+**Output**:
+```bash
+A
+C
+D
+B
+```
+
+<br>
+
+**Example** - **third** `.recv()` will **keep blocking**  and the **program will never end**:
+```rust
+use std::sync::mpsc::channel;
+
+fn main() {
+    let (sender, receiver) = channel();
+    sender.send(5).unwrap();
+    sender.send(5).unwrap();
+
+    println!("{:?}", receiver.recv());
+    println!("{:?}", receiver.recv());
+    println!("{:?}", receiver.recv());
+}
+```
+**Output**:
+```rust
+Ok(5)
+Ok(5)
+
+```
+
+<br>
+
+**Example** - **third** `.recv()` will return `Err`:
+```rust
+use std::sync::mpsc::channel;
+
+fn main() {
+    let (sender, receiver) = channel();
+    sender.send(5).unwrap();
+    sender.send(5).unwrap();
+    drop(sender);
+
+    println!("{:?}", receiver.recv());
+    println!("{:?}", receiver.recv());
+    println!("{:?}", receiver.recv());
+}
+```
+**Output**:
+```rust
+Ok(5)
+Ok(5)
+Err(RecvError)
+```
 
 <br>
 
