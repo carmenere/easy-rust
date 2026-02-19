@@ -118,8 +118,12 @@
   - [Closures](#closures)
     - [Types of closures](#types-of-closures)
     - [The relationship between `FnOnce`, `FnMut`, and `Fn`](#the-relationship-between-fnonce-fnmut-and-fn)
+    - [Examples of how Rust infers type of closure](#examples-of-how-rust-infers-type-of-closure)
     - [Closures are all unique](#closures-are-all-unique)
 - [Chapter 12](#chapter-12)
+  - [Arc](#arc)
+  - [Scoped threads](#scoped-threads)
+  - [Channels](#channels)
 - [Chapter 13](#chapter-13)
 - [Chapter 14](#chapter-14)
 - [Chapter 15](#chapter-15)
@@ -273,7 +277,7 @@ What about the size in characters/letters? There is methods `.chars().count()` t
 <br>
 
 ## Grapheme clusters
-In Rust, a **grapheme cluster** **cannot** be a `char` because a `char` is defined as a **single** 4-byte code point of Unicode, whereas a **grapheme cluster** is a **sequence** of one or more **code points** that is displayed as a **single character**.<br>
+In Rust, a **grapheme cluster cannot** be a `char` because a `char` is defined as a **single** 4-byte code point of Unicode, whereas a **grapheme cluster** is a **sequence** of one or more **code points** that is displayed as a **single character**.<br>
 
 **Namaste** (/na-ma-stay/) is the most common **greeting** in **Hindi**, suitable for both **formal** and **informal** situations.<br>
 *Namaste* in **Sanskrit** is नमस्ते.<br>
@@ -592,7 +596,7 @@ always copies their data when you send these types to a function. `Copy` types a
 You also see the word **trivial** to talk about `Copy` types a lot, such as “It’s **trivial to copy them**.” That means: it’s so easy to copy them that there is no reason not to copy them.<br>
 `Copy` types include `integers`, `floats`, `booleans` (true and false), `char`, and others.<br>
 
-If it is a `Copy` type, the data would be **copied**, **not** **moved**.<br>
+If it is a `Copy` type, the data would be **copied**, **not moved**.<br>
 `Clone` is similar to `Copy` but usually needs more memory.<br>
 
 <br>
@@ -3303,7 +3307,7 @@ There are two **ways to be sure** that your **code won’t panic** when using a 
 ### Mutex
 **Mutex** means **mutual exclusion** which means **only one at a time**.<br>
 In rust `Mutex` is another way to change values without declaring `mut`.<br>
-The `Mutex<T>` is safe because it only lets **one thread** **change it at a time**. To do this, it uses a method `.lock()`, which returns `Result<MutexGuard<T>>`.<br>
+The `Mutex<T>` is safe because it only lets **one thread change it at a time**. To do this, it uses a method `.lock()`, which returns `Result<MutexGuard<T>>`.<br>
 
 ```rust
 use std::sync::Mutex;
@@ -3905,9 +3909,40 @@ Note, **all closures implement** `FnOnce`.<br>
 <br>
 
 Also it means that:
-- if a **function takes** an `F: FnOnce()` as an argument: it can accept **any closure** matching the signature (`Fn`, `FnMut`, or `FnOnce`);
-- if a **function takes** an `F: FnMut()` as an argument: it can accept `FnMut` or `Fn` (because `Fn` implements `FnMut`);
-- if a **function takes** an `F: Fn()` as an argument: it **only** accepts `Fn`;
+- if a **function takes** an `F: FnOnce()` as an argument `f`:
+  - it can accept **any closure** (`Fn`, `FnMut` or `FnOnce`) matching the signature;
+  - but it **can call** `f()` **only once**;
+```rust
+fn foo<F>(f: F)
+where
+    F: FnOnce(),
+{
+    f();
+    // f(); // ❌ ERROR: use of moved value: `f`
+}
+```
+- if a **function takes** an `F: FnMut()` as an argument `f`:
+  - it can **also** accept `Fn` closure matching the signature (because `Fn` implements `FnMut`);
+  - `FnMut` requires `mut` before argument `mut f`:
+```rust
+fn foo<F>(mut f: F)
+where
+    F: FnMut(),
+{
+    f();
+    f();
+}
+```
+- if a **function takes** an `F: Fn()` as an argument `f`: it **only** accepts `Fn`:
+```rust
+fn foo<F>(f: F)
+where
+    F: Fn(),
+{
+    f();
+    f();
+}
+```
 
 <br>
 
@@ -3918,66 +3953,234 @@ Also it means that:
 
 <br>
 
-Note, `FnMut` requires `mut` before argument `mut f`:
-```rust
-fn foo<F: FnMut()>(mut f: F) {
-    f()
-}
-```
-
-<br>
-
-**Example**:
-```rust
-fn main() {
-    let mut s = String::from("hello");
-    let mut closure = move || {
-        s.push_str(", world");
-        println!("inside closure: {}", s);
-    };
-    closure();
-    // println!("{}", s); // ❌ ERROR: borrow of moved value: `s`
-}
-```
-
-<br>
-
-Example of how Rust infer type of clisure:
-`Fn`:<br>
+### Examples of how Rust infers type of closure
+**Fn**:<br>
 ![Fn](/img/Fn.png)
 
 <br>
 
-`FnMut`:<br>
+**FnMut**:<br>
 ![FnMut](/img/FnMut.png)
 
 <br>
 
-`FnOnce`:<br>
-![FnOnce](/img/FnOnce.png)
-
-<br>
-
-`FnOnce` and `mutation`:<br>
-![FnOnce_and_mutation](/img/FnOnce_and_mutation.png)
-
-<br>
-
-**No** `move` and `FnOnce`:<br>
-![no_move_and_FnOnce](/img/no_move_and_FnOnce.png)
-
-<br>
-
-`move` and `FnMut`:<br>
+**FnMut** - using `move` keyword:<br>
 ![move_and_FnMut](/img/move_and_FnMut.png)
 
 <br>
 
+**FnOnce** - *drop*:<br>
+![FnOnce](/img/FnOnce.png)
+
+<br>
+
+**FnOnce** - *mutation* + *drop*:<br>
+![FnOnce_and_mutation](/img/FnOnce_and_mutation.png)
+
+<br>
+
+**FnOnce** - *transferring ownership out*:<br>
+![no_move_and_FnOnce](/img/no_move_and_FnOnce.png)
+
+<br>
+
+```rust
+fn do_something<F>(f: F)
+where
+    F: FnOnce(),
+{
+    f();
+}
+```
+
+<br>
+
 ### Closures are all unique
+Closures are **unique types** that implement the trait `Fn`, not a concrete type `Fn`.<br>
 
 <br>
 
 # Chapter 12
+## Arc
+we used an `Rc` to give a variable **more than one owner**. If we are doing the **same thing** in a **thread**, we need an `Arc`.<br>
+`Arc` stands for **atomic reference counter**. **Atomic** means that it uses **atomic operations**.<br>
+You **can’t** change data with just an `Arc`, though — it’s **just a reference counter**. You must wrap the data in a `Mutex`, and then you wrap the `Mutex` in an `Arc`: `Arc<Mutex<T>>`.<br>
+
+**Example**:
+```rust
+use std::sync::{Arc, Mutex};
+
+fn main() {
+    let my_number = Arc::new(Mutex::new(0));
+    let mut threads = vec![];
+    for _ in 0..2 {
+        let my_number = Arc::clone(&my_number);
+        threads.push(std::thread::spawn(move || {
+            for _ in 0..10 {
+                *my_number.lock().unwrap() += 1;
+            }
+        }));
+    }
+    threads.into_iter().for_each(|h| h.join().unwrap());
+    println!("Value is: {my_number:?}");
+}
+```
+
+<br>
+
+## Scoped threads
+**Regular threads** (**non-scoped threads**) need a `'static` guarantee.<br>
+Unlike *non-scoped threads*, **scoped threads** *can borrow* **non**-`'static` data, as the **scope guarantees all threads will be joined at the end of the scope**.<br>
+
+With **scoped threads**, you start with a **scope**, using `std::thread::scope()`:
+```rust
+fn main() {
+    std::thread::scope(|s| { // The "s" is a name of scope here.
+        s.spawn(|| {
+            sleep(Duration::new(1, 0));
+            println!("1 hello!");
+        });
+
+        s.spawn(|| {
+            println!("2 hello!");
+        });
+    }); // The threads automatically are joined here, so there’s no need to think about JoinHandles.
+}
+```
+**Output**:
+```bash
+2 hello!
+1 hello!
+```
+
+<br>
+
+You still need a `Mutex` because more than one thread is changing some value, but you **don’t need** an `Arc` **anymore**. You **don’t need to use** `move` because the threads **just borrow the values** because the **threads are guaranteed to not exist after the scope is over**.<br>
+
+<br>
+
+## Channels
+You can create a **channel** in Rust with the `channel()` function in `std::sync::mpsc`. The `mpsc` stand for **multiple producer, single consumer**.<br>
+The `channel()` function creates a `Sender` and a `Receiver`. They are tied together, and both hold the same **generic type**.<br>
+
+The `channel()` function signature:
+```rust
+pub fn channel<T>() -> (Sender<T>, Receiver<T>)
+```
+
+The output of the `channel()` function is a `tuple`.<br>
+
+You could specify the type if you want:
+```rust
+fn main() {
+    let (sender, receiver): (Sender<i32>, Receiver<i32>) = channel();
+    sender.send(5);
+    receiver.recv();
+}
+```
+
+<br>
+
+Also you can omitt type declaration: once you send value `sender.send(5);` Rust will be able to infer the type:
+```rust
+fn main() {
+    let (sender, receiver) = channel();
+    sender.send(5);
+    receiver.recv();
+}
+```
+
+<br>
+
+Each of these methods might fail, so they each return a `Result`:
+- the `.send()` method for **sender** returns `Result<(), SendError<i32>>`;
+  - `.send()` will **return** an `Err` if the `Receiver` **has been dropped**;
+- the `.recv()` method for **receiver** returns `Result<i32, RecvError>`;
+  - `.recv()` will **return** an `Err` if the `Sender` **has been dropped AND** there is **no data** to receive;
+    - it means that the **all data has been received** and the **channel has been closed**;
+  - `.recv()` will **return** an `Ok` if the `Sender` **has been dropped AND** there is **still data** to receive;
+  - `.recv()` will **keep blocking** if the `Sender` is **alive AND** there is **no data** to receive;
+
+<br>
+
+A `channel` is like an `Arc` because you **can clone it** and **send the clones into other threads**:
+```rust
+use std::{sync::mpsc::{channel, Receiver, Sender}, thread::sleep, time::Duration};
+
+fn main() {
+    let (sender, receiver) = channel();
+    let sender_clone = sender.clone();
+
+    std::thread::spawn(move || {
+        sender.send("A").unwrap();
+        sleep(Duration::new(1, 0));
+        sender.send("B").unwrap();
+    });
+
+    std::thread::spawn(move || {
+        sender_clone.send("C").unwrap();
+        sender_clone.send("D").unwrap();
+    });
+    
+    while let Ok(res) = receiver.recv() {
+        println!("{res}");
+    }
+}
+```
+**Output**:
+```bash
+A
+C
+D
+B
+```
+
+<br>
+
+**Example** - **third** `.recv()` will **keep blocking**  and the **program will never end**:
+```rust
+use std::sync::mpsc::channel;
+
+fn main() {
+    let (sender, receiver) = channel();
+    sender.send(5).unwrap();
+    sender.send(5).unwrap();
+
+    println!("{:?}", receiver.recv());
+    println!("{:?}", receiver.recv());
+    println!("{:?}", receiver.recv());
+}
+```
+**Output**:
+```rust
+Ok(5)
+Ok(5)
+
+```
+
+<br>
+
+**Example** - **third** `.recv()` will return `Err`:
+```rust
+use std::sync::mpsc::channel;
+
+fn main() {
+    let (sender, receiver) = channel();
+    sender.send(5).unwrap();
+    sender.send(5).unwrap();
+    drop(sender);
+
+    println!("{:?}", receiver.recv());
+    println!("{:?}", receiver.recv());
+    println!("{:?}", receiver.recv());
+}
+```
+**Output**:
+```rust
+Ok(5)
+Ok(5)
+Err(RecvError)
+```
 
 <br>
 
