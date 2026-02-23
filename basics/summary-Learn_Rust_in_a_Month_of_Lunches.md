@@ -125,6 +125,17 @@
   - [Scoped threads](#scoped-threads)
   - [Channels](#channels)
 - [Chapter 13](#chapter-13)
+  - [Partial implementation](#partial-implementation)
+  - [Attributes](#attributes)
+    - [Som attributes](#som-attributes)
+      - [Lints](#lints)
+      - [Derive](#derive)
+      - [Clone and Copy](#clone-and-copy)
+      - [`#[cfg()]`](#cfg)
+  - [`Box`](#box)
+    - [Dynamic dispatch](#dynamic-dispatch)
+    - [Using a `Box` to handle multiple error types](#using-a-box-to-handle-multiple-error-types)
+  - [Downcasting to a concrete type](#downcasting-to-a-concrete-type)
 - [Chapter 14](#chapter-14)
 - [Chapter 15](#chapter-15)
 - [Chapter 16](#chapter-16)
@@ -4185,6 +4196,236 @@ Err(RecvError)
 <br>
 
 # Chapter 13
+## Partial implementation
+Consider example:
+```rust
+impl<T: Copy> Cell<T> {
+    pub fn get(&self) -> T {
+        
+    }
+
+    pub fn update<F>(&self, f: F) -> T
+    where
+        F: FnOnce(T) -> T,
+    {
+
+    }
+}
+
+impl<T: Copy> Clone for Cell<T> {
+    fn clone(&self) -> Cell<T> {
+        Cell::new(self.get())
+    }
+}
+```
+
+<br>
+
+All methods `get`, `update` and `clone` **don’t exist if the inner type doesn’t implement** `Copy` because they are written in **separate** `impl` blocks that start with `impl<T: Copy>`, thus requiring `T` to be `Copy` to be used.<br>
+
+<br>
+
+## Attributes
+Some **attributes** are *built into the language*, some are *used to derive traits* (like `#[derive(Debug)]`).<br>
+An *attribute* with a `#` is called an **outer attribute** because it stands **outside** of the **item** that follows it and **affetcts** only this item.<br>
+An attribute with a `#!` is called an **inner attribute** because it **affects everything inside its file**. An *inner attribute* **must** be placed **at the very top** of the *file* or *module* it is used in.<br>
+
+<br>
+
+### Som attributes
+#### Lints
+- `#[warn(unused_variables)]`
+- `#[warn(dead_code)]`
+
+You can make the compiler be **quiet** in 2 ways:
+- by adding `_` **before** name of variable or name of type:
+  - `struct _Foo {}`
+- by using attributes:
+  - **unused types** (structs, enums, ...): `#![allow(dead_code)]`
+  - **unused identifiers**: `#![allow(unused_variables)]`
+  - **everything unused**: `#![allow(unused)]`
+
+<br>
+
+#### Derive
+The `#[derive(TraitName)]` lets you derive some traits (that **can be** *automatically derived*) for structs and enums that you create.<br>
+Some, like `Display`, **can’t be** *automatically derived* because `Display` is *for human-readable display*, so **human must implement** it.<br>
+
+<br>
+
+#### Clone and Copy
+The `Clone` and `Copy` are deriveable: `#[derive(Clone, Copy)]`.<br>
+You can make a struct `Copy` **if and only if** it *implements* `Clone` and **if all its fields** *implement* `Copy`.<br>
+
+<br>
+
+#### `#[cfg()]`
+Examples:
+- `#[cfg(target_os = "windows")]` with that, you can tell the compiler to run the code only on specifi platform;
+- `#[cfg(test)]`
+- `#![no_std]` this attribute tells Rust not to bring in the standard library;
+- `#[non_exhaustive]` when placed above a type, lets the compiler know that it may have more variants or fields in the future;
+- `#[deprecated]` lets you mark an item, usually a function, as **deprecated** (not used anymore);
+  - this attribute won’t stop people from using the function, but it will **give** a **warning**;
+  - you can add a **note** inside the **deprecated attribute** to give some more information: `#[deprecated(note = "use function `bar` instead")]`;
+
+<br>
+
+**Example 1**:
+```rust
+#[deprecated]
+fn foo() {}
+
+fn main() {
+    foo();
+}
+```
+**Output**:
+```rust
+warning: use of deprecated function `foo`
+ --> chapter_03/src/main.rs:5:5
+  |
+5 |     foo();
+  |     ^^^
+  |
+  = note: `#[warn(deprecated)]` on by default
+
+warning: `chapter_03` (bin "chapter_03") generated 1 warning
+    Finished `release` profile [optimized] target(s) in 0.19s
+     Running `target/release/chapter_03`
+```
+
+<br>
+<br>
+
+**Example 2**:
+```rust
+#[deprecated(note = "use function `bar` instead")]
+fn foo() {}
+
+fn main() {
+    foo();
+}
+```
+**Output**:
+```rust
+warning: use of deprecated function `foo`: use function bar instead
+...
+```
+
+<br>
+
+## `Box`
+When you use a Box, you can put a variable’s data on the heap instead of the stack.<br>
+Box owns its data.<br>
+You can use * on a Box to get to the value, just like with &:
+```rust
+```
+
+<br>
+
+You can also use a Box to create a recursive struct.
+
+Consider example:
+```rust
+struct Foo {
+    next: Option<Foo>
+}
+
+fn main() {
+    let x = Foo {
+        next: Some(Foo {
+            next: Some(Foo { next: None }),
+        }),
+    };
+}
+```
+
+**Output**:
+```rust
+error[E0072]: recursive type `Foo` has infinite size
+ --> chapter_03/src/main.rs:1:1
+  |
+1 | struct Foo {
+  | ^^^^^^^^^^
+2 |     next: Option<Foo>
+  |                  --- recursive without indirection
+  |
+help: insert some indirection (e.g., a `Box`, `Rc`, or `&`) to break the cycle
+  |
+2 |     next: Option<Box<Foo>>
+  |                  ++++   +
+```
+
+<br>
+
+The `Box` can **fix** this:
+```rust
+#[derive(Debug)]
+struct Foo {
+    next: Option<Box<Foo>>
+}
+
+fn main() {
+    let x = Foo {
+        next: Some(Box::new(Foo {
+            next: Some(Box::new(Foo { next: None })),
+        })),
+    };
+    println!("{:?}", x);
+}
+```
+
+**Output**:
+```rust
+Foo { next: Some(Foo { next: Some(Foo { next: None }) }) }
+```
+
+<br>
+
+### Dynamic dispatch
+**Static dispatch** happens when the compiler turns a **generic type** into a **concrete type** at compile time.<br>
+**Dynamic dispatch** happens when a **concrete type** is being chosen at run time.<br>
+
+Consider trait `Foo`, then `dyn Foo` is a **trait object** and it is **unsized** and it can **only** be used **behind reference**, for example inside `Box`: `Box<dyn Foo>`.<br>
+
+A **trait object** represents some type that implements a trait but **doesn't show** you what the *concrete type* is. In other words, **you have access to** the *type’s implementation* of a trait but **not** the *concrete type* itself. **Not knowing** the *concrete type* is called **type erasure** because the *concrete type* is **erased**.<br>
+
+<br>
+
+### Using a `Box` to handle multiple error types
+Consider function that returns `Result<String, Box<dyn Error>>`. By returning a `Box<dyn Error>`, we can return a `Box` that **holds anything** that implements the `Error` trait.<br>
+
+If we didn’t have a `Box<dyn Error>` and wrote just `Result<String, Error>` the compiler gives us error: `Result<String, Error> doesn't have a size known at compile-time`. Indeed, a trait `Error` can be implemented on many types and compiler doesn't know exact size of type.<br>
+
+Consider a function with **two types of possible errors**, for example, an error when parsing into an `i32` and an error when parsing into an `f64`. But we want to use `?` operator inside this function and thus we can use only **one** `Error` inside returning `Result`.<br>
+We can use `Result<f64, Box<dynError>>` as returning type:
+```rust
+use std::error::Error;
+
+fn parse_numbers(int: &str, float: &str) -> Result<f64, Box<dyn Error>> {
+    let num_1 = int.parse::<i32>()?;
+    let num_2 = float.parse::<f64>()?;
+    Ok(num_1 as f64 + num_2)
+}
+fn main() {
+    let n = parse_numbers("8", "ninepointnine");
+    println!("{:?}", n);
+    let n = parse_numbers("8", "9.");
+    println!("{:?}", n);
+}
+```
+
+**Output**:
+```rust
+Err(ParseFloatError { kind: Invalid })
+Ok(17.0)
+```
+
+<br>
+
+## Downcasting to a concrete type
+You can **downcast** a **trait object** back to a **concrete type** as long as you **know** what **concrete type** it might be. **You can only try downcasting to one type at a time**.<br>
 
 <br>
 
