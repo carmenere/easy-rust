@@ -133,10 +133,16 @@
       - [Clone and Copy](#clone-and-copy)
       - [`#[cfg()]`](#cfg)
   - [`Box`](#box)
+    - [Example: recursive struct](#example-recursive-struct)
     - [Dynamic dispatch](#dynamic-dispatch)
     - [Using a `Box` to handle multiple error types](#using-a-box-to-handle-multiple-error-types)
   - [Downcasting to a concrete type](#downcasting-to-a-concrete-type)
+    - [Example: downcast `dyn Animal`](#example-downcast-dyn-animal)
+    - [Example: downcast `dyn Error`](#example-downcast-dyn-error)
 - [Chapter 14](#chapter-14)
+  - [Crates and modules](#crates-and-modules)
+  - [Testing](#testing)
+    - [Just add `#[test]`](#just-add-test)
 - [Chapter 15](#chapter-15)
 - [Chapter 16](#chapter-16)
 <!-- TOC -->
@@ -4316,15 +4322,20 @@ warning: use of deprecated function `foo`: use function bar instead
 <br>
 
 ## `Box`
-When you use a Box, you can put a variable’s data on the heap instead of the stack.<br>
-Box owns its data.<br>
-You can use * on a Box to get to the value, just like with &:
+When you use a `Box`, you can put a variable’s data on the heap instead of the stack.<br>
+The `Box` **owns its data**.<br>
+You can use `*` on a `Box` to **get to the value**, just like with `&`:
 ```rust
+fn main() {
+    let my_box = Box::new(1);
+    let an_integer = *my_box;
+}
 ```
 
 <br>
 
-You can also use a Box to create a recursive struct.
+### Example: recursive struct
+You can also use a `Box` to create a **recursive struct**.<br>
 
 Consider example:
 ```rust
@@ -4359,7 +4370,7 @@ help: insert some indirection (e.g., a `Box`, `Rc`, or `&`) to break the cycle
 
 <br>
 
-The `Box` can **fix** this:
+**Fix**:
 ```rust
 #[derive(Debug)]
 struct Foo {
@@ -4425,11 +4436,228 @@ Ok(17.0)
 <br>
 
 ## Downcasting to a concrete type
-You can **downcast** a **trait object** back to a **concrete type** as long as you **know** what **concrete type** it might be. **You can only try downcasting to one type at a time**.<br>
+You can **downcast** a **trait object** back to a **concrete type** as long as you **know** what **concrete type** it might be. 
+
+**Downcasting** is the process of **converting** a *trait object* (like `Box<dyn Trait>` or `&dyn Trait`) back into its **concrete type** at runtime.<br>
+**Note**, you **can only try downcasting to one type at a time**.<br>
+
+The primary mechanism for safe downcasting in the standard library is the `std::any::Any` trait.<br>
+
+Restrictions:
+- the concrete types must have a `'static` lifetime bound (meaning they **don't contain** *any non-static references*);
+
+<br>
+
+### Example: downcast `dyn Animal`
+```rust
+use std::{any::Any, fmt::Debug};
+
+trait Animal {
+    fn my_name(&self);
+    fn as_ref_any(&self) -> &dyn Any;
+    fn as_mut_any(&mut self) -> &mut dyn Any;
+    fn rename(&mut self, name: &str);
+}
+
+#[derive(Debug)]
+struct Cat {
+    name: String,
+}
+
+#[derive(Debug)]
+struct Dog {
+    name: String,
+}
+
+impl Animal for Cat {
+    fn my_name(&self) {
+        println!("{:?}", self);
+    }
+    
+    fn as_ref_any(&self) -> &dyn Any {
+        self
+    }
+    fn as_mut_any(&mut self) -> &mut dyn Any {
+        self
+    }
+    
+    fn rename(&mut self, name: &str) {
+        self.name = name.to_string();
+    }
+}
+
+impl Animal for Dog {
+    fn my_name(&self) {
+        println!("{:?}", self);
+    }
+    
+    fn as_ref_any(&self) -> &dyn Any {
+        self
+    }
+    fn as_mut_any(&mut self) -> &mut dyn Any {
+        self
+    }
+    
+    fn rename(&mut self, name: &str) {
+        self.name = name.to_string();
+    }
+}
+
+fn main() {
+    let mut speakers: Vec<Box<dyn Animal>> = vec![
+        Box::new(Cat {name: "Barsik".to_string()}),
+        Box::new(Dog{name: "Beethoven".to_string()}),
+        Box::new(Cat{name: "Felix".to_string()}),
+    ];
+
+    for speaker in speakers.iter_mut() {
+        if let Some(cat) = speaker.as_ref_any().downcast_ref::<Cat>() {
+            cat.my_name();
+        } else if let Some(dog) = speaker.as_mut_any().downcast_mut::<Dog>() {
+            dog.my_name();
+            dog.rename("Leo");
+            dog.my_name();
+        } else {
+            println!("  Couldn't downcast to a known type.");
+        }
+    }
+}
+```
+
+**Output**:
+```rust
+Cat { name: "Barsik" }
+Dog { name: "Beethoven" }
+Dog { name: "Leo" }
+Cat { name: "Felix" }
+```
+
+<br>
+
+### Example: downcast `dyn Error`
+```rust
+use std::{error::Error, fmt::Debug};
+
+struct Foo;
+
+#[derive(Debug)]
+enum MyErr {
+    A,
+    B,
+}
+
+impl std::fmt::Display for MyErr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "My Error")
+    }
+}
+
+impl Error for MyErr {}
+
+fn main() {
+    let err: Box<dyn Error> = Box::new(MyErr::A);
+    let r = err.downcast_ref::<MyErr>();
+    println!("{:?}", r);
+
+    // let r = err.downcast_ref::<Foo>(); // ❌ ERROR: the trait `std::error::Error` is not implemented for `Foo`
+    //                                                 required by signature of downcast_ref: `T: Error + 'static`
+}
+```
+
+**Output**:
+```rust
+Some(A)
+```
 
 <br>
 
 # Chapter 14
+## Crates and modules
+Every time you write code in Rust, you are writing it in a **crate**. A **crate** is the **file** that correspont the **root module**.<br>
+Inside the file you write, you can also make **modules** using the keyword `mod`. In other programming languages, a *module* is often known as a **namespace**.<br>
+To make a *module*, just write `mod %NAME%` and start a code block with `{}`.<br>
+
+Without the `pub` keyword in front of `fn` it will stay **private** and **inaccessible**.<br>
+Inside a `mod`, you can create other modules.<br>
+If you start a **path** to a *type* or *function* with `crate::`, it starts from the name of crate.<br>
+If you are **inside** a module, you can use `super::` to **move up one module**.<br>
+
+A **child module** (a module **inside** a module) can always use **anything** inside a **parent** module **regardless of** `pub`:
+```rust
+mod country {
+    fn country_foo() {}
+
+    mod province_A {
+        fn province_A_foo() {}
+
+        mod city_X {
+            fn city_X_foo() {}
+        }
+
+        mod city_Y {
+            fn city_Y_foo() {
+                super::super::country_foo(); // ✅ OK
+                crate::country::country_foo(); // ✅ OK
+
+                super::province_A_foo(); // ✅ OK
+                crate::country::province_A::province_A_foo(); // ✅ OK
+                
+                // super::city_X::city_X_foo(); // ❌ ERROR: function `city_X_foo` is private
+            }
+        }
+    }
+
+    mod province_B {
+        fn province_B_foo() {
+            super::country_foo(); // ✅ OK
+            crate::country::country_foo(); // ✅ OK
+        }
+    }
+}
+
+fn main() {
+    // country::country_foo(); // ❌ ERROR: function `country_foo` is private
+}
+```
+
+The interesting part is that `city_Y_foo()` **can access** *private functions* `province_A_foo()` and `country_foo()`. That’s because `mod city_Y` is inside the `mod province_A which` in turn is insude `mod country`.<br>
+
+<br>
+
+The `pub` keyword works a little differently depending on what you are making public:
+- `pub` for a `struct`: `pub` makes the *struct* **public**, **but** the *parameters* are still **private**;
+  - to make a *parameter* **public**, you have to write `pub` for it;
+  - the same rule applies to `tuple struct`s;
+  - consider type `pub Email(String)`:
+    - users can use it, but they **can’t** use `.0` to access its `String`;
+    - to make a `pub Email(String)` fully public, you would have to write `pub Email(pub String)`;
+- `pub` for an `enum` or `trait`:
+  -  **every method** in the **trait** becomes **public**;
+  -  **every variant** of the **enum** becomes **public**
+- `pub` for a `module`: `pub` makes the *module* **public**;
+
+<br>
+
+**Note**, a **top-level modules** are **public by default** inside its own crate **but** they aren't accessible from outside without `pub`.<br>
+
+<br>
+
+## Testing
+### Just add `#[test]`
+The easiest way to start testing is to add `#[test]` above a function:
+```rust
+#[test]
+fn two_is_two() {
+    assert_eq!(2, 2);
+}
+```
+
+Note: **test functions can’t take any arguments**.<br>
+
+The command `cargo test` runs **all tests** and it **doesn't need** `main()` function for tests. You can **delete** the `main()` function and `cargo test` **still works**.<br>
+So, how does the compiler know that the test passed? It’s pretty simple:
+- if a test function **doesn't** *panic*, then it is a **pass**;
+- if a test function **panics**, then it’s a **failure**;
 
 <br>
 
