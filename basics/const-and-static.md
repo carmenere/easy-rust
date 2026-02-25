@@ -2,12 +2,14 @@
 <!-- TOC -->
 - [Table of contents](#table-of-contents)
 - [Const context](#const-context)
+- [Const functions](#const-functions)
 - [Constants](#constants)
   - [Examples](#examples)
 - [Static](#static)
   - [Examples](#examples-1)
 - [`const` vs. `static`](#const-vs-static)
 - [`~const`](#const)
+- [Const generics](#const-generics)
 <!-- TOC -->
 
 <br>
@@ -33,7 +35,12 @@ Any code within a **const context** is **guaranteed** to be executed **during co
 
 <br>
 
-Operations that require runtime-specific features are **disallowed** in a **const context**, for example:
+An expression that **can** be called from a *const context* is called **const expression**.<br>
+A function that **can** be called from a *const context* is called **const function**.<br>
+
+**Not all** functions are `const`: **not all** things are **allowed** in a *const context*.<br>
+
+Operations that require *runtime-specific features* are **disallowed** in a **const context**:
 - **heap allocations**, e.g. `Vec::new()`;
   - but **empty** vectors are **allowed** in **const context**;
 - **I/O**;
@@ -41,9 +48,7 @@ Operations that require runtime-specific features are **disallowed** in a **cons
 
 <br>
 
-An expression that **can** be called from a *const context* is called **const expression**.<br>
-A function that **can** be called from a *const context* is called **const function**.<br>
-
+# Const functions
 A **const function** is defined with the `const` keyword: `const fn`. The **body** of a *const function* may only use *const expressions*.<br>
 The types of a *const function’s* parameters and return type are **restricted** to those that are **compatible** with a *const context*.<br>
 
@@ -71,7 +76,7 @@ fn main() {
 <br>
 
 # Constants
-Constant is **not** variable or place in memory, it is a **result of compile time computation**.<br>
+**Constant** is **not** variable or place in memory, a **constant** is an **unchangeable value** that is **evaluated at compile time**.<br>
 
 **Properties**:
 - **uppercase** by convention;
@@ -93,7 +98,7 @@ const URL: &str = "google.com";
 - *static variable* **must** have **static lifetime**.
 - *static variables* can be **mutable** or **immutable**.
 - *static variables* have **fixed address** in the memory.
-- **mutable** *static variables* can only be **read** and **modified** inside `unsafe` **block**.
+- **mutable** *static variables* can only be **read** and **modified** inside `unsafe { }` **block**.
 
 <br>
 
@@ -188,3 +193,79 @@ static THE_B: () = test(&B); // ❌ ERROR: B does not implement MyTrait as `impl
 So,
 - when `test` is called with type `A` within a *const context*, the compiler uses the `impl const MyTrait for A` version and evaluates it at compile time;
 - when `test` is called with type `B` or type `A` in a **runtime context**, it uses the **regular implementation**;
+
+<br>
+
+# Const generics
+From the compiler point of view type `[i32; 3]` is **not** the same type as `[i32; 4]`.<br>
+
+Consider example:
+```rust
+struct Buffers {
+    array_one: [u8; 640],
+    array_two: [u8; 640]
+}
+
+struct BigBuffers {
+    array_one: [u8; 1280],
+    array_two: [u8; 1280]
+}
+```
+
+If we want to implement a trait like `Display` we would have to implement the trait **for each struct**.<br>
+We need a **different struct for each specific array size**, and **each struct need to implement the traits**.<br>
+
+**Const generics** solves this problem:
+```rust
+struct Buffers<T, const N: usize> {
+    array_one: [T; N],
+    array_two: [T; N]
+}
+```
+
+<br>
+
+Now, we only need a **single struct**: the **type** `T` is **fixed**, but the **number** is **not**: the value `N` **can be any number**.<br>
+
+Example:
+```rust
+#[derive(Debug)]
+struct Buffers<T, const N: usize> {
+    array_one: [T; N],
+    array_two: [T; N],
+}
+
+fn main() {
+    let buffer_1 = Buffers {
+        array_one: [0u8; 1],
+        array_two: [0; 1],
+    };
+    let buffer_2 = Buffers {
+        array_one: [0i32; 2],
+        array_two: [10; 2],
+    };
+    println!("{buffer_1:#?}\n{buffer_2:#?}");
+}
+```
+
+**Output**:
+```rust
+Buffers {
+    array_one: [
+        0,
+    ],
+    array_two: [
+        0,
+    ],
+}
+Buffers {
+    array_one: [
+        0,
+        0,
+    ],
+    array_two: [
+        10,
+        10,
+    ],
+}
+```
