@@ -1,60 +1,55 @@
 # Table of contents
 <!-- TOC -->
-* [Table of contents](#table-of-contents)
-* [Data types](#data-types)
-* [Scalars](#scalars)
-  * [Integer literals](#integer-literals)
-* [Integer overflow](#integer-overflow)
-* [Constants](#constants)
-  * [Examples](#examples)
-* [Static](#static)
-  * [Examples](#examples-1)
-* [`const` vs. `static`](#const-vs-static)
-* [Range operator](#range-operator)
-* [Type casting](#type-casting)
-* [Unit type `()`](#unit-type-)
-* [DST](#dst)
-* [Enums](#enums)
-  * [Syntax](#syntax)
-    * [*Type declaration* syntax](#type-declaration-syntax)
-      * [Example](#example)
-    * [*Initialization* syntax](#initialization-syntax)
-  * [Access to `enum` variant](#access-to-enum-variant)
-      * [Example](#example-1)
-* [Primitive Type never](#primitive-type-never)
-* [Newtype pattern](#newtype-pattern)
-  * [Syntax](#syntax-1)
-      * [Example](#example-2)
-  * [Destructuring let](#destructuring-let)
-      * [Example](#example-3)
-* [Structs](#structs)
-  * [Syntax](#syntax-2)
-    * [*Type declaration* syntax](#type-declaration-syntax-1)
-      * [Example](#example-4)
-    * [*Initialization* syntax](#initialization-syntax-1)
-      * [`Struct` constructor](#struct-constructor-)
-        * [Example](#example-5)
-      * [Method `new()`](#method-new)
-  * [Range operator in structs](#range-operator-in-structs)
-      * [Example](#example-6)
-* [Tuple structs](#tuple-structs)
-  * [Syntax](#syntax-3)
-    * [*Type declaration* syntax](#type-declaration-syntax-2)
-      * [Examples](#examples-2)
-    * [*Initialization* syntax](#initialization-syntax-2)
-      * [Examples](#examples-3)
-* [Tuples](#tuples)
-  * [*Initialization* syntax](#initialization-syntax-3)
-    * [Syntax options for *pre initialized* tuples:](#syntax-options-for-pre-initialized-tuples)
-  * [*Type declaration* syntax](#type-declaration-syntax-3)
-  * [Access to fields of a tuple](#access-to-fields-of-a-tuple)
-* [Unit-like structs](#unit-like-structs)
-  * [Syntax](#syntax-4)
-    * [*Type declaration* syntax](#type-declaration-syntax-4)
-      * [Examples](#examples-4)
-    * [*Initialization* syntax](#initialization-syntax-4)
-      * [Examples](#examples-5)
-* [Type aliases](#type-aliases)
+- [Table of contents](#table-of-contents)
+- [Data types](#data-types)
+- [Scalars](#scalars)
+  - [Integer literals](#integer-literals)
+- [Integer overflow](#integer-overflow)
+- [Range operator](#range-operator)
+- [Type casting](#type-casting)
+- [Unit type `()`](#unit-type-)
+- [DST](#dst)
+- [Enums](#enums)
+  - [Syntax](#syntax)
+    - [*Type declaration* syntax](#type-declaration-syntax)
+      - [Example](#example)
+    - [*Initialization* syntax](#initialization-syntax)
+  - [Access to `enum` variant](#access-to-enum-variant)
+      - [Example](#example-1)
+- [Primitive Type never](#primitive-type-never)
+- [Newtype pattern](#newtype-pattern)
+  - [Syntax](#syntax-1)
+      - [Example](#example-2)
+  - [Destructuring let](#destructuring-let)
+      - [Example](#example-3)
+- [Structs](#structs)
+  - [Syntax](#syntax-2)
+    - [*Type declaration* syntax](#type-declaration-syntax-1)
+      - [Example](#example-4)
+    - [*Initialization* syntax](#initialization-syntax-1)
+      - [`Struct` constructor](#struct-constructor)
+        - [Example](#example-5)
+      - [Method `new()`](#method-new)
+  - [Range operator in structs](#range-operator-in-structs)
+      - [Example](#example-6)
+- [Tuple structs](#tuple-structs)
+  - [Syntax](#syntax-3)
+    - [*Type declaration* syntax](#type-declaration-syntax-2)
+      - [Examples](#examples)
+    - [*Initialization* syntax](#initialization-syntax-2)
+      - [Examples](#examples-1)
+- [Tuples](#tuples)
+  - [*Initialization* syntax](#initialization-syntax-3)
+    - [Syntax options for *pre initialized* tuples:](#syntax-options-for-pre-initialized-tuples)
+  - [*Type declaration* syntax](#type-declaration-syntax-3)
+  - [Access to fields of a tuple](#access-to-fields-of-a-tuple)
+- [Unit-like structs](#unit-like-structs)
+  - [Syntax](#syntax-4)
+    - [*Type declaration* syntax](#type-declaration-syntax-4)
+      - [Examples](#examples-2)
+    - [*Initialization* syntax](#initialization-syntax-4)
+      - [Examples](#examples-3)
+- [Type aliases](#type-aliases)
 <!-- TOC -->
 
 <br>
@@ -241,73 +236,6 @@ fn main() {
     println!("i8::MIN.wrapping_add(1)={}, i8::MAX.wrapping_add(1)={}", i8::MIN.wrapping_add(1), i8::MAX.wrapping_add(1));
 }
 ```
-
-<br>
-
-# Constants
-Constant is **not** variable or place in memory, it is **compile time computation**.<br>
-
-**Properties**:
-- **Uppercase** by convention.
-- Data type is **mandatory**.
-- Values can not be changed.
-- **Global** or **Local** scope.
-
-<br>
-
-## Examples
-```Rust
-const URL: &str = "google.com";
-```
-
-<br>
-
-# Static
-**Static variables** are **global variables** with following properties:
-- *Static variable* **must** have **static lifetime**.
-- *Static variables* can be **mutable** or **immutable**.
-- *Static variables* have **fixed address** in the memory.
-- **Mutable** *static variables* can only be **read** and **modified** inside `unsafe` **block**.
-
-<br>
-
-## Examples
-```Rust
-static mut COUNTER: u64 = 0;
-
-unsafe fn increment() {
-    COUNTER += 1;
-}
-
-fn main () {
-    // access to modify static variable
-    unsafe {
-        increment();
-    }
-
-    // access to read static variable
-    unsafe {
-        println!("Counter is {}.", COUNTER);
-    }
-}
-```
-
-<br>
-
-# `const` vs. `static`
-`const`:
-- **has no fixed address in memory**;
-- value is **inlined** to each place where it is used;
-- **faster** runtime;
-- **bigger** executable file;
-
-<br>
-
-`static`:
-- **has fixed address in memory**;
-- value is **loaded from memory**;
-- **slower** runtime because we need load data from memory;
-- **smaller** executable file;
 
 <br>
 

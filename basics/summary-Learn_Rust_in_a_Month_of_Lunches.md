@@ -125,8 +125,29 @@
   - [Scoped threads](#scoped-threads)
   - [Channels](#channels)
 - [Chapter 13](#chapter-13)
+  - [Partial implementation](#partial-implementation)
+  - [Attributes](#attributes)
+    - [Som attributes](#som-attributes)
+      - [Lints](#lints)
+      - [Derive](#derive)
+      - [Clone and Copy](#clone-and-copy)
+      - [`#[cfg()]`](#cfg)
+  - [`Box`](#box)
+    - [Example: recursive struct](#example-recursive-struct)
+    - [Dynamic dispatch](#dynamic-dispatch)
+    - [Using a `Box` to handle multiple error types](#using-a-box-to-handle-multiple-error-types)
+  - [Downcasting to a concrete type](#downcasting-to-a-concrete-type)
+    - [Example: downcast `dyn Animal`](#example-downcast-dyn-animal)
+    - [Example: downcast `dyn Error`](#example-downcast-dyn-error)
 - [Chapter 14](#chapter-14)
+  - [Crates and modules](#crates-and-modules)
+  - [Testing](#testing)
+    - [Just add `#[test]`](#just-add-test)
+    - [Grouping tests in modules](#grouping-tests-in-modules)
+    - [Test-driven development](#test-driven-development)
 - [Chapter 15](#chapter-15)
+  - [Implementing Default](#implementing-default)
+    - [Deref and DerefMut](#deref-and-derefmut)
 - [Chapter 16](#chapter-16)
 <!-- TOC -->
 
@@ -4185,14 +4206,651 @@ Err(RecvError)
 <br>
 
 # Chapter 13
+## Partial implementation
+Consider example:
+```rust
+impl<T: Copy> Cell<T> {
+    pub fn get(&self) -> T {
+        
+    }
+
+    pub fn update<F>(&self, f: F) -> T
+    where
+        F: FnOnce(T) -> T,
+    {
+
+    }
+}
+
+impl<T: Copy> Clone for Cell<T> {
+    fn clone(&self) -> Cell<T> {
+        Cell::new(self.get())
+    }
+}
+```
+
+<br>
+
+All methods `get`, `update` and `clone` **don’t exist if the inner type doesn’t implement** `Copy` because they are written in **separate** `impl` blocks that start with `impl<T: Copy>`, thus requiring `T` to be `Copy` to be used.<br>
+
+<br>
+
+## Attributes
+Some **attributes** are *built into the language*, some are *used to derive traits* (like `#[derive(Debug)]`).<br>
+An *attribute* with a `#` is called an **outer attribute** because it stands **outside** of the **item** that follows it and **affetcts** only this item.<br>
+An attribute with a `#!` is called an **inner attribute** because it **affects everything inside its file**. An *inner attribute* **must** be placed **at the very top** of the *file* or *module* it is used in.<br>
+
+<br>
+
+### Som attributes
+#### Lints
+- `#[warn(unused_variables)]`
+- `#[warn(dead_code)]`
+
+You can make the compiler be **quiet** in 2 ways:
+- by adding `_` **before** name of variable or name of type:
+  - `struct _Foo {}`
+- by using attributes:
+  - **unused types** (structs, enums, ...): `#![allow(dead_code)]`
+  - **unused identifiers**: `#![allow(unused_variables)]`
+  - **everything unused**: `#![allow(unused)]`
+
+<br>
+
+#### Derive
+The `#[derive(TraitName)]` lets you derive some traits (that **can be** *automatically derived*) for structs and enums that you create.<br>
+Some, like `Display`, **can’t be** *automatically derived* because `Display` is *for human-readable display*, so **human must implement** it.<br>
+
+<br>
+
+#### Clone and Copy
+The `Clone` and `Copy` are deriveable: `#[derive(Clone, Copy)]`.<br>
+You can make a struct `Copy` **if and only if** it *implements* `Clone` and **if all its fields** *implement* `Copy`.<br>
+
+<br>
+
+#### `#[cfg()]`
+Examples:
+- `#[cfg(target_os = "windows")]` with that, you can tell the compiler to run the code only on specifi platform;
+- `#[cfg(test)]`
+- `#![no_std]` this attribute tells Rust not to bring in the standard library;
+- `#[non_exhaustive]` when placed above a type, lets the compiler know that it may have more variants or fields in the future;
+- `#[deprecated]` lets you mark an item, usually a function, as **deprecated** (not used anymore);
+  - this attribute won’t stop people from using the function, but it will **give** a **warning**;
+  - you can add a **note** inside the **deprecated attribute** to give some more information: `#[deprecated(note = "use function `bar` instead")]`;
+
+<br>
+
+**Example 1**:
+```rust
+#[deprecated]
+fn foo() {}
+
+fn main() {
+    foo();
+}
+```
+**Output**:
+```rust
+warning: use of deprecated function `foo`
+ --> chapter_03/src/main.rs:5:5
+  |
+5 |     foo();
+  |     ^^^
+  |
+  = note: `#[warn(deprecated)]` on by default
+
+warning: `chapter_03` (bin "chapter_03") generated 1 warning
+    Finished `release` profile [optimized] target(s) in 0.19s
+     Running `target/release/chapter_03`
+```
+
+<br>
+<br>
+
+**Example 2**:
+```rust
+#[deprecated(note = "use function `bar` instead")]
+fn foo() {}
+
+fn main() {
+    foo();
+}
+```
+**Output**:
+```rust
+warning: use of deprecated function `foo`: use function bar instead
+...
+```
+
+<br>
+
+## `Box`
+When you use a `Box`, you can put a variable’s data on the heap instead of the stack.<br>
+The `Box` **owns its data**.<br>
+You can use `*` on a `Box` to **get to the value**, just like with `&`:
+```rust
+fn main() {
+    let my_box = Box::new(1);
+    let an_integer = *my_box;
+}
+```
+
+<br>
+
+### Example: recursive struct
+You can also use a `Box` to create a **recursive struct**.<br>
+
+Consider example:
+```rust
+struct Foo {
+    next: Option<Foo>
+}
+
+fn main() {
+    let x = Foo {
+        next: Some(Foo {
+            next: Some(Foo { next: None }),
+        }),
+    };
+}
+```
+
+**Output**:
+```rust
+error[E0072]: recursive type `Foo` has infinite size
+ --> chapter_03/src/main.rs:1:1
+  |
+1 | struct Foo {
+  | ^^^^^^^^^^
+2 |     next: Option<Foo>
+  |                  --- recursive without indirection
+  |
+help: insert some indirection (e.g., a `Box`, `Rc`, or `&`) to break the cycle
+  |
+2 |     next: Option<Box<Foo>>
+  |                  ++++   +
+```
+
+<br>
+
+**Fix**:
+```rust
+#[derive(Debug)]
+struct Foo {
+    next: Option<Box<Foo>>
+}
+
+fn main() {
+    let x = Foo {
+        next: Some(Box::new(Foo {
+            next: Some(Box::new(Foo { next: None })),
+        })),
+    };
+    println!("{:?}", x);
+}
+```
+
+**Output**:
+```rust
+Foo { next: Some(Foo { next: Some(Foo { next: None }) }) }
+```
+
+<br>
+
+### Dynamic dispatch
+**Static dispatch** happens when the compiler turns a **generic type** into a **concrete type** at compile time.<br>
+**Dynamic dispatch** happens when a **concrete type** is being chosen at run time.<br>
+
+Consider trait `Foo`, then `dyn Foo` is a **trait object** and it is **unsized** and it can **only** be used **behind reference**, for example inside `Box`: `Box<dyn Foo>`.<br>
+
+A **trait object** represents some type that implements a trait but **doesn't show** you what the *concrete type* is. In other words, **you have access to** the *type’s implementation* of a trait but **not** the *concrete type* itself. **Not knowing** the *concrete type* is called **type erasure** because the *concrete type* is **erased**.<br>
+
+<br>
+
+### Using a `Box` to handle multiple error types
+Consider function that returns `Result<String, Box<dyn Error>>`. By returning a `Box<dyn Error>`, we can return a `Box` that **holds anything** that implements the `Error` trait.<br>
+
+If we didn’t have a `Box<dyn Error>` and wrote just `Result<String, Error>` the compiler gives us error: `Result<String, Error> doesn't have a size known at compile-time`. Indeed, a trait `Error` can be implemented on many types and compiler doesn't know exact size of type.<br>
+
+Consider a function with **two types of possible errors**, for example, an error when parsing into an `i32` and an error when parsing into an `f64`. But we want to use `?` operator inside this function and thus we can use only **one** `Error` inside returning `Result`.<br>
+We can use `Result<f64, Box<dynError>>` as returning type:
+```rust
+use std::error::Error;
+
+fn parse_numbers(int: &str, float: &str) -> Result<f64, Box<dyn Error>> {
+    let num_1 = int.parse::<i32>()?;
+    let num_2 = float.parse::<f64>()?;
+    Ok(num_1 as f64 + num_2)
+}
+fn main() {
+    let n = parse_numbers("8", "ninepointnine");
+    println!("{:?}", n);
+    let n = parse_numbers("8", "9.");
+    println!("{:?}", n);
+}
+```
+
+**Output**:
+```rust
+Err(ParseFloatError { kind: Invalid })
+Ok(17.0)
+```
+
+<br>
+
+## Downcasting to a concrete type
+You can **downcast** a **trait object** back to a **concrete type** as long as you **know** what **concrete type** it might be. 
+
+**Downcasting** is the process of **converting** a *trait object* (like `Box<dyn Trait>` or `&dyn Trait`) back into its **concrete type** at runtime.<br>
+**Note**, you **can only try downcasting to one type at a time**.<br>
+
+The primary mechanism for safe downcasting in the standard library is the `std::any::Any` trait.<br>
+
+Restrictions:
+- the concrete types must have a `'static` lifetime bound (meaning they **don't contain** *any non-static references*);
+
+<br>
+
+### Example: downcast `dyn Animal`
+```rust
+use std::{any::Any, fmt::Debug};
+
+trait Animal {
+    fn my_name(&self);
+    fn as_ref_any(&self) -> &dyn Any;
+    fn as_mut_any(&mut self) -> &mut dyn Any;
+    fn rename(&mut self, name: &str);
+}
+
+#[derive(Debug)]
+struct Cat {
+    name: String,
+}
+
+#[derive(Debug)]
+struct Dog {
+    name: String,
+}
+
+impl Animal for Cat {
+    fn my_name(&self) {
+        println!("{:?}", self);
+    }
+    
+    fn as_ref_any(&self) -> &dyn Any {
+        self
+    }
+    fn as_mut_any(&mut self) -> &mut dyn Any {
+        self
+    }
+    
+    fn rename(&mut self, name: &str) {
+        self.name = name.to_string();
+    }
+}
+
+impl Animal for Dog {
+    fn my_name(&self) {
+        println!("{:?}", self);
+    }
+    
+    fn as_ref_any(&self) -> &dyn Any {
+        self
+    }
+    fn as_mut_any(&mut self) -> &mut dyn Any {
+        self
+    }
+    
+    fn rename(&mut self, name: &str) {
+        self.name = name.to_string();
+    }
+}
+
+fn main() {
+    let mut speakers: Vec<Box<dyn Animal>> = vec![
+        Box::new(Cat {name: "Barsik".to_string()}),
+        Box::new(Dog{name: "Beethoven".to_string()}),
+        Box::new(Cat{name: "Felix".to_string()}),
+    ];
+
+    for speaker in speakers.iter_mut() {
+        if let Some(cat) = speaker.as_ref_any().downcast_ref::<Cat>() {
+            cat.my_name();
+        } else if let Some(dog) = speaker.as_mut_any().downcast_mut::<Dog>() {
+            dog.my_name();
+            dog.rename("Leo");
+            dog.my_name();
+        } else {
+            println!("  Couldn't downcast to a known type.");
+        }
+    }
+}
+```
+
+**Output**:
+```rust
+Cat { name: "Barsik" }
+Dog { name: "Beethoven" }
+Dog { name: "Leo" }
+Cat { name: "Felix" }
+```
+
+<br>
+
+### Example: downcast `dyn Error`
+```rust
+use std::{error::Error, fmt::Debug};
+
+struct Foo;
+
+#[derive(Debug)]
+enum MyErr {
+    A,
+    B,
+}
+
+impl std::fmt::Display for MyErr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "My Error")
+    }
+}
+
+impl Error for MyErr {}
+
+fn main() {
+    let err: Box<dyn Error> = Box::new(MyErr::A);
+    let r = err.downcast_ref::<MyErr>();
+    println!("{:?}", r);
+
+    // let r = err.downcast_ref::<Foo>(); // ❌ ERROR: the trait `std::error::Error` is not implemented for `Foo`
+    //                                                 required by signature of downcast_ref: `T: Error + 'static`
+}
+```
+
+**Output**:
+```rust
+Some(A)
+```
 
 <br>
 
 # Chapter 14
+## Crates and modules
+Every time you write code in Rust, you are writing it in a **crate**. A **crate** is the **file** that correspont the **root module**.<br>
+Inside the file you write, you can also make **modules** using the keyword `mod`. In other programming languages, a *module* is often known as a **namespace**.<br>
+To make a *module*, just write `mod %NAME%` and start a code block with `{}`.<br>
+
+Without the `pub` keyword in front of `fn` it will stay **private** and **inaccessible**.<br>
+Inside a `mod`, you can create other modules.<br>
+If you start a **path** to a *type* or *function* with `crate::`, it starts from the name of crate.<br>
+If you are **inside** a module, you can use `super::` to **move up one module**.<br>
+
+A **child module** (a module **inside** a module) can always use **anything** inside a **parent** module **regardless of** `pub`:
+```rust
+mod country {
+    fn country_foo() {}
+
+    mod province_A {
+        fn province_A_foo() {}
+
+        mod city_X {
+            fn city_X_foo() {}
+        }
+
+        mod city_Y {
+            fn city_Y_foo() {
+                super::super::country_foo(); // ✅ OK
+                crate::country::country_foo(); // ✅ OK
+
+                super::province_A_foo(); // ✅ OK
+                crate::country::province_A::province_A_foo(); // ✅ OK
+                
+                // super::city_X::city_X_foo(); // ❌ ERROR: function `city_X_foo` is private
+            }
+        }
+    }
+
+    mod province_B {
+        fn province_B_foo() {
+            super::country_foo(); // ✅ OK
+            crate::country::country_foo(); // ✅ OK
+        }
+    }
+}
+
+fn main() {
+    // country::country_foo(); // ❌ ERROR: function `country_foo` is private
+}
+```
+
+The interesting part is that `city_Y_foo()` **can access** *private functions* `province_A_foo()` and `country_foo()`. That’s because `mod city_Y` is inside the `mod province_A which` in turn is insude `mod country`.<br>
+
+<br>
+
+The `pub` keyword works a little differently depending on what you are making public:
+- `pub` for a `struct`: `pub` makes the *struct* **public**, **but** the *parameters* are still **private**;
+  - to make a *parameter* **public**, you have to write `pub` for it;
+  - the same rule applies to `tuple struct`s;
+  - consider type `pub Email(String)`:
+    - users can use it, but they **can’t** use `.0` to access its `String`;
+    - to make a `pub Email(String)` fully public, you would have to write `pub Email(pub String)`;
+- `pub` for an `enum` or `trait`:
+  -  **every method** in the **trait** becomes **public**;
+  -  **every variant** of the **enum** becomes **public**
+- `pub` for a `module`: `pub` makes the *module* **public**;
+
+<br>
+
+**Note**, a **top-level modules** are **public by default** inside its own crate **but** they aren't accessible from outside without `pub`.<br>
+
+<br>
+
+## Testing
+### Just add `#[test]`
+The easiest way to start testing is to add `#[test]` above a function:
+```rust
+#[test]
+fn two_is_two() {
+    assert_eq!(2, 2);
+}
+```
+
+<br>
+
+The command `cargo test` runs **all tests** and it **doesn't need** `main()` function for tests. You can **delete** the `main()` function and `cargo test` **still works**.<br>
+
+The names for test function are usually **quite descriptive**, like `one_minus_two_is_minus_one`. That is because as your code grows, the **number of tests grows too**, and **descriptive test names** let you understand which tests have failed.<br>
+
+> *Note*: **test functions can’t take any arguments**.<br>
+
+So, how does the compiler know that the test passed? It’s pretty simple:
+- if a test function **doesn't** *panic*, then it is a **pass**;
+- if a test function **panics**, then it’s a **failure**;
+
+<br>
+
+The `assert_eq!(left, right)` and `assert!(bool)` are probably **the most common ways** *to test a function* in Rust.<br>
+
+For `assert_eq!`, if the `left` and `right` sides **don’t match**, it will **panic** and show that the **values are different**:
+```rust
+assertion `left == right` failed
+left: 2
+right: 3
+```
+
+<br>
+
+The output for the `assert!` macro is almost the same:
+```rust
+assertion failed: 2 == 3
+```
+
+<br>
+
+When a test **fails**, you get a lot information:
+```rust
+cargo test --bin example
+    Finished `test` profile [optimized + debuginfo] target(s) in 0.01s
+     Running unittests src/main.rs (target/debug/deps/example-59186309a0341b26)
+
+running 2 tests
+test one_is_one ... ok
+test two_is_two ... FAILED
+
+failures:
+
+---- two_is_two stdout ----
+
+thread 'two_is_two' panicked at example/src/main.rs:3:5:
+assertion `left == right` failed
+  left: 2
+ right: 3
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    two_is_two
+
+test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `--bin example`
+```
+
+<br>
+
+The `RUST_BACKTRACE` **environment variable** controls verbosity of **stack backtrace**
+- `RUST_BACKTRACE=1`
+- `RUST_BACKTRACE=full`
+
+<br>
+
+Work with **envs**:
+- the function `std::env::var("FOO")` returns value of **environment variable** `FOO`;
+- the function `std::env::set_var("FOO", "1");` assign value `1` to **environment variable** `FOO`;
+
+<br>
+
+**By default**, the env `RUST_BACKTRACE` is not set:
+```rust
+fn main() {
+    println!("{:?}", std::env::var("RUST_BACKTRACE"));
+}
+```
+
+**Output**:
+```rust
+Err(NotPresent)
+```
+
+<br>
+
+You don’t need to use a backtrace unless you really can’t find where the problem is.<br>
+
+<br>
+
+### Grouping tests in modules
+Use the `mod` keyword to create a new **test module** `tests` and add `#[cfg(test)]` above it. Also, **don’t forget** to write `use super::*;` because the **test module** needs access to the functions above it:
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn two_is_two() {
+        assert_eq!(2, 3);
+    }
+
+    #[test]
+    fn one_is_one() {
+        assert_eq!(1, 1);
+    }
+}
+```
+
+<br>
+
+### Test-driven development
+**TDD** means writing tests first, **all of which will fail**! Only then you start writing the code. Then you start writing the code and keep doing that until all the tests pass.<br>
 
 <br>
 
 # Chapter 15
+## Implementing Default
+Most frequently used types in the Rust standard library implement `Default` trait.<br>
+The `Default::default()` is like a `new()` method that can’t take any arguments.<br>
+
+```rust
+fn main() {
+    let default_i8: i8 = Default::default();
+    let default_str: String = Default::default();
+    let default_bool: bool = Default::default();
+    println!("default_i8={default_i8}\ndefault_str={default_str}\ndefault_bool={default_bool}");
+}
+```
+
+**Output**:
+```rust
+default_i8=0
+default_str=
+default_bool=false
+```
+
+So, **default value** is a some kind of **initial value**.<br>
+
+<br>
+
+> **Note**, to implement `Default` using `#[derive(Default)]`, **all** of a type’s parameters **must** implement `Default`.<br>
+
+<br>
+
+You can pick a **default variant** for an `enum`, as long as it is a **unit enum variant** (**has no data** in it) by using the #[derive(Default)] attribute **on top** and then `#[default]` **over** the *default variant*:
+Default for enum:
+```rust
+#[derive(Default)]
+enum Operation {
+    #[default]
+    Add,
+    Subtract,
+}
+```
+
+<br>
+
+### Deref and DerefMut
+```rust
+use std::ops::Deref;
+
+struct Foo<T> {
+    value: T
+}
+
+impl<T> Deref for Foo<T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        &self.value
+    }
+}
+
+fn main() {
+    let x = Foo { value: 'a' };
+    assert_eq!('a', *x);
+}
+```
+
+<br>
+
+You need `Deref` before you can implement `DerefMut`, as the signature shows:
+```rust
+pub trait DerefMut: Deref
+```
+
+<br>
+
+`*` vs. `.`:
+- rust **calls** `.deref()` when you use `*`;
+- rust **finds** and **calls** method when you use **dot operator**: `.`;
 
 <br>
 
