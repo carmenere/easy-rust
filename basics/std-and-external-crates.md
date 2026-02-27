@@ -1,3 +1,16 @@
+# Table of contents
+<!-- TOC -->
+- [Table of contents](#table-of-contents)
+- [Manage dependencies](#manage-dependencies)
+- [`rand` crate](#rand-crate)
+  - [Function `rand::rng()`](#function-randrng)
+  - [Module `rand::rngs`](#module-randrngs)
+  - [Example](#example)
+- [`std::time`](#stdtime)
+<!-- TOC -->
+
+<br>
+
 # Manage dependencies
 There are 2 ways to manage external crates:
 - **add**/**del** it to/from `Cargo.toml` file in `[dependencies]` section;
