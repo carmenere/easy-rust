@@ -196,3 +196,22 @@ random_u32=153476317
 random_u64=11800991613183827219
 z=0.8727143056527192
 ```
+
+<br>
+
+# `std::time`
+More about time [**here**](https://github.com/carmenere/easy-manuals/blob/main/time/time.md).<br>
+
+```rust
+let now = std::time::Instant::now();
+...
+let elapsed = now.elapsed();
+```
+
+<br>
+
+The `elapsed` corresponds the **real** time of cli command `time`.<br>
+The `Instant` uses `clock_gettime` syscall with **clock source** `CLOCK_MONOTONIC`.<br>
+
+
+<br>
