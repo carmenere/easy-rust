@@ -149,7 +149,6 @@
   - [Implementing Default](#implementing-default)
     - [Deref and DerefMut](#deref-and-derefmut)
 - [Chapter 17](#chapter-17)
-  - [Time](#time)
   - [Infallible](#infallible)
   - [`try_`](#try_)
   - [Blanket impl](#blanket-impl)
@@ -297,6 +296,20 @@ What about the size in characters/letters? There is methods `.chars().count()` t
 ```bash
 'Hello' consists of 5 bytes and 5 characters.
 '안녕' consists of 6 bytes BUT 2 characters.
+```
+
+<br>
+
+Methods:
+- `to_digit(self, radix: u32) -> Option<u32>` - converts a **char** to a **digit** in the given **radix** (aka **base**) `RADIX`;
+  - returns `None` if the **char** does not refer to a **digit** in the given **radix**;
+  - a **digit** is defined to be only the following characters:
+    - `0-9`
+    - `a-z`
+    - `A-Z`
+```rust
+assert_eq!('1'.to_digit(10), Some(1));
+assert_eq!('f'.to_digit(16), Some(15));
 ```
 
 <br>
@@ -4859,14 +4872,6 @@ pub trait DerefMut: Deref
 <br>
 
 # Chapter 17
-
-## Time
-
-
-<br>
-
-
-
 ## Infallible
 The `std::convert::Infallible`:
 ```rust
@@ -4936,3 +4941,5 @@ where
 ```
 
 <br>
+
+
