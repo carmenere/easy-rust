@@ -17,6 +17,19 @@
     - [`DateTime<Tz>`, `Utc`, `Local` and `FixedOffset`](#datetimetz-utc-local-and-fixedoffset)
     - [Time formatting syntax](#time-formatting-syntax)
   - [`chrono_tz`](#chrono_tz)
+- [`rayon`](#rayon)
+- [Error handling](#error-handling)
+  - [`anyhow`](#anyhow)
+  - [`thiserror`](#thiserror)
+- [`lazy_static` and `once_cell`](#lazy_static-and-once_cell)
+  - [`lazy_static`](#lazy_static)
+  - [`OnceLock` and `OnceCell`](#oncelock-and-oncecell)
+- [Working with user input](#working-with-user-input)
+  - [stdin](#stdin)
+  - [args](#args)
+  - [envs](#envs)
+- [Using files](#using-files)
+  - [OpenOptions](#openoptions)
 <!-- TOC -->
 
 <br>
@@ -876,3 +889,371 @@ nyc_time = 2026-03-03T15:02:55.164497-05:00
 
 msk_time (custom with_ymd_and_hms()) = 2016-03-18T03:00:00+03:00
 ```
+
+<br>
+
+# `rayon`
+Rayon is a crate that lets you **automatically** spawn multiple threads when working with iterators and related types. Instead of using `thread::spawn()` to spawn threads, you can just add `par_` to the **iterator methods** you already know (``).
+
+The speedup that Rayon gives will depend a lot on your code and the number of threads on your computer.<br>
+
+First, we will use a method `std::thread::available_parallelism()` to see how many threads are available.<br>
+
+<br>
+
+**Example**:
+```rust
+fn main() {
+    let n = std::thread::available_parallelism();
+
+    println!("Available threads: {:?}, the number of threads will be spawned: {:?}", n, rayon::current_num_threads());
+
+    let my_vec = vec![0; 4_000_000_000];
+    let start1 = std::time::Instant::now();
+    let r= my_vec
+        .iter()
+        .enumerate()
+        .fold(0, |acc, item| acc + item.0);
+    println!("Without rayon result = {}, time = {:?}", r, start1.elapsed());
+
+    let my_vec = vec![0; 4_000_000_000];
+    let start2 = std::time::Instant::now();
+    let r= my_vec
+        .par_iter()
+        .enumerate()
+        .fold(|| 0, |acc, item| acc + item.0).sum::<usize>();
+    println!("With rayon result = {}, time = {:?}", r, start2.elapsed());
+}
+```
+
+**Output**:
+```bash
+cargo run --release
+Available threads: Ok(10), the number of threads will be spawned: 10
+Without rayon result = 7999999998000000000, time = 42ns
+With rayon result = 7999999998000000000, time = 488.417µs
+```
+
+```bash
+cargo run
+Available threads: Ok(10), the number of threads will be spawned: 10
+Without rayon result = 7999999998000000000, time = 1.282937166s
+With rayon result = 7999999998000000000, time = 225.613292ms
+```
+
+<br>
+
+# Error handling
+## `anyhow`
+It would be nice to have a **single error type** that’s easy to use. This is what `anyhow` is used for.<br>
+Another common way to do this is to use `Box<dyn Error>`.<br>
+Anyhow works with **any error type** that has an impl of `std::error::Error`.<br>
+
+<br>
+
+Use `fn foo () -> Result<T, anyhow::Error> {}` or **equivalently** `fn foo () -> anyhow::Result<T> {}`, as the return type of any **fallible function**:
+```rust
+pub fn parse_u16_1(input: &[u8]) -> anyhow::Result<u16> {
+    Ok(std::str::from_utf8(input)?
+        .parse::<u16>()?)
+}
+
+pub fn parse_u16_2(input: &[u8]) -> Result<u16, anyhow::Error> {
+    Ok(std::str::from_utf8(input)?
+        .parse::<u16>()?)
+}
+
+fn main() {
+    println!("{:?}", parse_u16_1("abc".as_bytes()));
+    println!("{:?}", parse_u16_1("444".as_bytes()));
+    println!("{:?}", parse_u16_2("444444".as_bytes()));
+}
+```
+
+**Output**:
+```rust
+Err(invalid digit found in string)
+Ok(444)
+Err(number too large to fit in target type)
+```
+
+<br>
+
+We can also bring in the `anyhow!` **macro**, which makes a quick `anyhow::Error` from a **string** or an **error type**:
+```rust
+#[derive(Debug)]
+pub enum MyError {
+    A,
+    B
+}
+
+impl std::fmt::Display for MyError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            MyError::A => write!(f, "MyError::A error"),
+            MyError::B => write!(f, "MyError::B error"),
+        }
+    }
+}
+
+pub fn ret_myerr(err: MyError) -> anyhow::Result<u16> {
+    Err(anyhow::anyhow!(err))
+}
+
+pub fn ret_str_err(msg: &str) -> anyhow::Result<u16> {
+    Err(anyhow::anyhow!(msg.to_owned()))
+}
+
+fn main() {
+    println!("{:?}", ret_myerr(MyError::A));
+    println!("{:?}", ret_str_err("Some error string"));
+}
+```
+
+<br>
+
+## `thiserror`
+You use `#[derive(Error)]` on top and then another `#[error]` attribute above each variant if we want a message. This will **automatically implement** `Display`.<br>
+
+**Note**, the `error` attribute has the same format as when you use the `format!` macro.<br>
+
+**Example**:
+```rust
+use thiserror::Error;
+
+#[derive(Error, Debug)]
+enum SystemError {
+    #[error("Got error: {0}")]
+    A(String),
+    #[error("Wrong number: {0}")]
+    B(u8),
+}
+
+fn main() {
+    println!("{}", SystemError::B(8));
+    println!("{}", SystemError::A("foo".to_owned()));
+}
+```
+
+**Output**:
+```bash
+Wrong number: 8
+Got error: foo
+```
+
+<br>
+
+# `lazy_static` and `once_cell`
+Since Rust 1.63 the following code became possible:
+```rust
+use std::sync::Mutex;
+
+static GLOBAL_VEC: Mutex<Vec<u8>> = Mutex::new(Vec::new());
+```
+
+However, there are still a lot of other static variables you might want to have but **can’t** initialize with a `const fn`:
+```rust
+static v: Vec<u8> = vec![1,2,3]; // ❌ error[E0010]: allocations are not allowed in statics
+```
+
+But Rust provides means for that: `lazy_static` and `once_cell` both allow you to *initialize statics* **at runtime**.<br>
+
+<br>
+
+## `lazy_static`
+The `lazy_static` crate provides `lazy_static!` which uses folloing syntax `static ref <NAME>: <TYPE> = <EXPR>;` to declare `static`.<br>
+
+Consider, you want to declare **non-empty** vector `v` as `static` and then modify it, the syntax will:
+```rust
+use lazy_static::lazy_static;
+use std::sync::Mutex;
+
+lazy_static! {
+    static ref v: Mutex<Vec<u8>> = Mutex::new(vec![1,2,3]);
+}
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    Ok(v.lock()?.push(33))
+}
+```
+
+<br>
+
+## `OnceLock` and `OnceCell`
+*Static variables* **must be thread-safe** (implement the `Sync` trait) to prevent data races, as the compiler assumes they might be accessed from multiple threads. So, it is **not possible** to use `std::cell::OnceCell` for a *static variable* in a multi-threaded context because `OnceCell` is **not thread-safe**. Instead, you should use the t**hread-safe counterpart**, `std::sync::OnceLock`.<br>
+
+**Example**:
+```rust
+use std::error::Error;
+use std::{cell::OnceCell, sync::Mutex};
+use std::sync::OnceLock;
+
+static V1: OnceLock<Vec<u8>> = OnceLock::new();
+static V2: Mutex<OnceCell<Vec<u8>>> = Mutex::new(OnceCell::new());
+
+fn main() -> Result<(), Box<dyn Error>> {
+    V1.set(vec![1,2,3]).unwrap();
+    println!("{:?}", V1);
+
+    let r = V2.lock().unwrap().set(vec![1,2,3]).unwrap();
+    println!("{:?}", V2);
+    Ok(())
+}
+```
+
+**Output**:
+```bash
+OnceLock([1, 2, 3])
+Mutex { data: OnceCell([1, 2, 3]), poisoned: false, .. }
+```
+
+<br>
+
+What makes a `OnceCell` **more flexible** than `lazy_static`:
+- a `OnceCell` can hold a whole type, or it can be a parameter inside another type;
+- a `OnceCell` can be used for values that unknown until runtime;
+  - for example, we can start `main()`, get the **user input** and then pass it to `OnceCell` using `.set()`;
+- for a `OnceCell`, you can choose a **sync** or **unsync** version:
+  - `std::cell::OnceCell` is a **cell** which can be written to **only once**, but it is **thread-unsafe**;
+  - `std::sync::OnceLock` a **thread-safe** version of `OnceCell`;
+
+<br>
+
+# Working with user input
+## stdin
+The function `std::io::stdin()` returns `std::io::Stdin` struct, which handles **user input** and has a various methods:
+- `.read_line()` reads the input to a `&mut String`;
+
+<br>
+
+**Example**:
+```rust
+use std::io;
+
+fn main() {
+    println!("Please type something, or x to escape:");
+    let mut input_string = String::new();
+    while input_string.trim() != "x" {
+        input_string.clear();
+        io::stdin().read_line(&mut input_string).unwrap();
+        ;
+    }
+    println!(r#"You wrote "{}", exit"#, input_string.trim());
+}
+```
+
+**Output**:
+```bash
+Please type something, or x to escape:
+aa
+bb
+x
+You wrote "x", exit
+```
+
+## args
+The function `std::env::args()` returns `std::env::Args` struct. This `Args` struct holds what the user types when starting the program, known as **command-line arguments**.<br>
+
+**Example**:
+```rust
+use std::env::args;
+
+fn main() {
+    let input = args();
+    for (i, entry) in input.enumerate() {
+        println!("arg #{}: {}", i, entry);
+    }
+}
+```
+
+**Output**:
+```bash
+cargo run a b c
+arg #0: target/debug/example
+arg #1: a
+arg #2: b
+arg #3: c
+```
+
+The **first argument** (**zero index**) is always the **path** to the binary file.<br>
+The main crate used by Rust users to work with command-line arguments is known as `clap` (**CLAP** = Command Line Argument Parser).<br>
+
+<br>
+
+## envs
+The function `std::env::vars()` returns `std::env::Vars` struct. This `Vars` struct holds all environment variables.<br>
+
+Example - list all environment variables:
+```rust
+fn main() {
+    for (key, value) in std::env::vars() {
+        println!("{key}: {value}");
+    }
+}
+```
+
+<br>
+
+**Functions**:
+- `std::env::set_var(env, value)` sets value `value` for environment variables `env`;
+- `std::env::var(env)` reads value of environment variables `env`;
+
+<br>
+
+Most crates in Rust use the `RUST_LOG` environment variable to set **severity** for logging:
+
+```rust
+fn main() {
+    match std::env::var("RUST_LOG") {
+        Ok(severity) => println!("log severity level is {severity}"),
+        Err(_) => {
+            unsafe {std::env::set_var("RUST_LOG", "DEBUG");}
+            println!("default log severity level is {}", std::env::var("RUST_LOG").unwrap());
+        },
+    }
+}
+```
+
+<br>
+
+# Using files
+Files take **bytes**.<br>
+
+Functions and methods:
+- the `.read_to_string(data)` reads the contents of a whole file into a `String`;
+- the `.write_all("some string")` on the `fs::File` **requires** the `b` in front of **string**;
+- the `std::fs::write(path, contents)` lets you write a `&str` **without** `b` in front because `write()` takes anything that implements `AsRef<[u8]>` and `str` implements `AsRef<[u8]>`:
+```rust
+pub fn write<P: AsRef<Path>, C: AsRef<[u8]>>(path: P, contents: C) -> Result<()>
+```
+
+
+**Example**:
+```rust
+use std::io::Write;
+use std::io::Read;
+
+fn main() -> std::io::Result<()> {
+    let mut file: std::fs::File = std::fs::File::create("myfilename1.txt")?;
+    file.write_all(b"Foo Bar")?;
+
+    let r = std::fs::write("myfilename2.txt", "Foo Bar")?;
+    
+    // Opens the file
+    let mut my_file = std::fs::File::open("myfilename1.txt")?;
+    let mut data = String::new();
+    my_file.read_to_string(&mut data)?;
+
+    println!("{}", data);
+    Ok(())
+}
+```
+
+**Output**:
+```bash
+Foo Bar
+```
+
+<br>
+
+## OpenOptions

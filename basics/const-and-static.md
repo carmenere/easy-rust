@@ -95,10 +95,12 @@ const URL: &str = "google.com";
 
 # Static
 **Static variables** are **global variables** with following properties:
-- *static variable* **must** have **static lifetime**.
+- *static variables* **must** have **static lifetime**.
 - *static variables* can be **mutable** or **immutable**.
 - *static variables* have **fixed address** in the memory.
-- **mutable** *static variables* can only be **read** and **modified** inside `unsafe { }` **block**.
+- **mutable** *static variables* can only be **read** and **modified** inside `unsafe { }` **block**;
+- *static variables* **must be thread-safe** (implement the `Sync` trait) to prevent data races, as the compiler assumes they might be accessed from multiple threads
+  - **note**, it is **not possible** to use `std::cell::OnceCell` for a *static variable* in a multi-threaded context because `OnceCell` is **not thread-safe**;
 
 <br>
 

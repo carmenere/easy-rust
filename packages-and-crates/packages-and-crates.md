@@ -30,9 +30,9 @@ Each package can be fetched from https://crates.io.<br>
 <br>
 
 # Crate’s module tree
-A **crate** consists of a **hierarchy of modules**, called **crate’s module tree**.
+A **crate** consists of a **hierarchy of modules**, called **crate’s module tree**.<br>
 
-A **module** is a **collection of items**. **Module** acts as **namespace for items**.
+A **module** is a **collection of items**. **Module** acts as **namespace for items**.<br>
 
 The **module tree** *must be built manually*. It means **every** `.rs` file in *package* is included to *module tree* **explicitly** by `mod` *keyword*.
 
@@ -58,7 +58,7 @@ Cargo uses the **automatic target discovery** by default. *Automatic target disc
 <br>
 
 # Packages and Crates
-A **package** is a *collection* of **crates**.<br>
+A **package** is a *collection* of **crates**. *Package* is a **project**, but every Rust project is also called a **crate**.<br>
 
 Every **package** has `Cargo.toml` file. The `Cargo.toml` file for each package is called its **manifest**. <br>
 **Directory** with `Cargo.toml` file is called **package root**.<br>
