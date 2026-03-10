@@ -148,7 +148,10 @@
 - [Chapter 15](#chapter-15)
   - [Implementing Default](#implementing-default)
     - [Deref and DerefMut](#deref-and-derefmut)
-- [Chapter 16](#chapter-16)
+- [Chapter 17](#chapter-17)
+  - [Infallible](#infallible)
+  - [`try_`](#try_)
+  - [Blanket impl](#blanket-impl)
 <!-- TOC -->
 
 <br>
@@ -293,6 +296,20 @@ What about the size in characters/letters? There is methods `.chars().count()` t
 ```bash
 'Hello' consists of 5 bytes and 5 characters.
 '안녕' consists of 6 bytes BUT 2 characters.
+```
+
+<br>
+
+Methods:
+- `to_digit(self, radix: u32) -> Option<u32>` - converts a **char** to a **digit** in the given **radix** (aka **base**) `RADIX`;
+  - returns `None` if the **char** does not refer to a **digit** in the given **radix**;
+  - a **digit** is defined to be only the following characters:
+    - `0-9`
+    - `a-z`
+    - `A-Z`
+```rust
+assert_eq!('1'.to_digit(10), Some(1));
+assert_eq!('f'.to_digit(16), Some(15));
 ```
 
 <br>
@@ -3975,6 +3992,11 @@ Also it means that:
 <br>
 
 ### Examples of how Rust infers type of closure
+**FnOnce** vs. **FnMut**:
+![no_move_and_FnOnce](/img/fn_once_vs_fn_mut.png)
+
+<br>
+
 **Fn**:<br>
 ![Fn](/img/Fn.png)
 
@@ -4854,6 +4876,75 @@ pub trait DerefMut: Deref
 
 <br>
 
-# Chapter 16
+# Chapter 17
+## Infallible
+The `std::convert::Infallible`:
+```rust
+pub enum Infallible {}
+```
 
 <br>
+
+The **error type** for errors that **can never happen**. Since `Infallible` is a **enum** that **has no variant**, a value of this type can **never** actually exist, i.e. `Infallible` can be useful in `Result` as **error type** to indicate that the result is **always** `Ok`.<br>
+
+The `Infallible` **enum** has the **same role as** the `!` **never type**, which is still *unstable*.<br>
+
+When `!` **is stabilized**, we plan to make `Infallible` a **type alias** to `!` and eventually **deprecate** `Infallible`:
+```rust
+pub type Infallible = !;
+```
+
+<br>
+
+For example, **blanket implementation** `TryFrom for T` uses `Infallible`:
+```rust
+impl<T, U> TryFrom<U> for T
+where
+    U: Into<T>
+{
+    type Error = Infallible;
+
+    fn try_from(value: U) -> Result<Self, Infallible> {
+        Ok(U::into(value))  // Never returns `Err`
+    }
+}
+```
+
+<br>
+
+## `try_`
+In Rust, the `try_` prefix is a widely used naming convention in the standard library and community for functions that are **fallible** (**can fail**) and return a `Result` type.<br>
+The primary use case of the `try_` prefix is to provide a version of a **function that returns** a `Result<T, E>` (or sometimes `Option<T>`) **instead of panicking on failure**:
+```rust
+// This function will panic if the id does not exist.
+fn get_config(id: u32) -> Config { ... }
+
+// This will not panic and will return a Result instead.
+fn try_get_config(id: u32) -> Result<Config, ConfigError> { ... }
+```
+
+<br>
+
+**Examples**:
+- `Box::try_new()`: a **fallible constructor** for `Box` that returns a `Result<Box<T>, AllocError>` **instead of panicking** on memory allocation failure;
+- `Mutex::try_lock()`: tries to lock a mutex, **returning** a `Result` **if it fails** immediately, as opposed to `lock()`, which **blocks** the current thread until it can acquire the lock;
+
+<br>
+
+## Blanket impl
+```rust
+impl<T, U> TryFrom<U> for T
+where
+    U: Into<T>,
+{
+    type Error = Infallible;
+
+    fn try_from(value: U) -> Result<Self, Self::Error> {
+        Ok(U::into(value))
+    }
+}
+```
+
+<br>
+
+
