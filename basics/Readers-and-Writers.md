@@ -11,6 +11,7 @@
   - [`std::fs::FileType`](#stdfsfiletype)
   - [`std::fs::DirEntry`](#stdfsdirentry)
   - [Platform-Specific features](#platform-specific-features)
+- [Using files](#using-files)
 <!-- TOC -->
 
 <br>
@@ -329,4 +330,44 @@ There is **no portable way** to create symbolic links that work on **both** **Un
 ```rust
 #[cfg(unix)]
 use std::os::unix::fs::symlink;
+```
+
+<br>
+
+# Using files
+Files take **bytes**.<br>
+
+Functions and methods:
+- the `.read_to_string(data)` reads the contents of a whole file into a `String`;
+- the `.write_all("some string")` on the `fs::File` **requires** the `b` in front of **string**;
+- the `std::fs::write(path, contents)` lets you write a `&str` **without** `b` in front because `write()` takes anything that implements `AsRef<[u8]>` and `str` implements `AsRef<[u8]>`:
+```rust
+pub fn write<P: AsRef<Path>, C: AsRef<[u8]>>(path: P, contents: C) -> Result<()>
+```
+
+
+**Example**:
+```rust
+use std::io::Write;
+use std::io::Read;
+
+fn main() -> std::io::Result<()> {
+    let mut file: std::fs::File = std::fs::File::create("myfilename1.txt")?;
+    file.write_all(b"Foo Bar")?;
+
+    let r = std::fs::write("myfilename2.txt", "Foo Bar")?;
+    
+    // Opens the file
+    let mut my_file = std::fs::File::open("myfilename1.txt")?;
+    let mut data = String::new();
+    my_file.read_to_string(&mut data)?;
+
+    println!("{}", data);
+    Ok(())
+}
+```
+
+**Output**:
+```bash
+Foo Bar
 ```
