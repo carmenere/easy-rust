@@ -1,9 +1,9 @@
 # Table of contents
 <!-- TOC -->
-* [Table of contents](#table-of-contents)
-* [ABI](#abi)
-  * [Calling convention](#calling-convention)
-* [Memory layout of process](#memory-layout-of-process)
+- [Table of contents](#table-of-contents)
+- [ABI](#abi)
+  - [Calling convention](#calling-convention)
+- [Memory layout of process](#memory-layout-of-process)
 <!-- TOC -->
 
 <br>
@@ -13,8 +13,7 @@ The **System V ABI** (**Application Binary Interface**) is a set of specificatio
 - calling conventions;
 - object file formats;
 - dynamic linking semantics;
-- memory layout
-- and much more;
+- memory layout;
 
 <br>
 

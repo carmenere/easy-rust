@@ -158,6 +158,10 @@
     - [`join!`](#join)
     - [`select!`](#select)
     - [`try_join!`](#try_join)
+- [Chapter 20](#chapter-20)
+- [Chapter 21](#chapter-21)
+  - [`std::mem`](#stdmem)
+  - [Panic hooks](#panic-hooks)
 <!-- TOC -->
 
 <br>
@@ -5239,3 +5243,16 @@ Err(
     "num=10",
 )
 ```
+
+<br>
+
+# Chapter 20
+
+<br>
+
+# Chapter 21
+## `std::mem`
+
+<br>
+
+## Panic hooks
