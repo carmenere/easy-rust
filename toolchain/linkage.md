@@ -55,6 +55,8 @@ There are **several types of libraries**:
 <br>
 
 ## `*-sys` packages
+The term **sys crate** is a convention in the Rust ecosystem for crates that provide **low-level**, **unsafe FFI** (Foreign Function Interface) **bindings** to a **native C library** or **system APIs**, typically with a `*-sys` name.<br>
+
 **C library** (aka **system library**, **native library**).<br>
 A **native dependency** is any dependency that requires compilation of `C++`/`C` code.<br>
 **Packages** that link to **system libraries** (**C libraries**) are also called **native dependencies**.<br>
