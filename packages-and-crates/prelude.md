@@ -41,6 +41,36 @@ There are several different preludes:
 
 <br>
 
+There is an attribute called `#![no_implicit_prelude]` that **disables the prelude**. The `#![no_implicit_prelude]` tells the compiler **not to bring anything from** `std`:
+```rust
+#![no_implicit_prelude]
+fn main() {
+    let my_string = String::from("This won't work");
+}
+```
+**Output**:
+```bash
+error[E0433]: failed to resolve: use of undeclared type `String`
+ --> example/src/main.rs:3:21
+  |
+3 |     let my_string = String::from("This won't work");
+  |                     ^^^^^^ use of undeclared type `String`
+  |
+help: consider importing this struct
+  |
+2 + use std::string::String;
+  |
+
+For more information about this error, try `rustc --explain E0433`.
+error: could not compile `example` (bin "example") due to 1 previous error
+```
+
+<br>
+
+So you can see why Rust has a prelude — it would be a horrible experience without it.<br>
+
+<br>
+
 ## Standard library prelude
 **Standard library prelude** *consists* of the *names from* **standard library crate**.<br>
 
@@ -57,7 +87,7 @@ There are 2 *standard library* **crates** in Rust:
 What *standard library* **crate** is chosen (`std` or `core`) depends on `no_std` **attribute**.<br>
 What **standard library prelude** is chosen depends on **Rust edition**.<br>
 
-`no_std` attribute is declared in **global section** of **root module**, e.g.:
+`no_std` attribute must be declared in **global section** of **root module**, e.g.:
 ```Rust
 #![no_std]
 ```

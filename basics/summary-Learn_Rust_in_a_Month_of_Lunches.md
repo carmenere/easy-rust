@@ -160,8 +160,9 @@
     - [`try_join!`](#try_join)
 - [Chapter 20](#chapter-20)
 - [Chapter 21](#chapter-21)
-  - [`std::mem`](#stdmem)
-  - [Panic hooks](#panic-hooks)
+  - [`column!`, `line!`, `file!` and `module_path!`](#column-line-file-and-module_path)
+  - [`thread_local!`](#thread_local)
+  - [`cfg!`](#cfg-1)
 <!-- TOC -->
 
 <br>
@@ -5251,62 +5252,118 @@ Err(
 <br>
 
 # Chapter 21
-## `std::mem`
-- [**`std::mem::drop`**](https://doc.rust-lang.org/std/mem/fn.drop.html)
-  - disposes of a value;
-- [**`std::mem::size_of`**](https://doc.rust-lang.org/std/mem/fn.size_of.html)
-  - returns the **size of a type** in bytes;
-- [**`std::mem::size_of_val`**](https://doc.rust-lang.org/std/mem/fn.size_of_val.html)
-  - returns the **size of the pointed-to value** in bytes;
-  - this is usually the same as `size_of::<T>()`;
-  - however, when `T` has no statically-known size, e.g., a slice `[T]` or a **trait object**, then `size_of_val` can be used to get the **dynamically-known size**;
-- [**`std::mem::swap`**](https://doc.rust-lang.org/std/mem/fn.swap.html)
-  - lets you **switch** the values between two variables;
-    - if you want to **swap** with a **default** or dummy value, see `take`;
-    - if you want to **swap** with a **passed value**, returning the old value, see `replace`;
-- [**`std::mem::replace(dest: &mut T, src: T)`**](https://doc.rust-lang.org/std/mem/fn.replace.html)
-  - **takes** value of `T` (`*dest`);
-  - **replaces** the value with what you put in `src`;
-  - **returns** the **old** value `*dest`;
-- [**`std::mem::take(dest: &mut T)`**](https://doc.rust-lang.org/std/mem/fn.take.html)
-  - **takes** value of `T` (`*dest`) and **replaces** it with the **default value** of `T`: that’s why this function requires the type `T` to implement `Default`;
-  - **returns** the **taken** value `T`;
+## `column!`, `line!`, `file!` and `module_path!`
+- `column!` gives you **column number** where this macro is called;
+- `file!` gives the **filename** in which this macro is called;
+- `line!` gives the **line number** in which this macro is called;
+- `module_path!` gives the **path to the module** in which this macro is called;
 
 <br>
 
-**Defenitions**:
-```rust
-pub const fn swap<T>(x: &mut T, y: &mut T) { }
-
-pub const fn replace<T>(dest: &mut T, src: T) -> T {
-    let old = *dest;
-    swap(dest, &mut src);
-    old
-}
-
-pub const fn take<T: [const] Default>(dest: &mut T) -> T {
-    replace(dest, T::default())
-}
-```
-
-<br>
+## `thread_local!`
+The `thread_local!` macro creates `static` that is **local to each thread**, so no need for a `Mutex`!.<br>
+The value can then be accessed with a method called `.with()` that gives access to the value inside within a closure.<br>
 
 **Example**:
 ```rust
-use std::mem;
+use std::cell::RefCell;
+
+
+thread_local! {
+    static LOCAL_VALUE: RefCell<i32> = RefCell::new(10);
+}
+
+#[test]
+fn one() {
+    LOCAL_VALUE.with(|cell| {
+        let mut lock = cell.borrow_mut();
+        println!("Test 1. Local value is {lock:?}");
+        *lock += 1;
+        println!("Test 1. Local value is now {lock:?}\n");
+    });
+}
+
+#[test]
+fn two() {
+    LOCAL_VALUE.with(|cell| {
+        let mut lock = cell.borrow_mut();
+        println!("Test 2. Local value is {lock:?}");
+        *lock += 1;
+        println!("Test 2. Local value is now {lock:?}\n");
+    });
+}
 
 fn main() {
-    let mut old_vec = vec![8, 7, 0, 2, 49, 9999];
-    let mut new_vec = vec![];
-    
-    old_vec.iter_mut().for_each(|number| {
-        let old_value = mem::take(number);
-        new_vec.push(old_value);
-    });
-    println!("old_vec={:?}\nnew_vec={:?}", old_vec, new_vec);
+
 }
+```
+
+**Output**:
+```bash
+running 2 tests
+test one ... ok
+test two ... ok
+
+successes:
+
+---- one stdout ----
+Test 1. Local value is 10
+Test 1. Local value is now 11
+
+
+---- two stdout ----
+Test 2. Local value is 10
+Test 2. Local value is now 11
+
+
+
+successes:
+    one
+    two
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
 ```
 
 <br>
 
-## Panic hooks
+## `cfg!`
+```rust
+#[test]
+fn one() {
+    println!("{}", foo());
+}
+
+fn foo() -> String {
+    if cfg!(test) {
+        ">>>> inside test".to_owned()
+    } else {
+        ">>>> inside main()".to_owned()
+    }
+}
+
+fn main() {
+    println!("{}", foo());
+}
+```
+
+**Output** **`cargo run`**:
+```bash
+>>>> inside main()
+```
+
+**Output** **`cargo test -- --show-output`**:
+```bash
+running 1 test
+test one ... ok
+
+successes:
+
+---- one stdout ----
+>>>> inside test
+
+
+successes:
+    one
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+```
