@@ -10,6 +10,7 @@
 - [`const` vs. `static`](#const-vs-static)
 - [`~const`](#const)
 - [Const generics](#const-generics)
+- [Sections in ELF and static variables](#sections-in-elf-and-static-variables)
 <!-- TOC -->
 
 <br>
@@ -269,5 +270,63 @@ Buffers {
         10,
         10,
     ],
+}
+```
+
+<br>
+
+# Sections in ELF and static variables
+The terms **section** and **segment** refer to different views of an **object file** (**ELF file**):
+- the **section** is used by compiler for **linking**;
+- the **segment** corresponds to **memory layout** of a loaded programm and it is used by the OS loader;
+
+<br>
+
+The standard **sections** used by compilers, including `rustc`, are:
+- `.rodata` (read-only data):
+  - **zero** or **non-zero** *initialized* **immutable** `static`;
+  - `&'static str` also reside in this section;
+- `.data` (initialized data):
+  - **non-zero** *initialized* **mutable** `static`;
+- `.bss` (block start by symbol):
+  - **zero** *initialized* **mutable** `static`;
+  - **uninitialized mutable** `static`;
+
+<br>
+
+The `.bss` section takes up **no space** in the binary file on disk. The operating system loader simply allocates the required memory space and fills it by zeros **before** the program starts.<br>
+
+<br>
+
+**Example**:
+```rust
+// .rodata
+static NON_ZERO_INIT_IMMUTABLE: u128 = 1000;
+
+// .rodata
+static ZERO_INIT_IMMUTABLE: u128 = 0;
+
+// .data
+static mut NON_ZERO_INIT_MUTABLE: u128 = 1000;
+
+// .bss
+static mut ZERO_INIT_MUTABLE: u128 = 0;
+
+// .bss
+static UNINIT_IMMUTABLE: std::sync::OnceLock<[u128; 10]> = std::sync::OnceLock::new();
+
+// .bss
+static mut UNINIT_MUTABLE: std::sync::OnceLock<[u128; 10]> = std::sync::OnceLock::new();
+
+fn main() {
+    println!("NON_ZERO_INIT_IMMUTABLE = {:?}", NON_ZERO_INIT_IMMUTABLE);
+    println!("ZERO_INIT_IMMUTABLE = {:?}", ZERO_INIT_IMMUTABLE);
+    println!("UNINIT_IMMUTABLE = {:?}", UNINIT_IMMUTABLE);
+
+    unsafe {
+        println!("NON_ZERO_INIT_MUTABLE = {:?}", NON_ZERO_INIT_MUTABLE);
+        println!("ZERO_INIT_MUTABLE = {:?}", ZERO_INIT_MUTABLE);
+        println!("UNINIT_MUTABLE = {:?}", UNINIT_MUTABLE); 
+    }
 }
 ```

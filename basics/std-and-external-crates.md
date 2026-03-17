@@ -28,8 +28,14 @@
   - [stdin](#stdin)
   - [args](#args)
   - [envs](#envs)
-- [Using files](#using-files)
-  - [OpenOptions](#openoptions)
+- [reqwest](#reqwest)
+  - [Blocking mode](#blocking-mode)
+- [`std::mem`](#stdmem)
+  - [Defenitions](#defenitions)
+  - [Examples](#examples)
+    - [`mem::take`](#memtake)
+    - [`mem::replace`](#memreplace)
+- [](#)
 <!-- TOC -->
 
 <br>
@@ -75,6 +81,69 @@ cargo add rand
 
 <br>
 
+The `Cargo.toml` after `cargo add rand`:
+```toml
+[dependencies]
+rand = "0.10.0"
+```
+
+<br>
+
+The *features* that are **enabled** have a `+` to the **left**, and those that **aren’t** enabled have a `-` instead.<br>
+
+<br>
+
+A lot of crates use **features**, which let you compile just a part of the crate. *Some features* are **enabled by default**, but if you want to **add** *more functionality*, you have to **activate** *additional features*.<br>
+
+The `cargo add <crate_name>` command **does not** have a dedicated flag to display **only** the default features of a crate, but it can list **all enabled features** including the default ones using the `--dry-run` (or shorthand `-n`) flag. If crate is already added to `Cargo.toml` and has some additional features, e.g. `reqwest = { version = "0.13.2", features = ["blocking"] }`, all these features will be displayed as `+`. To show **only default features** - **remove** crate by `cargo remove <crate_name>` and then call `cargo add --dry-run <crate_name>`.
+```bash
+cargo add --dry-run reqwest
+    Updating crates.io index
+      Adding reqwest v0.13.2 to dependencies
+             Features:
+             + __rustls
+             + __rustls-aws-lc-rs
+             + __tls
+             + charset
+             + default-tls
+             + http2
+             + rustls
+             + system-proxy
+             - __native-tls
+             - __native-tls-alpn
+             - blocking
+             - brotli
+             - cookies
+             - deflate
+             - form
+             - gzip
+             - hickory-dns
+             - http3
+             - json
+             - multipart
+             - native-tls
+             - native-tls-no-alpn
+             - native-tls-vendored
+             - native-tls-vendored-no-alpn
+             - query
+             - rustls-no-provider
+             - socks
+             - stream
+             - zstd
+warning: aborting add due to dry run
+```
+
+<br>
+
+You can also find out whether a feature is behind a feature flag by looking through the source code for the attribute `#[cfg(feature = "<feature_name>")]`.
+Example: [`reqwest` crate](https://docs.rs/reqwest/latest/src/reqwest/lib.rs.html)
+```rust
+    #[cfg(feature = "blocking")]
+    pub mod blocking;
+```
+
+<br>
+
 Example of `cargo add  --features 'serde' --no-default-features rand` **output**:
 ```rust
 cargo add  --features 'serde' --no-default-features rand 
@@ -93,13 +162,6 @@ cargo add  --features 'serde' --no-default-features rand
              - unbiased
 ```
 
-<br>
-
-The `Cargo.toml` after `cargo add rand`:
-```toml
-[dependencies]
-rand = "0.10.0"
-```
 
 <br>
 
@@ -1216,44 +1278,217 @@ fn main() {
 
 <br>
 
-# Using files
-Files take **bytes**.<br>
+# reqwest
+## Blocking mode
+To enable blocking client run `cargo add  reqwest --features blocking`.<br>
 
-Functions and methods:
-- the `.read_to_string(data)` reads the contents of a whole file into a `String`;
-- the `.write_all("some string")` on the `fs::File` **requires** the `b` in front of **string**;
-- the `std::fs::write(path, contents)` lets you write a `&str` **without** `b` in front because `write()` takes anything that implements `AsRef<[u8]>` and `str` implements `AsRef<[u8]>`:
+The instance of `Client` has **http methods**:
+- `.post()`;
+- `.put()`;
+- `.get()`;
+- `.delete()`;
+
+<br>
+
+The `.get()` method is pretty simple:
 ```rust
-pub fn write<P: AsRef<Path>, C: AsRef<[u8]>>(path: P, contents: C) -> Result<()>
+pub fn get<U: IntoUrl>(&self, url: U) -> RequestBuilder
 ```
 
+This `IntoUrl` trait is one that the reqwest crate made, not the standard library, so you don’t have to remember it. But you can guess from the name that `IntoUrl` means anything that can become a URL, and it’s implemented for both `&str` and `String`.
+
+<br>
 
 **Example**:
 ```rust
-use std::io::Write;
-use std::io::Read;
+use reqwest::blocking::Client;
 
-fn main() -> std::io::Result<()> {
-    let mut file: std::fs::File = std::fs::File::create("myfilename1.txt")?;
-    file.write_all(b"Foo Bar")?;
-
-    let r = std::fs::write("myfilename2.txt", "Foo Bar")?;
-    
-    // Opens the file
-    let mut my_file = std::fs::File::open("myfilename1.txt")?;
-    let mut data = String::new();
-    my_file.read_to_string(&mut data)?;
-
-    println!("{}", data);
-    Ok(())
+fn main() {
+    let client = Client::new();
+    let resp = client.get("https://www.rust-lang.org").send().unwrap();
+    println!("{:#?}", resp);
+    println!("{}", &resp.text().unwrap()[0..200]);
 }
 ```
 
 **Output**:
 ```bash
-Foo Bar
+Response {
+    url: "https://rust-lang.org/",
+    status: 200,
+    headers: {
+        "server": "GitHub.com",
+        "content-type": "text/html; charset=utf-8",
+        "x-origin-cache": "HIT",
+        "last-modified": "Wed, 11 Mar 2026 01:43:58 GMT",
+        "access-control-allow-origin": "*",
+        "etag": "\"69b0c8de-48a9\"",
+        "expires": "Wed, 11 Mar 2026 13:48:29 GMT",
+        "cache-control": "max-age=600",
+        "x-proxy-cache": "MISS",
+        "x-github-request-id": "ADFE:25B76B:168270:16C29C:69B17055",
+        "accept-ranges": "bytes",
+        "age": "0",
+        "date": "Wed, 11 Mar 2026 14:29:28 GMT",
+        "via": "1.1 varnish",
+        "x-served-by": "cache-ams2100130-AMS",
+        "x-cache": "HIT",
+        "x-cache-hits": "0",
+        "x-timer": "S1773239369.631582,VS0,VE122",
+        "vary": "Accept-Encoding",
+        "x-fastly-request-id": "71d736843c4c7171f06a73f48be8d9c7674958cc",
+        "content-length": "18601",
+    },
+}
+<!doctype html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <title>
+            Rust Programming Language
+        </title>
+    <meta name="viewport" content="width=device-width,initial
 ```
 
 <br>
 
-## OpenOptions
+The [`Response` struct](https://docs.rs/reqwest/latest/reqwest/struct.Response.html) has methods
+- `.status()`
+- `.content_length()`
+- `.text()`: it gives a `Result<String>`, where `String` is a **body** of response;
+
+<br>
+
+# `std::mem`
+- [**`std::mem::drop`**](https://doc.rust-lang.org/std/mem/fn.drop.html)
+  - disposes of a value;
+- [**`std::mem::size_of`**](https://doc.rust-lang.org/std/mem/fn.size_of.html)
+  - returns the **size of a type** in bytes;
+- [**`std::mem::size_of_val`**](https://doc.rust-lang.org/std/mem/fn.size_of_val.html)
+  - returns the **size of the pointed-to value** in bytes;
+  - this is usually the same as `size_of::<T>()`;
+  - however, when `T` has no statically-known size, e.g., a slice `[T]` or a **trait object**, then `size_of_val` can be used to get the **dynamically-known size**;
+- [**`std::mem::swap`**](https://doc.rust-lang.org/std/mem/fn.swap.html)
+  - lets you **switch** the values between two variables;
+    - if you want to **swap** with a **default** or dummy value, see `take`;
+    - if you want to **swap** with a **passed value**, returning the old value, see `replace`;
+- [**`std::mem::replace(dest: &mut T, src: T)`**](https://doc.rust-lang.org/std/mem/fn.replace.html)
+  - **takes** value of `T` (`*dest`);
+  - **replaces** the value with what you put in `src`;
+  - **returns** the **old** value `*dest`;
+- [**`std::mem::take(dest: &mut T)`**](https://doc.rust-lang.org/std/mem/fn.take.html)
+  - **takes** value of `T` (`*dest`) and **replaces** it with the **default value** of `T`: that’s why this function requires the type `T` to implement `Default`;
+  - **returns** the **taken** value `T`;
+  - in practice, the `take()` function is often used as a convenience method to **turn** `Some` **into** `None` **without** having to do any *pattern matching*;
+
+<br>
+
+## Defenitions
+```rust
+pub const fn swap<T>(x: &mut T, y: &mut T) { }
+
+pub const fn replace<T>(dest: &mut T, src: T) -> T {
+    let old = *dest;
+    swap(dest, &mut src);
+    old
+}
+
+pub const fn take<T: [const] Default>(dest: &mut T) -> T {
+    replace(dest, T::default())
+}
+```
+
+Also `impl<T> Option<T> { }` provides method `take()`:
+```rust
+    pub const fn take(&mut self) -> Option<T> {
+        mem::replace(self, None)
+    }
+```
+
+<br>
+
+## Examples
+### `mem::take`
+```rust
+use std::mem;
+
+fn main() {
+    let mut old_vec = vec![8, 7, 0, 2, 49, 9999];
+    let mut new_vec = vec![];
+    
+    old_vec.iter_mut().for_each(|number| {
+        let old_value = mem::take(number);
+        new_vec.push(old_value);
+    });
+    println!("old_vec={:?}\nnew_vec={:?}", old_vec, new_vec);
+}
+```
+
+<br>
+
+Using `take()` to **turn** `Some` **into** `None`:
+```rust
+struct Value {
+    value: Option<u32>,
+}
+
+impl Value {
+    fn has_value(&self) -> bool {
+        self.value.is_some()
+    }
+    fn add_val(&mut self, v: u32) {
+        self.value = Some(v);
+    }
+    fn rem_val(&mut self) {
+        self.value.take();
+    }
+}
+fn main() {
+    let mut user_state = Value {
+        value: None,
+    };
+    user_state.add_val(100);
+    println!("self.value = {}", user_state.has_value());
+    
+    user_state.rem_val();
+    println!("self.value = {}", user_state.has_value());
+}
+```
+
+**Output**:
+```bash
+self.value = true
+self.value = false
+```
+
+In the above example `self.value.take();` just takes the value and do nothing with it, leaving `None` in its place.<br>
+
+<br>
+
+### `mem::replace`
+```rust
+use std::mem;
+
+struct City {
+    name: String,
+}
+
+impl City {
+    fn change_name(&mut self, name: &str) {
+        let former = mem::replace(&mut self.name, name.to_string());
+        println!("{former} is now called {new}.", new = self.name);
+    }
+}
+
+fn main() {
+    let mut city = City {
+        name: "msk".to_string(),
+    };
+
+    city.change_name("spb");
+}
+```
+
+<br>
+
+# 
