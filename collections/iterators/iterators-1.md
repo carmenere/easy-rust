@@ -12,14 +12,13 @@
   - [Blanket implementations](#blanket-implementations)
     - [`impl<I: Iterator> IntoIterator for I`](#impli-iterator-intoiterator-for-i)
   - [Example](#example-1)
+  - [iter()/iter\_mut() methods](#iteriter_mut-methods)
+  - [`IntoIterator` implementations](#intoiterator-implementations)
+  - [`IntoIterator` for `[T; N]`](#intoiterator-for-t-n)
 - [`FromIterator`](#fromiterator)
   - [Declaration](#declaration-2)
   - [In a nutshell](#in-a-nutshell-2)
-- [Connection between `collect()` and `from_iter()`](#connection-between-collect-and-from_iter)
-- [Loop syntax](#loop-syntax)
-  - [iter()/iter\_mut()](#iteriter_mut)
-- [`IntoIterator` for `Vec`](#intoiterator-for-vec)
-- [`IntoIterator` for `[T; N]` and `[T]`](#intoiterator-for-t-n-and-t)
+  - [Connection between `collect()` and `from_iter()`](#connection-between-collect-and-from_iter)
 <!-- TOC -->
 
 <br>
@@ -178,140 +177,7 @@ for (i, n) in c.into_iter().enumerate() {
 
 <br>
 
-# `FromIterator`
-## Declaration
-```rust
-pub trait FromIterator<A>: Sized {
-    // Required method
-    fn from_iter<T>(iter: T) -> Self
-       where T: IntoIterator<Item = A>;
-}
-```
-
-<br>
-
-## In a nutshell
-Trait `FromIterator` is used for conversion **from** an `Iterator` **to** _collection_.<br>
-
-By implementing `FromIterator` for a **collection** type, you define how it will be created **from** an **iterator**.<br>
-`FromIterator::from_iter()` is rarely called explicitly, and `FromIterator::from_iter()` is usually used through `Iterator::collect()` method.<br>
-
-<br>
-
-# Connection between `collect()` and `from_iter()`
-Below `D` is a type of some **collection type**, e.g. `Vec<u8>` or `Vec<Foo>`:
-```rust
-struct SomeIterator {};
-
-impl Iterator for SomeIterator {
-  type Item = T;
-  fn collect <D: FromIterator<Self::Item>>(self) -> D {
-    <D as FromIterator>::from_iter(self.into_iter())
-  }
-}
-```
-
-Below `T` is type of **item of collection**, in other words `T = Self::Item` where `Self` some `Iterator` type:
-```rust
-impl FromIterator<T> for D {
-  fn from_iter<I: IntoIterator<T>>(iter: I) -> Self {
-    ....
-  }
-}
-
-```
-
-<br>
-
-# Loop syntax
-**Consider example**:
-```rust
-for item in collection {
-    ...
-}
-```
-
-In this example, after `for in` loop *collection* `collection` is become **invalid**.<br>
-Note that `IntoIterator::into_iter(self)` **consumes** iterable because of `self`.<br>
-Access to **collections** in loops uses **move semantics** by default.<br>
-
-<br>
-
-To make the `collection` **reusable after loop** use `&` to access to the `collection`:
-```rust
-for item in &collection {
-    ...
-}
-```
-
-<br>
-
-To **modify item** *during* the loop use `&mut` to access to the `collection`:
-```rust
-for item in &mut collection {
-    ...
-}
-```
-
-<br>
-
-The `for item in iterable` syntax requires **iterable**, so it works with both **iterators** (every iterator is iterable too) and **collections** that implement `IntoIterator`.<br>
-The `for item in iterable` syntax is just a syntactic sugar for:
-```rust
-let mut iterator = iterable.into_iter();
-
-loop {
-    match iterator.next() {
-        Some(x) => {
-          // body
-        },
-        None => break,
-    }
-}
-```
-
-**here**:
-- `let mut iterator = iterable.into_iter()` returns some **iterator**;
-- `iterator.next()` is called repeatedly inside `loop`;
-
-<br>
-
-So, there are 3 variants of `for ... in ...` loop:
-- `for item in iterable`
-  - here `let mut iterator = iterable.into_iter();` returns an `Iterator<Item=T>` over items of `T` type, **move semantics**;
-- `for item in &iterable`
-  - here `let mut iterator = (&iterable).into_iter();` returns an `Iterator<Item=&T>` over items of `&T` type, this **allows** to **reuse** *original collection* **after** iteration;
-- `for item in &mut iterable`
-  - here `let mut iterator = (&mut iterable).into_iter();` returns an `Iterator<Item=&mut T>` over items of `&mut T` type, this **allows** to **reuse** *original collection* **after** iteration;;
-
-<br>
-
-To provide support for **all 3** variants of `for ... in ...` loop the **iterable** must implement `IntoIterator` for **all 3** cases: `T`, `&T` and `&mut T`:
-- `T`
-```rust
-impl IntoIterator for SomeCollection<T> {
-  fn into_iter(self) -> Iterator<Item=T> {
-  }
-}
-```
-- `&T`
-```rust
-impl IntoIterator for &SomeCollection<T> {
-  fn into_iter(self) -> Iterator<Item=&T> {
-  }
-}
-```
-- `&mut T`
-```rust
-impl IntoIterator for &mut SomeCollection<T> {
-  fn into_iter(self) -> Iterator<Item=&mut T> {
-  }
-}
-```
-
-<br>
-
-## iter()/iter_mut()
+## iter()/iter_mut() methods
 Slices implements `iter(&self)` and `iter_mut(&mut self)` methods:
 ```rust
 #[cfg(not(test))]
@@ -326,8 +192,17 @@ impl<T> [T] {
 }
 ```
 
+<br>
+
+The methods `iter()`/`iter_mut()` available on `&[T; N]`/`&mut [T; N]` because the Rust compiler provides a built-in **unsized coercion** that allows a reference to an array `&[T; N]` to be implicitly converted into a reference to a slice `&[T]`. When you call a method on an **array**, the compiler follows a specific lookup order:
+- it first **checks if the method is defined directly** on the array type `[T; N]`;
+- if not found, it **tries autoref**: it automatically borrows the array as a reference `&[T; N]`;
+- it then **applies coercion**: the reference `&[T; N]` is **coerced to a slice** `&[T]`;
+- then the *slice type* `[T]` *methods* **become available** to the *array*;
+
+<br>
+
 The methods `iter`/`iter_mut` available on `Vec` because `Vec` implements `Deref`/`DerefMut` with `Target=[T]`.<br>
-Also slices implement `IntoIterator` for `&'a [T]` and for `&'a mut [T]`, **but not** for `[T]`.<br>
 
 <br>
 
@@ -337,18 +212,17 @@ Also slices implement `IntoIterator` for `&'a [T]` and for `&'a mut [T]`, **but 
 
 <br>
 
-# `IntoIterator` for `Vec`
-For example, `Vec` implements `IntoIterator` for **all** cases: `T`, `&T` and `&mut T`.<br>
+## `IntoIterator` implementations
+**Vectors** `Vec` implement `IntoIterator` for **all** cases: `Vec<T>`, `&Vec<T>` and `&mut Vec<T>`.<br>
+**Arrays** `[T; N]` implement `IntoIterator` for **all** cases: `[T; N]`, `&[T; N]` and `&mut [T; N]`.<br>
 
 But **not** every type provides all these 3 implementations:
 - `HashSet` and `BinaryHeap` **don’t** implement on **mutable** references;
-- **Arrays** `[T; N]` (**until** Rust **1.53**) and **slices** `[]` implement **only** `&T` and `&mut T`: 
-    - `&[T]`
-    - `&mut [T]`
+- **slices** `[T]` implement `IntoIterator` for `&'a [T]` and for `&'a mut [T]`, **but not** for `[T]`;
 
 <br>
 
-# `IntoIterator` for `[T; N]` and `[T]`
+## `IntoIterator` for `[T; N]`
 **Until** Rust **1.53**, `only` **references to arrays** implement `IntoIterator`.<br>
 This means you **can** iterate **over** `&[1, 2, 3]` and `&mut [1, 2, 3]`, but **not** **over** `[1, 2, 3]` **directly**:
 ```rust
@@ -369,3 +243,47 @@ Instead, the trait implementation was added in all editions (starting in Rust **
 - In Rust **2015** and **2018** code, the compiler will still resolve `array.into_iter()` to `(&array).into_iter()` like before, as if the trait implementation does not exist. 
 - This only applies to the `.into_iter()` method call syntax. It **doesn't** affect **any other syntax** such as 
 `for e in [1, 2, 3]`,  `iter.zip([1, 2, 3])` or `IntoIterator::into_iter([1, 2, 3])`. Those will work in all editions.
+
+<br>
+
+# `FromIterator`
+## Declaration
+```rust
+pub trait FromIterator<A>: Sized {
+    // Required method
+    fn from_iter<T>(iter: T) -> Self
+       where T: IntoIterator<Item = A>;
+}
+```
+
+<br>
+
+## In a nutshell
+Trait `FromIterator` is used for conversion **from** an `Iterator` **to** _collection_.<br>
+
+By implementing `FromIterator` for a **collection** type, you define how it will be created **from** an **iterator**.<br>
+`FromIterator::from_iter()` is rarely called explicitly, and `FromIterator::from_iter()` is usually used through `Iterator::collect()` method.<br>
+
+<br>
+
+## Connection between `collect()` and `from_iter()`
+Below `D` is a type of some **collection type**, e.g. `Vec<u8>` or `Vec<Foo>`:
+```rust
+struct SomeIterator {};
+
+impl Iterator for SomeIterator {
+  type Item = T;
+  fn collect <D: FromIterator<Self::Item>>(self) -> D {
+    <D as FromIterator>::from_iter(self.into_iter())
+  }
+}
+```
+
+Below `T` is type of **item of collection**, in other words `T = Self::Item` where `Self` some `Iterator` type:
+```rust
+impl FromIterator<T> for D {
+  fn from_iter<I: IntoIterator<T>>(iter: I) -> Self {
+    ....
+  }
+}
+```
