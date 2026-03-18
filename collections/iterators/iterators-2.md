@@ -21,9 +21,15 @@
     - **requires** the `alloc` crate (usually present in `std`);
     - **extends** **`core::slice`** and adds **adds methods** that potentially require **heap memory**;
 - **array module**:
-  - [**`core::array`**](https://doc.rust-lang.org/stable/std/array/index.html)
+  - [**`core::array`**](https://doc.rust-lang.org/stable/core/array/index.html)
+  - [**`std::array`**](https://doc.rust-lang.org/stable/std/array/index.html)
 - **vector module**:
-  - [**`alloc::vec`**](https://doc.rust-lang.org/stable/std/vec/index.html)
+  - [**`alloc::vec`**](https://doc.rust-lang.org/stable/alloc/vec/index.html)
+  - [**`std::vec`**](https://doc.rust-lang.org/stable/std/vec/index.html)
+
+<br>
+
+Under the hood **`std::array`** uses **`core::array`**, **`alloc::vec`** and **`alloc::slice`**.<br>
 
 <br>
 
