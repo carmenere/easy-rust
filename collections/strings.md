@@ -171,24 +171,20 @@ The [**unicode-segmentation**](https://crates.io/crates/unicode-segmentation) cr
 
 <br>
 
-**All** the `is_ascii_*` methods are also available on the `u8` type
+**All** the `is_ascii_*` methods are also available on the `u8` type.<br>
 
-- `ch.encode_utf16()`
-- `ch.encode_utf8()`
+<br>
 
-
-- `ch.len_utf16()`
-- `ch.len_utf8()`
-
-
+- `ch.len_utf8()` returns **number of bytes** of char `ch` as if it would encoded in `UTF-8`;
 - `escape_unicode()` returns an **iterator** that yields the **hexadecimal Unicode escape** `\u{NNNNNN}` a character `ch` as `char`s.<br>
 
 <br>
 
 ## Case conversion for characters
-- `ch.to_ascii_lowercase()` return **iterator** that produce the character of the
-lower- and uppercase equivalents of ch
+- `ch.to_ascii_lowercase()`
 - `ch.to_ascii_uppercase()`
+- `to_lowercase()` returns **iterator** that produce the character of the **lowercase** equivalents of `ch`;
+- `to_uppercase()` returns **iterator** that produce the character of the **uppercase** equivalents of `ch`;
 
 <br>
 
