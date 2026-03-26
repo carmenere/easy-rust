@@ -14,6 +14,7 @@
 - [Related macros](#related-macros)
     - [Example](#example)
 - [`std::format_args`](#stdformat_args)
+  - [More about printing](#more-about-printing)
 
 <br>
 
@@ -211,3 +212,198 @@ A value of `fmt::Arguments` can be passed to the following functions:
 **Notes**:
 1. Use `write!` instead  `fmt::write()`.
 2. Use `format!` instead `fmt::format()`.
+
+<br>
+
+## More about printing
+Sometimes you end up using too many escape characters and just want Rust to print a string as you see it. To do this, you can add `r#` to the beginning and `#` to the end. The
+`r` here stands for **raw**:
+```rust
+println!(r#"He said, "A =  "B";"#);
+```
+
+But what if `#` marks the end of the string and you need to print text with a `#"` inside? In that case, you can start with `r##` and end with `##`.<br>
+You can **keep adding** `#` to the beginning and end if you have longer instances of the `#` symbol in your text.<br>
+
+So when you add a `b` to print as follows,
+```rust
+fn main() {
+    println!("{:?}", b"This will look like numbers");
+}
+```
+you will get an output that shows all the bytes:
+```bash
+[84, 104, 105, 115, 32, 119, 105, 108, 108, 32, 108, 111, 111, 107, 32, 108,
+105, 107, 101, 32, 110, 117, 109, 98, 101, 114, 115]
+```
+
+You can also put `b` and `r` **together** if you need to:
+```rust
+fn main() {
+    println!("{:?}", br##"I like to write "#"."##);
+}
+```
+
+There is also a *Unicode* **escape** that lets you print any *Unicode* **codepoint** inside a string: `\u{}`:<br>
+**Code**:
+```rust
+fn main() {
+println!("{:X}", '행' as u32);
+println!("{:X}", 'H' as u32);
+println!("{:X}", '居' as u32);
+println!("{:X}", 'い' as u32);
+println!("\u{D589}, \u{48}, \u{5C45}, \u{3044}");
+}
+```
+**Output**:
+```bash
+D589
+48
+5C45
+3044
+행, H, 居, い
+```
+
+<br>
+
+
+If you have a **reference**, you can use `{:p}` to print the **pointer address**:<br>
+**Code**:
+```rust
+fn main() {
+    let number = 9;
+    let number_ref = &number;
+    println!("{:p}", number_ref);
+}
+```
+**Output**:
+```bash
+0x16f3aa214
+```
+
+<br>
+
+You can print **binary**, **hexadecimal**, and **octal**:<br>
+**Code**:
+```rust
+fn main() {
+    let number = 555;
+    println!("Binary: {:b}, hexadecimal: {:x}, octal: {:o}", number, number, number);
+}
+```
+**Output**:
+```bash
+Binary: 1000101011, hexadecimal: 22b, octal: 1053
+```
+
+<br>
+
+You can also add **indexes** inside `{N}` to change the order of what gets printed. The **first** variable following the string will be in index **0**, the **second** in index **1**, and so on:
+```rust
+println!("This is {1} {2}, son of {0} {2}.", father_name, son_name, family_name);
+```
+
+You can also use a **name** instead of an index value to do the same thing:
+```rust
+fn main() {
+    println!("{city1} is in {country} and {city2} is also in {country}, but {city3} is not in {country}.",
+        city1 = "Seoul",
+        city2 = "Busan",
+        city3 = "Tokyo",
+        country = "Korea"
+);
+}
+```
+
+<br>
+
+**Complex printing** is also possible in Rust if you want to use it. The format is:
+- `{variable:padding alignment width.precise}`
+
+- Do you want a variable name? Write variable name **first**, like when we wrote `{country}`. Then add a `:` after it if you want to do more things.
+- Do you want a **padding** character?
+- What **alignment** (**left**/**middle**/**right**) do you want for the **padding**?
+- A **width** define **max** length for the **padding**;
+- A **precise** define **max** numbers to print **after** the **dot** for *floats*;
+- Then, at the end, you can add a **question mark** `?` if you want to `Debug` print.
+
+<br>
+
+**Code**:
+```rust
+fn main() {
+    let letter = "a";
+    println!("{:-^1}", letter);
+}
+```
+**Output**:
+```bash
+a
+```
+
+<br>
+
+**Code**:
+```rust
+fn main() {
+    let letter = "a";
+    println!("{:-^2}", letter);
+}
+```
+**Output**:
+```bash
+a-
+```
+
+<br>
+
+**Code**:
+```rust
+fn main() {
+    let letter = "a";
+    println!("{:-^6}", letter);
+}
+```
+**Output**:
+```bash
+--a---
+```
+
+<br>
+
+**Code**:
+```rust
+fn main() {
+    let letter = "a";
+    println!("{:-^8.3}", 77.123456789);
+    println!("{:-^6.3}", 77.123456789);
+}
+```
+**Output**:
+```bash
+-77.123-
+77.123
+```
+
+<br>
+
+**Code**:
+```rust
+fn main() {
+    let title = "TODAY'S NEWS";
+    println!("{:-^30}", title);
+    let bar = "|";
+    println!("{: <15}{: >15}", bar, bar);
+    let a = "SEOUL";
+    let b = "TOKYO";
+    println!("{city1:-<15}{city2:->15}", city1 = a, city2 = b);
+}
+```
+**Output**:
+```bash
+---------TODAY'S NEWS---------
+|                            |
+SEOUL--------------------TOKYO
+```
+
+<br>
