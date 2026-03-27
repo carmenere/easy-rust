@@ -13,8 +13,12 @@
   - [Formatting traits](#formatting-traits)
 - [Related macros](#related-macros)
     - [Example](#example)
-- [`std::format_args`](#stdformat_args)
-  - [More about printing](#more-about-printing)
+- [Raw string literals](#raw-string-literals)
+- [Formatting values](#formatting-values)
+  - [Formatting text values](#formatting-text-values)
+  - [Formatting numbers](#formatting-numbers)
+  - [Dynamic widths and precisions](#dynamic-widths-and-precisions)
+- [Using `std::fmt::Arguments` type and `format_args!` macro](#using-stdfmtarguments-type-and-format_args-macro)
 
 <br>
 
@@ -41,7 +45,7 @@ parameter := argument '$'
 <br>
 
 ## Formatting parameters
-`int|identifier:[[fill]align][sign]['#']['0'][width]['.' precision]type`.
+`int|identifier:[[fill]align][sign]['#']['0'][width]['.' precision]type`.<br>
 
 <br>
 
@@ -63,7 +67,7 @@ parameter := argument '$'
 
 ### `align`
 `align` parameter sets **alignment** for value inside field of width `width`.<br>
-By default `align` is **left**-aligned for **non-numerics** and **right**-alignment for **numeric**.<br>
+**By default** `align` is **left**-aligned for **non-numerics** and **right**-alignment for **numeric**.<br>
 
 Variants:
 - `>` right;
@@ -73,7 +77,8 @@ Variants:
 <br>
 
 ### `sign`
-`sign` parameter is used **only** for **numeric** types and can take following values: `+` or `-` and indicates that the correct **sign** `+` or `-` should **always** be printed. By default only the **negative sign** (`-`) of signed values is printed.<br>
+`sign` parameter is used **only** for **numeric** types and can take following values: `+` or `-` and indicates that the correct **sign** `+` or `-` should **always** be printed.<br>
+**By default** only the **negative sign** (`-`) of signed values is printed.<br>
 
 |Example|Output|Explanation|
 |:------|:-----|:----------|
@@ -135,9 +140,10 @@ The **value** for the `width` can also be provided as a `usize` in the **list of
 ## Formatting traits
 Mapping between allowed values of `type` and **formatting traits**:
 - **no value** is specified ⇒ `Display` trait
-- `?` ⇒ `Debug` trait
-- `x?` ⇒ `Debug` trait with **lower-case** hexadecimal integers
-- `X?` ⇒ `Debug` trait with **upper-case** hexadecimal integers
+- `?` ⇒ `Debug` trait, it can be combined with others;
+- `#?` ⇒ the `#` character requests **pretty-print** for `Debug` trait;
+- *Debugging formatting* prints numbers **in decimal**, but you can put an `x` or `X` **before** `?` to **request** hexadecimal: `x?` or `X?`:
+  - p`rintln!("hex: {:x?}", [9, 15, 240]);` prints ``
 - `o` ⇒ `Octal` trait
 - `x` ⇒ `LowerHex` trait
 - `X` ⇒ `UpperHex` trait
@@ -199,23 +205,7 @@ name 1 2 name
 
 <br>
 
-# `std::format_args`
-The `std::format_args` is a compiler built-in macro. It **avoids heap allocations**.<br>
-The `std::format_args` produces a value of type `fmt::Arguments`.<br>
-
-A value of `fmt::Arguments` can be passed to the following functions:
-- [fmt::format()](https://doc.rust-lang.org/std/fmt/fn.format.html): takes `fmt::Arguments` and **returns** the **resulting formated string** as `String`;
-- [fmt::write()](https://doc.rust-lang.org/std/fmt/fn.write.html): takes **destination** (some type that implements `&mut std::fmt::Write` or `&mut std::io::Write`) and `fmt::Arguments` and **writes** the **resulting formated string** to **destination**;
-
-<br>
-
-**Notes**:
-1. Use `write!` instead  `fmt::write()`.
-2. Use `format!` instead `fmt::format()`.
-
-<br>
-
-## More about printing
+# Raw string literals
 Sometimes you end up using too many escape characters and just want Rust to print a string as you see it. To do this, you can add `r#` to the beginning and `#` to the end. The
 `r` here stands for **raw**:
 ```rust
@@ -237,6 +227,8 @@ you will get an output that shows all the bytes:
 105, 107, 101, 32, 110, 117, 109, 98, 101, 114, 115]
 ```
 
+<br>
+
 You can also put `b` and `r` **together** if you need to:
 ```rust
 fn main() {
@@ -244,28 +236,101 @@ fn main() {
 }
 ```
 
-There is also a *Unicode* **escape** that lets you print any *Unicode* **codepoint** inside a string: `\u{}`:<br>
-**Code**:
+<br>
+
+# Formatting values
+The **formatting parameters** have the form `{which:how}`:
+- both `which` and `how` are **optional** and `{}` is valid;
+- `which` value **selects argument**, **by index** if it is `number` or **by name** if it is `identifier`;
+- `how` value says how the argument should be formatted;
+  - if `how` is present, the **colon** `:` before it is **required**;
+
+<br>
+
+## Formatting text values
+When **formatting argument** has a **textual type** like `&str` or `String` the `how` value has the following parts, **all optional**: `[[padding]align][width]['.'max_length]`
+- `padding`: a **padding character** to use, **by default** it is `space`;
+- `align`, variants:
+  - `>` right;
+  - `<` left, **by default** for **textual type**;
+  - `^` middle;
+- `width`: **after** *any truncation*, if the argument is **shorter** than `width`, Rust **aligns** and **pads** it;
+- `.max_length`: rust **truncates** argument if it is **longer** than `max_length`;
+
+<br>
+
+**Note**, Rust’s formatter has a naive understanding of width: it assumes **one character occupies one column**.<br>
+
+<br>
+
+**Example 1**:
 ```rust
 fn main() {
-println!("{:X}", '행' as u32);
-println!("{:X}", 'H' as u32);
-println!("{:X}", '居' as u32);
-println!("{:X}", 'い' as u32);
-println!("\u{D589}, \u{48}, \u{5C45}, \u{3044}");
+    let s = "foobar";
+    println!("{{}}: '{}'", s);
+    println!("{{:3}}: '{:3}'", s);
+    println!("{{:10}}: '{:10}'", s);
+    println!("{{:2.4}}: '{:2.4}'", s);
+    println!("{{:4.2}}: '{:4.2}'", s);
+    println!("{{:3.10}}: '{:3.10}'", s);
+    println!("{{:10.10}}: '{:10.10}'", s);
+    println!("{{:*^4.2}}: '{:*^4.2}'", s);
 }
 ```
+
 **Output**:
-```bash
-D589
-48
-5C45
-3044
-행, H, 居, い
+```rust
+{}: 'foobar'
+{:3}: 'foobar'
+{:10}: 'foobar    '
+{:2.4}: 'foob'
+{:4.2}: 'fo  '
+{:3.10}: 'foobar'
+{:10.10}: 'foobar    '
+{:*^4.2}: '*fo*'
 ```
 
 <br>
 
+**Example 2**:
+```rust
+fn main() {
+    let title = "TODAY'S NEWS";
+    println!("{:-^30}", title);
+    let bar = "|";
+    println!("{: <15}{: >15}", bar, bar);
+    let a = "SEOUL";
+    let b = "TOKYO";
+    println!("{city1:-<15}{city2:->15}", city1 = a, city2 = b);
+}
+```
+**Output**:
+```bash
+---------TODAY'S NEWS---------
+|                            |
+SEOUL--------------------TOKYO
+```
+
+<br>
+
+## Formatting numbers
+When the **formatting argument** has a **numeric type** like `usize` or `f64`, the `how` value has the following parts, **all optional**: `[[padding]align][sign]['#']['0'][width]['.' precision]type`:
+- `padding`: a **padding character** to use, **by default** it is `space`;
+- `align`, variants:
+  - `>` right, **by default** for **numeric type**;
+  - `<` left
+  - `^` middle;
+- `+` **requests** that the number’s **sign always be shown**;
+  - **by default** only the **negative sign** (`-`) of signed values is printed;
+- `#` **requests** an **explicit radix prefix** like `0x` or `0b`;
+- `0` it `0` parameter **ignores** both `fill` and `align` and sets the **padding character** to `0` for **numeric type** and makes padding **sign-aware**;
+- `width`: **after** *any truncation*, if the argument is **shorter** than `width`, Rust **aligns** and **pads** it;
+- `.precision`: for **floating-point** arguments, indicating **how many digits after the decimal point**;
+- rust **truncates** argument if it is **longer** than `max_length`;
+- `type` defines appropriate **formatting trait** to use;
+  - for **integer types**, if you included the `#` character, *formatting trait* **also includes** an explicit **radix prefix**, `0b`, `0o`, `0x`, or `0X`;
+
+<br>
 
 If you have a **reference**, you can use `{:p}` to print the **pointer address**:<br>
 **Code**:
@@ -298,112 +363,137 @@ Binary: 1000101011, hexadecimal: 22b, octal: 1053
 
 <br>
 
-You can also add **indexes** inside `{N}` to change the order of what gets printed. The **first** variable following the string will be in index **0**, the **second** in index **1**, and so on:
-```rust
-println!("This is {1} {2}, son of {0} {2}.", father_name, son_name, family_name);
-```
-
-You can also use a **name** instead of an index value to do the same thing:
+**Examples**:
 ```rust
 fn main() {
-    println!("{city1} is in {country} and {city2} is also in {country}, but {city3} is not in {country}.",
-        city1 = "Seoul",
-        city2 = "Busan",
-        city3 = "Tokyo",
-        country = "Korea"
-);
+    let s = 555.999;
+    println!("{{}}: '{}'", s);
+    println!("{{:3}}: '{:3}'", s);
+    println!("{{:10}}: '{:10}'", s);
+    println!("{{:2.4}}: '{:2.4}'", s);
+    println!("{{:4.2}}: '{:4.2}'", s);
+    println!("{{:3.10}}: '{:3.10}'", s);
+    println!("{{:10.10}}: '{:10.10}'", s);
+    println!("{{:*^8.2}}: '{:*^8.2}'", s);
+
+    println!("{{:*^+#010.2}}: '{:*^+#010.2}'", 555.999); // ignores *^
+
+    println!("{{:-#010.2}}: '{:-#010.2}'", 777777);
+    println!("{{:+#010.2}}: '{:+#010.2}'", 777777);
+
+    println!("{{:+#12.2X}}: '{:+#12.2X}'", 777777);
+    println!("{{:+#012.2X}}: '{:+#012.2X}'", 777777);
+
+    println!("{{:+10.2X}}: '{:+10.2X}'", 777777);
+    println!("{{:+012.2X}}: '{:+012.2X}'", 777777);
+
+    println!("{{:+10.2x}}: '{:+10.2x}'", 777777);
+    println!("{{:+012.2x}}: '{:+012.2x}'", 777777);
+
+    println!("{{:+#10.2b}}: '{:+#10.2b}'", 77);
+    println!("{{:+#024.2b}}: '{:+#024.2b}'", 77);
+
+    println!("hex: {:?}", [9, 15, 240]);
+    println!("hex: {:x?}", [9, 15, 240]);
+    println!("hex: {:02x?}", [9, 15, 240]);
+    println!("hex: {:#x?}", [9, 15, 240]);
+    println!("hex: {:#02x?}", [9, 15, 240]);
+    println!("hex: {:#04x?}", [9, 15, 240]);
 }
 ```
 
-<br>
-
-**Complex printing** is also possible in Rust if you want to use it. The format is:
-- `{variable:padding alignment width.precise}`
-
-- Do you want a variable name? Write variable name **first**, like when we wrote `{country}`. Then add a `:` after it if you want to do more things.
-- Do you want a **padding** character?
-- What **alignment** (**left**/**middle**/**right**) do you want for the **padding**?
-- A **width** define **max** length for the **padding**;
-- A **precise** define **max** numbers to print **after** the **dot** for *floats*;
-- Then, at the end, you can add a **question mark** `?` if you want to `Debug` print.
-
-<br>
-
-**Code**:
-```rust
-fn main() {
-    let letter = "a";
-    println!("{:-^1}", letter);
-}
-```
 **Output**:
-```bash
-a
+```rust
+{}: '555.999'
+{:3}: '555.999'
+{:10}: '   555.999'
+{:2.4}: '555.9990'
+{:4.2}: '556.00'
+{:3.10}: '555.9990000000'
+{:10.10}: '555.9990000000'
+{:*^8.2}: '*556.00*'
+{:*^+#010.2}: '+000556.00'
+{:-#010.2}: '0000777777'
+{:+#010.2}: '+000777777'
+{:+#12.2X}: '    +0xBDE31'
+{:+#012.2X}: '+0x0000BDE31'
+{:+10.2X}: '    +BDE31'
+{:+012.2X}: '+000000BDE31'
+{:+10.2x}: '    +bde31'
+{:+012.2x}: '+000000bde31'
+{:+#10.2b}: '+0b1001101'
+{:+#024.2b}: '+0b000000000000001001101'
+hex: [9, 15, 240]
+hex: [9, f, f0]
+hex: [09, 0f, f0]
+hex: [
+    0x9,
+    0xf,
+    0xf0,
+]
+hex: [
+    0x9,
+    0xf,
+    0xf0,
+]
+hex: [
+    0x09,
+    0x0f,
+    0xf0,
+]
 ```
 
 <br>
 
-**Code**:
+## Dynamic widths and precisions
+The `width`, `.max_length` and `precision` can be specified **at run time**: `<number>$` or `<name>$`. Also, in place of the text `max_length` or floating-point `precision`, you can write `*`:
 ```rust
 fn main() {
-    let letter = "a";
-    println!("{:-^2}", letter);
+    println!("{{:>width$.limit$}}: '{:>width$.limit$}'", "foobar", width=10, limit=4);
+    println!("{{:>2$.1$}}: '{:>2$.1$}'", "foobar", 4, 10);
+    println!("{{:>0$.2$}}: '{2:>1$.*}'", 4, 10, "foobar");
 }
-```
-**Output**:
-```bash
-a-
 ```
 
 <br>
 
-**Code**:
+# Using `std::fmt::Arguments` type and `format_args!` macro
+The `std::format_args!` is a compiler built-in macro. It **avoids heap allocations**.<br>
+The `std::format_args!` produces a value of type `fmt::Arguments`.<br>
+
+If some function receives `std::fmt::Arguments` you can pass `format_args!()` to it. How it works:
+- **at compile time**, the `format_args!()` macro **parses** the *template string* and **checks** it against the **arguments’ types**, reporting an error if there are any problems;
+- **at run time**, it evaluates the arguments and builds an `Arguments` value carrying all the information necessary to format the text: a **pre-parsed** *form of the template* and **references** *to the argument values*;
+
+<br>
+
+**Note**, constructing `Arguments` value is **cheap**: it’s just gathering up some pointers.<br>
+
+<br>
+
+A value of `fmt::Arguments` can be passed to the following functions:
+- [fmt::format()](https://doc.rust-lang.org/std/fmt/fn.format.html): takes `fmt::Arguments` and **returns** the **resulting formated string** as `String`;
+- [fmt::write()](https://doc.rust-lang.org/std/fmt/fn.write.html): takes **destination** (some type that implements `&mut std::fmt::Write` or `&mut std::io::Write`) and `fmt::Arguments` and **writes** the **resulting formated string** to **destination**;
+
+<br>
+
+**Notes**:
+1. Use `write!` instead  `fmt::write()`.
+2. Use `format!` instead `fmt::format()`.
+
+<br>
+
+The `File` type implements the `std::io::Write` trait, whose `write_fmt` method takes an `std::fmt::Arguments` and does the formatting:
 ```rust
-fn main() {
-    let letter = "a";
-    println!("{:-^6}", letter);
+use std::io::prelude::*;
+use std::fs::File;
+
+fn main() -> std::io::Result<()> {
+    let mut buffer = File::create("foo.txt")?;
+
+    // this call: write!(buffer, "{} {}", 10, 20)?; turns into this:
+    buffer.write_fmt(format_args!("{} {}", 10, 20))?;
+
+    Ok(())
 }
 ```
-**Output**:
-```bash
---a---
-```
-
-<br>
-
-**Code**:
-```rust
-fn main() {
-    let letter = "a";
-    println!("{:-^8.3}", 77.123456789);
-    println!("{:-^6.3}", 77.123456789);
-}
-```
-**Output**:
-```bash
--77.123-
-77.123
-```
-
-<br>
-
-**Code**:
-```rust
-fn main() {
-    let title = "TODAY'S NEWS";
-    println!("{:-^30}", title);
-    let bar = "|";
-    println!("{: <15}{: >15}", bar, bar);
-    let a = "SEOUL";
-    let b = "TOKYO";
-    println!("{city1:-<15}{city2:->15}", city1 = a, city2 = b);
-}
-```
-**Output**:
-```bash
----------TODAY'S NEWS---------
-|                            |
-SEOUL--------------------TOKYO
-```
-
-<br>
