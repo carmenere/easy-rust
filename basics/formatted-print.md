@@ -323,7 +323,7 @@ When the **formatting argument** has a **numeric type** like `usize` or `f64`, t
 - `+` **requests** that the number’s **sign always be shown**;
   - **by default** only the **negative sign** (`-`) of signed values is printed;
 - `#` **requests** an **explicit radix prefix** like `0x` or `0b`;
-- `0` it `0` parameter **ignores** both `fill` and `align` and sets the **padding character** to `0` for **numeric type** and makes padding **sign-aware**;
+- `0` **ignores** both `fill` and `align` and sets the **padding character** to `0` for **numeric type** and makes padding **sign-aware**;
 - `width`: **after** *any truncation*, if the argument is **shorter** than `width`, Rust **aligns** and **pads** it;
 - `.precision`: for **floating-point** arguments, indicating **how many digits after the decimal point**;
 - rust **truncates** argument if it is **longer** than `max_length`;
