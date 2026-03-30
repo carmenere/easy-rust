@@ -5,8 +5,7 @@
   - [UTF-8](#utf-8)
   - [Bytes. Chars. Vec](#bytes-chars-vec)
   - [String literals](#string-literals)
-- [`String`](#string)
-  - [Basic methods](#basic-methods)
+  - [`String`](#string)
 - [`String` methods](#string-methods)
   - [Creating `String`](#creating-string)
   - [Get basic information from string slices](#get-basic-information-from-string-slices)
@@ -145,7 +144,7 @@ Types of string literal:
 
 <br>
 
-# `String`
+## `String`
 The `String` is a sequence that is allowed to **grow** or **shrink** *in size* **at runtime** and is provided by Rust's standard library.
 
 **Examples**:
@@ -160,17 +159,6 @@ let s1: String = String::from("ABC");
 ```Rust
 let s2: String = "ABC".to_string();
 ```
-
-<br>
-
-## Basic methods
-|Method|Description|
-|:-----|:----------|
-|`.len()`|Returns **length** of string.|
-|`.push('c')`|**Append** *one character* to string.|
-|`.push_str("abc")`|**Append** *substring* to string.|
-|`.replace(from, to)`|**Replace** *substring* `from` to substring `to`.|
-|`.split(sep)`|Splits string by separator|
 
 <br>
 
