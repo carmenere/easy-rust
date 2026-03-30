@@ -11,6 +11,9 @@
 - [`~const`](#const)
 - [Const generics](#const-generics)
 - [Sections in ELF and static variables](#sections-in-elf-and-static-variables)
+- [Init statics at runtime](#init-statics-at-runtime)
+  - [`lazy_static`](#lazy_static)
+  - [`OnceLock` and `OnceCell`](#oncelock-and-oncecell)
 <!-- TOC -->
 
 <br>
@@ -330,3 +333,79 @@ fn main() {
     }
 }
 ```
+
+<br>
+
+# Init statics at runtime
+Since Rust **1.63** the following code became possible:
+```rust
+use std::sync::Mutex;
+
+static GLOBAL_VEC: Mutex<Vec<u8>> = Mutex::new(Vec::new());
+```
+
+However, there are still a lot of other static variables you might want to have but **can’t** initialize with a `const fn`:
+```rust
+static v: Vec<u8> = vec![1,2,3]; // ❌ error[E0010]: allocations are not allowed in statics
+```
+
+But Rust provides means for that: `lazy_static` and `once_cell` both allow you to *initialize statics* **at runtime**.<br>
+
+<br>
+
+## `lazy_static`
+The `lazy_static` crate provides `lazy_static!` which uses folloing syntax `static ref <NAME>: <TYPE> = <EXPR>;` to declare `static`.<br>
+
+Consider, you want to declare **non-empty** vector `v` as `static` and then modify it, the syntax will:
+```rust
+use lazy_static::lazy_static;
+use std::sync::Mutex;
+
+lazy_static! {
+    static ref v: Mutex<Vec<u8>> = Mutex::new(vec![1,2,3]);
+}
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    Ok(v.lock()?.push(33))
+}
+```
+
+<br>
+
+## `OnceLock` and `OnceCell`
+*Static variables* **must be thread-safe** (implement the `Sync` trait) to prevent data races, as the compiler assumes they might be accessed from multiple threads. So, it is **not possible** to use `std::cell::OnceCell` for a *static variable* in a multi-threaded context because `OnceCell` is **not thread-safe**. Instead, you should use the t**hread-safe counterpart**, `std::sync::OnceLock`.<br>
+
+**Example**:
+```rust
+use std::error::Error;
+use std::{cell::OnceCell, sync::Mutex};
+use std::sync::OnceLock;
+
+static V1: OnceLock<Vec<u8>> = OnceLock::new();
+static V2: Mutex<OnceCell<Vec<u8>>> = Mutex::new(OnceCell::new());
+
+fn main() -> Result<(), Box<dyn Error>> {
+    V1.set(vec![1,2,3]).unwrap();
+    println!("{:?}", V1);
+
+    let r = V2.lock().unwrap().set(vec![1,2,3]).unwrap();
+    println!("{:?}", V2);
+    Ok(())
+}
+```
+
+**Output**:
+```bash
+OnceLock([1, 2, 3])
+Mutex { data: OnceCell([1, 2, 3]), poisoned: false, .. }
+```
+
+<br>
+
+What makes a `OnceCell` **more flexible** than `lazy_static`:
+- a `OnceCell` can hold a whole type, or it can be a parameter inside another type;
+- a `OnceCell` can be used for values that unknown until runtime;
+  - for example, we can start `main()`, get the **user input** and then pass it to `OnceCell` using `.set()`;
+- for a `OnceCell`, you can choose a **sync** or **unsync** version:
+  - `std::cell::OnceCell` is a **cell** which can be written to **only once**, but it is **thread-unsafe**;
+  - `std::sync::OnceLock` a **thread-safe** version of `OnceCell`;

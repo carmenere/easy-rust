@@ -1,30 +1,103 @@
 <!-- TOC -->
-* [Crate serde](#crate-serde)
-  * [Serde data model](#serde-data-model)
-    * [Module serde::de](#module-serdede)
-    * [Module serde::ser](#module-serdeser)
-    * [serde_json::Serializer](#serde_jsonserializer)
-    * [serde_json::Deserializer](#serde_jsondeserializer)
-  * [Relationship between data formats, data types and intermediate types](#relationship-between-data-formats-data-types-and-intermediate-types)
-  * [Example: impl custom `serde::de::Deserialize` and `serde::de::Visitor` for `i32`](#example-impl-custom-serdededeserialize-and-serdedevisitor-for-i32)
-  * [Crate `serde_json`](#crate-serde_json)
-    * [Example](#example)
-    * [`serde_json::Value`](#serde_jsonvalue)
-    * [Macros `serde_json::json`](#macros-serde_jsonjson)
-* [Custom serializers/deserializers](#custom-serializersdeserializers)
-  * [Attributes `serialize_with`/`deserialize_with`/`with`](#attributes-serialize_withdeserialize_withwith)
-    * [Example 1: Custom serializer using `serialize_with`](#example-1-custom-serializer-using-serialize_with)
-    * [Example 2: Custom serializer implementing `Serialize`](#example-2-custom-serializer-implementing-serialize)
-    * [Example 3: Custom deserializer](#example-3-custom-deserializer)
-  * [Crate `serde_with`](#crate-serde_with)
-* [`serde` source code snippets](#serde-source-code-snippets)
-  * [Methods for deserialize numbers of `serde::de::Deserializer` trait](#methods-for-deserialize-numbers-of-serdededeserializer-trait)
-  * [Methods for deserialize numbers of `serde::de::Deserialize` trait](#methods-for-deserialize-numbers-of-serdededeserialize-trait)
+- [Crate serde](#crate-serde)
+  - [Intro example](#intro-example)
+  - [Serde data model](#serde-data-model)
+    - [Module serde::de](#module-serdede)
+    - [Module serde::ser](#module-serdeser)
+    - [serde\_json::Serializer](#serde_jsonserializer)
+    - [serde\_json::Deserializer](#serde_jsondeserializer)
+  - [Relationship between data formats, data types and intermediate types](#relationship-between-data-formats-data-types-and-intermediate-types)
+  - [Example: impl custom `serde::de::Deserialize` and `serde::de::Visitor` for `i32`](#example-impl-custom-serdededeserialize-and-serdedevisitor-for-i32)
+  - [Crate `serde_json`](#crate-serde_json)
+    - [Example](#example)
+    - [`serde_json::Value`](#serde_jsonvalue)
+    - [Macros `serde_json::json`](#macros-serde_jsonjson)
+- [Custom serializers/deserializers](#custom-serializersdeserializers)
+  - [Attributes `serialize_with`/`deserialize_with`/`with`](#attributes-serialize_withdeserialize_withwith)
+    - [Example 1: Custom serializer using `serialize_with`](#example-1-custom-serializer-using-serialize_with)
+    - [Example 2: Custom serializer implementing `Serialize`](#example-2-custom-serializer-implementing-serialize)
+    - [Example 3: Custom deserializer](#example-3-custom-deserializer)
+  - [Crate `serde_with`](#crate-serde_with)
+- [`serde` source code snippets](#serde-source-code-snippets)
+  - [Methods for deserialize numbers of `serde::de::Deserializer` trait](#methods-for-deserialize-numbers-of-serdededeserializer-trait)
+  - [Methods for deserialize numbers of `serde::de::Deserialize` trait](#methods-for-deserialize-numbers-of-serdededeserialize-trait)
 <!-- TOC -->
 
 <br>
 
 # Crate serde
+## Intro example
+**Example**:
+```rust
+use serde::{Deserialize, Serialize};
+use serde_json;
+
+#[derive(Debug)]
+struct Person {
+    id: u64,
+    name: String,
+    age: u16,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct PersonPost {
+    name: String,
+    age: u16,
+}
+
+impl From<PersonPost> for Person {
+    fn from(p: PersonPost) -> Self {
+        Self {
+            id: 0,
+            name: p.name,
+            age: p.age
+            
+        }
+    }
+}
+
+fn main() {
+    //// Case 1 - corect json
+    let p = r#"
+    {
+        "name": "Foo",
+        "age": 32 
+    }
+    "#;
+    let r = serde_json::from_str::<PersonPost>(p);
+    let Ok(p) = r else {
+        eprintln!("Cannot parse json: {:?}", r);
+        std::process::exit(1)
+    };
+    let p: Person = p.into();
+    println!("Json: {:?}", p);
+    
+    //// Case 2 - incorect json
+    let p = r#"
+    {
+        "a": "Foo",
+        "age": 32 
+    }
+    "#;
+
+    let r = serde_json::from_str::<PersonPost>(p);
+    let Ok(p) = r else {
+        eprintln!("Cannot parse json: {:?}", r);
+        std::process::exit(1)
+    };
+    let p: Person = p.into();
+    println!("Json: {:?}", p);
+}
+```
+
+**Output**:
+```rust
+Json: Person { id: 0, name: "Foo", age: 32 }
+Cannot parse json: Err(Error("missing field `name`", line: 5, column: 5))
+```
+
+<br>
+
 ## Serde data model
 Serde consists of 3 layers:
 1. **Data formats** like **JSON**, **YAML**, **TOML**, **CSV** and so on.
