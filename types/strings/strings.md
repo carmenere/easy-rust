@@ -2,19 +2,11 @@
 <!-- TOC -->
 - [Table of contents](#table-of-contents)
 - [Strings](#strings)
-  - [String literals](#string-literals)
-  - [`String`](#string)
-    - [Examples](#examples)
-  - [Methods](#methods)
+  - [UTF-8](#utf-8)
   - [Bytes. Chars. Vec](#bytes-chars-vec)
-- [Grapheme clusters](#grapheme-clusters)
-- [Type `char`](#type-char)
-  - [Char methods](#char-methods)
-    - [Handling digits](#handling-digits)
-    - [Classifying characters](#classifying-characters)
-  - [Get Unicode escapes](#get-unicode-escapes)
-    - [Case conversion for characters](#case-conversion-for-characters)
-    - [Conversions to and from integers](#conversions-to-and-from-integers)
+  - [String literals](#string-literals)
+- [`String`](#string)
+  - [Basic methods](#basic-methods)
 - [`String` methods](#string-methods)
   - [Creating `String`](#creating-string)
   - [Get basic information from string slices](#get-basic-information-from-string-slices)
@@ -27,7 +19,7 @@
   - [Parsing](#parsing)
     - [Converting from strings to other types](#converting-from-strings-to-other-types)
     - [Converting other types to strings](#converting-other-types-to-strings)
-  - [UTF-8](#utf-8)
+  - [UTF-8](#utf-8-1)
     - [Accessing text as UTF-8](#accessing-text-as-utf-8)
     - [Producing text from UTF-8 data](#producing-text-from-utf-8-data)
 <!-- TOC -->
@@ -35,71 +27,51 @@
 <br>
 
 # Strings
-Rust has 2 types for strings: `str` and `String`. Both `str` and `String` contain **Unicode characters** encoded with **UTF-8**.<br>
+Rust has two main types of strings: `String` and `&str`.
+- `&str` is a simple string. It’s just a pointer to the data plus the length. It is also called a string slice. It might just be a **partial view** of the data owned by some
+other variable, so just a **slice** of it.
+    - `str` can be of **any length**;
+    - `str` is a **dynamically sized type**. *Dynamically sized* means that the size can be different;
+    - that's why we need an `&` because it makes a pointer, and **Rust knows the size of the pointer**;
+- `String` is a pointer with data on the heap. A `String` is easy to grow, shrink, mutate, and so on.
+
+The biggest difference is that a `String` **owns** its data, while a `&str` is a **slice**. Because you use a `&` to interact with a `str`, you **don’t** *own* it.<br>
+But a `String` is an **owned type**.<br>
+
+<br>
+
+## UTF-8
+Both `str` and `String` contain **Unicode characters** encoded with **UTF-8**.<br>
 In other words, string in Rust is a **UTF-8** encoded sequence of bytes.<br>
 **Unicode characters** encoded with **UTF-8** have **variable length** from **1** to **4** bytes.<br>
-**UTF-8** is backward-compatible with **ASCII**. The first 128 UTF-8 characters precisely match the first 128 ASCII characters, meaning that existing ASCII text is already valid UTF-8.<br>
+**UTF-8** is backward-compatible with **ASCII**. The first 128 UTF-8 characters precisely match the first 128 ASCII characters, meaning that existing ASCII text is already **valid UTF-8**.<br>
 
-<br>
+We can see this with two functions:
+- `size_of`, which shows the **size of a type** in bytes;
+- `size_of_val`, which shows the **size of a value** in bytes pointed to;
 
-## String literals
-[**More about string slices here**](../ownership-borrowing/slices.md).<br>
-**String literals** are **statically allocated**, i.e., they are hardcoded into binary and exists while programme is running and have type `&'static str`.<br>
+There are many ways to make a `String`:
+- `String::from("This is the string text")`
+- `"This is the string text".to_string()`
+- `format!("My name is {}.", name)`
 
-Example:
-```Rust
-let s: &str = "ABC";
+Another way to make a `String` is to call `.into()`, but it is a bit different because `.into()` isn’t for making a `String`; it’s for converting from one type into another type.<br>
+
+Some types can easily convert to and from another type using `From::` and `.into()`; if you have `From`, you also have `.into()`.
+`From` is clearer because you already know the types: for example `String::from("Some str")` you know that `String` is from a `&str`.
+But with `.into()`, sometimes the compiler doesn’t know.
+**Code**:
+```rust
+fn main() {
+let my_string = "Try to make this a String".into();
+}
+```
+**Output**:
+```rust
+error[E0282]: type annotations needed
 ```
 
-<br>
-
-Types of string literal:
-- `"..."`	**string literal**, some special symbols:
-    - `\n` becomes new line;
-    - `\r`
-    - `\t`
-    - `\0`
-    - `\\` becomes slash;
-    - `\u{7fff}` becomes symbol;
-- `r"..."` **raw string literal**, it **doesn't** interpret **common escapes**;
-- `r#"..."#` **raw string literal** that can also contain `"`;
-- `c"..."` **C string literal**, i.e. a **NUL-terminated** `&'static CStr` **for FFI**;
-- `cr"..."` **raw C string literal**;
-- `cr#"..."#` **raw C string literal** that can also contain `"`;
-- `b"..."` **byte string literal**; it **constructs ASCII-only** `&'static [u8; N]`.
-- `br"..."` **raw byte string literal**;
-- `br#"..."#` **raw byte string literal** that can also contain `"`;
-- `b'x'` **ASCII byte literal**, it is a **single u8 byte**;
-- `'A'` **character literal**, it is **fixed 4 byte unicode char**;
-
-<br>
-
-## `String`
-The `String` is a sequence that is allowed to **grow** or **shrink** *in size* **at runtime** and is provided by Rust's standard library.
-
-### Examples
-- Instantiating `String` variables by `String` **constructor** (`new()`):
-```Rust
-let s: String = String::new();
-```
-- Instantiating `String` variables from `&str` values:
-```Rust
-let s1: String = String::from("ABC");
-```
-```Rust
-let s2: String = "ABC".to_string();
-```
-
-<br>
-
-## Methods
-|Method|Description|
-|:-----|:----------|
-|`.len()`|Returns **length** of string.|
-|`.push('c')`|**Append** *one character* to string.|
-|`.push_str("abc")`|**Append** *substring* to string.|
-|`.replace(from, to)`|**Replace** *substring* `from` to substring `to`.|
-|`.split(sep)`|Splits string by separator|
+It's because **many types can be made from** a `&str`. It is possible to make `&str` into a lot of things, so which one do you want?
 
 <br>
 
@@ -141,185 +113,64 @@ fn main() {
 
 <br>
 
-# Grapheme clusters
-A **grapheme cluster** is a sequence of one or more Unicode **code points** that should be treated as a **single unit**.<br>
-Text editing software should generally allow placement of cursor only at grapheme cluster boundaries.<br>
+## String literals
+[**More about string slices here**](../ownership-borrowing/slices.md).<br>
+**String literals** are **statically allocated**, i.e., they are hardcoded into binary and exists while programme is running and have type `&'static str`.<br>
 
-<br>
-
-There is **no** method in **std** to iterate over **grapheme clusters**.<br>
-The [**unicode-segmentation**](https://crates.io/crates/unicode-segmentation) crate provides grapheme cluster. It provides special method `.graphemes(true)`.<br>
-
-<br>
-
-# Type `char`
-## Char methods
-### Handling digits
-- `ch.to_digit(radix) -> u32`:
-  - decides whether `ch` is a **single digit** in a **base** `radix`:
-    - if it is, it returns `Some(num)`, where `num` is a `u32`;
-    - otherwise, it returns `None`;
-  - **panics** if given a radix smaller than **2** or larger than **36**;
-- `std::char::from_digit(num, radix)`
-  - converts the `u32` digit value `num` to a `char` if possible:
-    - if `num` can be represented as a **single digit** in a **base** `radix`, `from_digit` returns `Some(ch)`;
-    - otherwise, it returns `None`;
-
-<br>
-
-### Classifying characters
-**Decimal digits** are the ten numerical symbols `0`, `1`, `2`, `3`, `4`, `5`, `6`, `7`, `8`, and `9` used in the **base-10** positional numeral system to represent all possible numbers.<br>
-
-<br>
-
-Unicode defines **3 general categories for numbers**:
-- `Nd` or `Number, Decimal Digit`: covers characters that represent **digits** used in **decimal positional systems** (**base-10**), including 
-  - standard **Latin** digits `0..=9`;
-  - **Arabic-Indic** digits;
-  - other **script-specific** decimal digits;
-- `Nl` or `Number, Letter`: covers **letter-like characters** that represent numbers, for positional systems with **base** more than **10**;
-- `No` or `Number; Other`: covers numbers that are not decimal digits or letters, e.g. fractions, and so on;
-
-<br>
-
-- `ch.is_numeric()` returns `true` if char `ch` belongs one of the Unicode general categories for numbers `Nd` or `Nl`, but **not** `No`;
-- `ch.is_digit(radix)`
-  - decides whether `ch` is a **single digit** in a **base** `radix`:
-    - if it is, it returns `true`;
-    - otherwise, it returns `false`;
-  - this function only recognizes the characters **0-9**, **a-z** and **A-Z**, the valid set of characters is depending on `radix`;
-  - **panics** if given a radix smaller than **2** or larger than **36**;
-  - this is **equivalent** to `ch.to_digit(radix) != None`;
-
-<br>
-
-- `ch.is_alphabetic()` returns `true` for **alphabetic** *character*;
-- `ch.is_alphanumeric()` returns `true` for **numeric** or **alphabetic**;
-- `ch.is_control()` returns `true` for **control** (**not printable**) *character*;
-- `ch.is_lowercase()` returns `true` for **lowercase alphabetic** *character*;
-- `ch.is_uppercase()` returns `true` for **uppercase alphabetic** *character*;
-- `ch.is_whitespace` returns `true` for **whitespace** *character*;
-
-<br>
-
-Also there is *set of methods* for **ASCII only** `char`, they return `false` for **any non-ASCII** `char`:
-- `ch.is_ascii()` returns `true` if `ch` is an **ASCII** *character*, i.e. its *code point* falls between **0** and **127** inclusive;
-- `ch.is_ascii_alphabetic()`
-  - an **uppercase** or **lowercase ASCII letter**, i.e. **any** character in the **ranges** `A..=Z` or `a..=z`;
-- `ch.is_ascii_alphanumeric()`
-  - an **uppercase** or **lowercase ASCII letter**, i.e. **any** character in the **ranges** `0..=9`, `A..=Z` or `a..=z`;
-- `ch.is_ascii_control()`
-- `ch.is_ascii_digit()`
-  - an **ASCII digit**, in the **range** `0..=9`;
-- `ch.is_ascii_graphic()`
-  - **any** ASCII character that **leaves ink** on the page;
-- `ch.is_ascii_hexdigit()`
-  - **any** character in the **ranges** `0..=9`, `A..=F`, or `a..=f`;
-- `ch.is_ascii_lowercase()`
-  - **any** ASCII **lowercase** letter;
-- `ch.is_ascii_octdigit()`
-- `ch.is_ascii_punctuation()`
-- `ch.is_ascii_uppercase()`
-  - **any** ASCII **uppercase** letter;
-- `ch.is_ascii_whitespace()`
-
-<br>
-
-**Note**, **all** the `is_ascii_*` methods are also available on the `u8` type.<br>
-
-<br>
-
-- `ch.len_utf8()` returns **number of bytes** of char `ch` as if it would encoded in `UTF-8`;
-
-<br>
-
-## Get Unicode escapes
-**Unicode escape** formats:
-- **Fixed-length** formats represent the Unicode *code points* **with** *fixed padding*;
-  - **4-digit hex** `\uXXXX`, it represents a **16-bit** *code points* and can **only** represent characters **up to** `\uFFFF`;
-  - **8-digit hex** `\UXXXXXXXX`;
-- **Braced hex** format `\u{X...X}` is **variable length**, i.e. represents the Unicode *code points* **without** *fixed padding*;
-
-<br>
-
-There is special method to get **Unicode escape**:
-- `ch.escape_unicode()` returns an **iterator** that yields the **hexadecimal** *Unicode escape* in **braced hex** format `\u{NNNN}` for character `ch` as `char`s;
-
-<br>
-
-But you can manually print **any** *Unicode codepoint* in **any** *Unicode escape format*:<br>
-**Code**:
-```rust
-fn main() {
-  println!("\\u{:04X}", '행' as u32);
-  println!("\\u{:04X}", 'H' as u32);
-  println!("\\u{:04X}", '居' as u32);
-  println!("\\u{:04X}", 'い' as u32);
-
-  println!("\\U{:08X}", '행' as u32);
-  println!("\\U{:08X}", 'H' as u32);
-  println!("\\U{:08X}", '居' as u32);
-  println!("\\U{:08X}", 'い' as u32);
-
-  println!("\\u{{{:x}}}", '행' as u32);
-  println!("\\u{{{:x}}}", 'H' as u32);
-  println!("\\u{{{:x}}}", '居' as u32);
-  println!("\\u{{{:x}}}", 'い' as u32);
-
-  println!("{}", '행'.escape_unicode());
-  println!("{}", 'H'.escape_unicode());
-  println!("{}", '居'.escape_unicode());
-  println!("{}", 'い'.escape_unicode());
-
-  println!("\u{D589}, \u{48}, \u{5C45}, \u{3044}");
-  println!("\u{d589}, \u{48}, \u{5c45}, \u{3044}");
-}
-```
-**Output**:
-```bash
-\uD589
-\u0048
-\u5C45
-\u3044
-\U0000D589
-\U00000048
-\U00005C45
-\U00003044
-\u{d589}
-\u{48}
-\u{5c45}
-\u{3044}
-\u{d589}
-\u{48}
-\u{5c45}
-\u{3044}
-행, H, 居, い
-행, H, 居, い
+Example:
+```Rust
+let s: &str = "ABC";
 ```
 
 <br>
 
-### Case conversion for characters
-- `ch.to_ascii_lowercase()`;
-- `ch.to_ascii_uppercase()`;
-- `to_lowercase()` returns **iterator** that produce the character of the **lowercase** equivalents of `ch`;
-- `to_uppercase()` returns **iterator** that produce the character of the **uppercase** equivalents of `ch`;
+Types of string literal:
+- `"..."`	**string literal**, some special symbols:
+    - `\n` becomes new line;
+    - `\r`
+    - `\t`
+    - `\0`
+    - `\\` becomes slash;
+    - `\u{7fff}` becomes symbol;
+- `r"..."` **raw string literal**, it **doesn't** interpret **common escapes**;
+- `r#"..."#` **raw string literal** that can also contain `"`;
+- `c"..."` **C string literal**, i.e. a **NUL-terminated** `&'static CStr` **for FFI**;
+- `cr"..."` **raw C string literal**;
+- `cr#"..."#` **raw C string literal** that can also contain `"`;
+- `b"..."` **byte string literal**; it **constructs ASCII-only** `&'static [u8; N]`.
+- `br"..."` **raw byte string literal**;
+- `br#"..."#` **raw byte string literal** that can also contain `"`;
+- `b'x'` **ASCII byte literal**, it is a **single u8 byte**;
+- `'A'` **character literal**, it is **fixed 4 byte unicode char**;
 
 <br>
 
-### Conversions to and from integers
-The `as` operator will convert a `char` to **any integer type**, but for types < `u32`/`i32` **upper bits are truncated**:
-```rust
-assert_eq!('B' as u32, 66);
-assert_eq!('饂' as u8, 66); // upper bits truncated
+# `String`
+The `String` is a sequence that is allowed to **grow** or **shrink** *in size* **at runtime** and is provided by Rust's standard library.
+
+**Examples**:
+- Instantiating `String` variables by `String` **constructor** (`new()`):
+```Rust
+let s: String = String::new();
+```
+- Instantiating `String` variables from `&str` values:
+```Rust
+let s1: String = String::from("ABC");
+```
+```Rust
+let s2: String = "ABC".to_string();
 ```
 
-The `as` operator will convert **any** `u8` value to a `char`, and `char` implements `From<u8>` as well.<br>
-But **wider** integer types can represent **invalid** *code points*, so for those you must use `std::char::from_u32()`, which returns `Option<char>`:
-```rust
-assert_eq!(char::from(66),'B');
-assert_eq!(std::char::from_u32(0x9942), Some('饂'));
-```
+<br>
+
+## Basic methods
+|Method|Description|
+|:-----|:----------|
+|`.len()`|Returns **length** of string.|
+|`.push('c')`|**Append** *one character* to string.|
+|`.push_str("abc")`|**Append** *substring* to string.|
+|`.replace(from, to)`|**Replace** *substring* `from` to substring `to`.|
+|`.split(sep)`|Splits string by separator|
 
 <br>
 
