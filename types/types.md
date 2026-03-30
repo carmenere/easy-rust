@@ -3,7 +3,10 @@
 - [Table of contents](#table-of-contents)
 - [Data types](#data-types)
 - [Scalars](#scalars)
+  - [Floats](#floats)
+  - [`bool`](#bool)
   - [Integer literals](#integer-literals)
+  - [Arithmetic operations and traits](#arithmetic-operations-and-traits)
 - [Integer overflow](#integer-overflow)
 - [Range operator](#range-operator)
 - [Type casting](#type-casting)
@@ -106,6 +109,43 @@ When the **type cannot be inferred** from the context rust **by default** assign
 
 <br>
 
+## Floats
+The basic methods for floats:
+- `.floor()` returns the **next lowest** integer;
+- `.ceil()` returns the **next highest** integer;
+- `.round()`
+  - like `.ceil()` if **>= 0.5** (**greater than or equal to 0.5**);
+  - like `.floor()` if **< 0.5** (**less than 0.5**);
+- `.trunc()` like `.floor()`;
+
+<br>
+
+## `bool`
+In Rust, you can turn a `bool` into an `integer` if you want because **it’s safe** to do that. But you **can’t** do it the other way around:
+```rust
+fn main() {
+  let true_false1 = (true as u8, false as i32);
+  let true_false2: (u8, i32) = (true.into(), false.into());
+  println!("{} {}", true_false1.0 , true_false1.1);
+  println!("{} {}", true_false2.0, true_false2.1);
+}
+```
+
+<br>
+
+There are two methods: `.then()` and `.then_some()`, that turn a `bool` into an `Option`:
+- `b.then_some(t: T) -> Option<T>`
+  - returns `Some(t)` if the bool `b` is `true`, or `None` otherwise;
+- `b.then(f: F) -> Option<T>`
+  - a closure `f -> T` is called if the bool `b` is `true`;
+  - whatever is returned from the closure gets wrapped in an `Option`;
+
+<br>
+
+Example: `b.then(|| {}).ok_or_else(|| {})`, first `then()` converts `b` **into** `Option` and then `ok_or_else()` converts `Option` to `Result`.<br>
+
+<br>
+
 ## Integer literals
 There are several **formats** for **integer literals**:
 - **Decimal**: `55_55`;
@@ -131,6 +171,21 @@ let c = 1_u64;
 
 <br>
 
+## Arithmetic operations and traits
+There are **8 traits** for **arithmetic operations**:
+- operator `+`, corresponding trait `Add`;
+- operator `-`, corresponding trait `Sub`;
+- operator `/`, corresponding trait `Div`;
+- operator `*`, corresponding trait `Mul`;
+- operator `+=`, corresponding trait `AddAssign`;
+- operator `-=`, corresponding trait `SubAssign`;
+- operator `/=`, corresponding trait `DivAssign`;
+- operator `*=`, corresponding trait `MulAssign`;
+
+More traits here [**std::ops**](https://doc.rust-lang.org/std/ops/index.html).<br>
+
+<br>
+
 # Integer overflow
 `rustc` provides flag `-C overflow-checks=yes|no` that controls the behavior of **runtime integer overflow** ([RFC 560](https://github.com/rust-lang/rfcs/blob/master/text/0560-integer-overflow.md)):
 - when this flag is **enabled** `overflow-checks=yes` a **panic** will occur on **overflow** (e.g., `255 + 1` causes to **panic**);
@@ -138,16 +193,16 @@ let c = 1_u64;
 
 <br>
 
-Rust behaves differently in **debug mode** and **release mode** on **integer overflow**:
-- in **debug mode** `overflow-checks=yes` by default;
-- in **release mode** `overflow-checks=no` by default;
+The compiler **won't compile** if it **knows at compile** time that a **number will overflow**.<br>
+But if a **number isn't known at compile time**, the behaviour will be different:
+- in **debug mode** `overflow-checks=yes` by default and the program **will panic**;
+- in **release mode** `overflow-checks=no` by default and the program **will overflow**;
 
 <br>
 
 **Examples**:
 ```Rust
 RUSTFLAGS="-C overflow-checks=yes|no" cargo run --release
-
 RUSTFLAGS="-C overflow-checks=yes|no" cargo run
 ```
 

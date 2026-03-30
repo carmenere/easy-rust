@@ -27,7 +27,8 @@
     - [Slices](#slices-1)
     - [Reallocation](#reallocation)
     - [Conversions](#conversions)
-    - [Tuples](#tuples)
+    - [Methods](#methods)
+  - [Tuples](#tuples)
 - [Control flow](#control-flow)
   - [Basic control flow](#basic-control-flow)
   - [Loops](#loops)
@@ -704,7 +705,58 @@ fn main() {
 
 <br>
 
-### Tuples
+### Methods
+- `.sort()`
+  - sorts the slice in ascending order, **preserving initial order** of equal elements;
+  - this sort is **stable** (i.e., *does not reorder equal elements*) and **in-place** (i.e., *does not allocate*);
+- `.sort_unstable()`
+  - sorts the slice in ascending order **without preserving the initial order** of equal elements;
+  - this sort is **unstable** (i.e., *may reorder equal elements*) and **in-place** (i.e., *does not allocate*);
+- `.dedup()`
+  - **removes** items that are the **same** in a vector, but **only** if they are **next to each other**;
+  - so, if you want to use `.dedup()` **to remove every duplicate**, just `.sort()` first;
+- `.split_at()`
+  - divides into **two slices** at the `mid` index: `[0, mid)` and `[mid, len)`;
+- `.split_at_mut(mid: usize)`
+  - divides into **two mutable slices** at the `mid` index: `[0, mid)` and `[mid, len)`;
+- `.drain()`
+  - lets you **pull a range of values out of** a `Vec`, giving you an iterator;
+  - this iterator keeps a mutable borrow on the original `Vec` so doing something like collecting it into another `Vec` or outright using the `drop()` method will let you **access** the **original** `Vec` **again**;
+
+<br>
+
+**Code**:
+```rust
+fn main() {
+  let mut original_vec = ('A'..'K').collect::<Vec<_>>();
+
+  println!("The 'original_vec' before drain: {original_vec:?}");
+  for i in  original_vec.drain(2..=5) {
+    println!("  the char '{i}' is pulled out");
+  }
+  println!("The 'original_vec' after first drain: {original_vec:?}");
+
+  let drain_two = original_vec.drain(2..=4).collect::<Vec<_>>();
+  println!("The 'original_vec' after second drain: {original_vec:?}");
+  println!("The 'drain_two' after second drain: {drain_two:?}");
+}
+```
+
+**Output**:
+```bash
+The 'original_vec' before drain: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']
+  the char 'C' is pulled out
+  the char 'D' is pulled out
+  the char 'E' is pulled out
+  the char 'F' is pulled out
+The 'original_vec' after first drain: ['A', 'B', 'G', 'H', 'I', 'J']
+The 'original_vec' after second drain: ['A', 'B', 'J']
+The 'drain_two' after second drain: ['G', 'H', 'I']
+```
+
+<br>
+
+## Tuples
 In Rust, this empty tuple `()` is called the **unit type**.<br>
 
 Example of tuple definition:

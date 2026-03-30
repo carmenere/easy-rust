@@ -225,7 +225,7 @@ Also there is *set of methods* for **ASCII only** `char`, they return `false` fo
 <br>
 
 ## UTF-8
-- `ch.len_utf8()` returns **number of bytes** of char `ch` as if it would encoded in **UTF-8**;
+- `ch.len_utf8()` returns **number of bytes** of char `ch` as if it would be encoded in **UTF-8**;
 
 <br>
 
