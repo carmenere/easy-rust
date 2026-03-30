@@ -9,7 +9,7 @@
 - [`String` methods](#string-methods)
   - [Creating `String`](#creating-string)
   - [Get basic information from string slices](#get-basic-information-from-string-slices)
-  - [appending and inserting text to a `String`](#appending-and-inserting-text-to-a-string)
+  - [Appending and inserting text to a `String`](#appending-and-inserting-text-to-a-string)
   - [Removing and replacing text](#removing-and-replacing-text)
   - [Searching and replacing](#searching-and-replacing)
   - [Iterating over text](#iterating-over-text)
@@ -21,6 +21,7 @@
   - [UTF-8](#utf-8-1)
     - [Accessing text as UTF-8](#accessing-text-as-utf-8)
     - [Producing text from UTF-8 data](#producing-text-from-utf-8-data)
+- [`std::ffi::OsStr`, `std::ffi::OsString`, `std::path::Path` and `std::path::PathBuf`](#stdffiosstr-stdffiosstring-stdpathpath-and-stdpathpathbuf)
 <!-- TOC -->
 
 <br>
@@ -213,7 +214,7 @@ A **string slice** can produce an iterator over its characters with `slice.chars
 
 <br>
 
-## appending and inserting text to a `String`
+## Appending and inserting text to a `String`
 - `string.push(ch)`
   - **appends** the single character `ch` to the **end** of `string`;
 - `string.push_str(slice)`
@@ -279,6 +280,9 @@ assert_eq!(choco,"choate");
   - returns a **new** `String` formed by replacing **all matches** for `pattern` with `replacement` slice;
 - `slice.replacen(pattern, replacement, N)`
   - returns a **new** `String` formed by replacing **at most** the **first** `N` **matches** for `pattern` with `replacement` slice;
+- `string.retain(f: F)`
+  - **remove** all characters `c` such that `f(c)` returns `false`;
+  - this method operates **in place**;
 
 <br>
 
@@ -500,3 +504,90 @@ There are **3 main ways** to convert non-textual values to strings:
   - takes a *slice of bytes* `&[u8]` and **returns** it as a *string slice* `&str`;
   - this function is **marked** `unsafe`, because it **doesn't check** that `byte_slice` contains **well-formed UTF-8**;
   - if you sure that `byte_slice` contains **well-formed UTF-8**, then you can call the `unsafe` function;
+
+<br>
+
+# `std::ffi::OsStr`, `std::ffi::OsString`, `std::path::Path` and `std::path::PathBuf`
+Inconveniently, your operating system does not force filenames to be valid Unicode.<br>
+This is why Rust has:
+- `std::ffi::OsStr`
+  - the `OsStr` is a string type that’s a superset of UTF-8;
+  - its job is to be able to represent all filenames, command-line arguments, and environment variables on the current system, whether they’re valid Unicode or not;
+- `std::ffi::OsString` owns a **heap-allocated** `OsStr`;
+  - `.to_os_string()`: **converts** `OsStr` **to** `OsString`;
+- `std::path::Path`
+  - it is exactly like `OsStr`, but it adds many handy filename-related methods;
+- `std::path::PathBuf` owns a **heap-allocated** `Path`;
+  - `.to_path_buf()`: **converts** `Path` **to** `PathBuf`;
+
+<br>
+
+All three of these types `str`, `OsStr` and `Path` implement `AsRef<Path>`, so we can easily declare a generic function that accepts "any filename type" as an argument:
+```rust
+use std::path::Path;
+
+fn foo<P>(path: P)
+where P: AsRef<Path>
+{
+    let path = path.as_ref();
+}
+```
+
+Use `Path` for both absolute and relative paths.<br>
+
+<br>
+
+Some of the functions in `std::fs` and their approximate equivalents on **POSIX**:
+|`std::fs` function|**POSIX**|
+|:-----------------|:---|
+|`create_dir(path)`|`mkdir`|
+|`create_dir_all(path)`|`mkdir -p`|
+|`remove_dir(path)`|`rmdir`|
+|`remove_dir_all(path)`|`rm -r`|
+|`remove_file(path)`|`unlink`|
+|`copy(src_path, dest_path) -> Result<u64>`|`cp -p`|
+|`rename(src_path, dest_path)`|`rename`|
+|`hard_link(src_path, dest_path)`|`link`|
+|`canonicalize(path) -> Result<PathBuf>`|`realpath`|
+|`metadata(path) -> Result<Metadata>`|`stat`|
+|`symlink_metadata(path) -> Result<Metadata>`|`lstat`|
+|`read_dir(path) -> Result<ReadDir>`|`opendir`|
+|`read_link(path) -> Result<PathBuf>`|`readlink`|
+|`set_permissions(path, perm)`|`chmod`|
+
+<br>
+
+The special directories `.` and `..` are **not** listed when reading a directory.<br>
+
+As a convenience, the `Path` type has a few of these built in as methods:
+- `path.metadata()`;
+- `path.read_dir()`;
+
+<br>
+
+The `OsString` has an interesting method called `.into_string()` that **tries** to make it into a regular `String`. It **returns** a `Result`, but the `Err` part is just the **original** `OsString`:
+```rust
+pub fn into_string(self) -> Result<String, OsString>
+```
+
+So if it **doesn’t work**, you just get the previous `OsString` back. You **can’t call** `.unwrap()` because it **will panic**, but you **can use** `match` to get the `OsString` back:
+```rust
+use std::ffi::OsString;
+
+fn osstr(s: OsString) {}
+fn string(s: String) {}
+
+fn main() {
+  let os_string = OsString::from("This string works for your OS too.");
+  match os_string.into_string() {
+    Ok(valid) => {
+      println!("String: {:?}", valid);
+      string(valid)
+    },
+    Err(not_valid) => {
+      println!("OsString: {:?}", not_valid);
+      osstr(not_valid);
+    }
+  }
+}
+```

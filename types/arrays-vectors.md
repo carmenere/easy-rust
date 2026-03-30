@@ -1,16 +1,17 @@
 # Table of contents
 <!-- TOC -->
-* [Table of contents](#table-of-contents)
-* [Arrays](#arrays)
-  * [*Initialization* syntax](#initialization-syntax)
-    * [Syntax options for *pre initialized* arrays:](#syntax-options-for-pre-initialized-arrays)
-    * [Syntax options for *empty* arrays:](#syntax-options-for-empty-arrays)
-  * [*Type declaration* syntax](#type-declaration-syntax)
-* [Vectors](#vectors)
-  * [*Initialization* syntax](#initialization-syntax-1)
-    * [Syntax options for *pre initialized* vectors:](#syntax-options-for-pre-initialized-vectors)
-    * [Syntax options for *empty* vectors:](#syntax-options-for-empty-vectors)
-  * [*Type declaration* syntax](#type-declaration-syntax-1)
+- [Table of contents](#table-of-contents)
+- [Arrays](#arrays)
+  - [*Initialization* syntax](#initialization-syntax)
+    - [Syntax options for *pre initialized* arrays](#syntax-options-for-pre-initialized-arrays)
+    - [`from_fn`](#from_fn)
+    - [Syntax options for *empty* arrays](#syntax-options-for-empty-arrays)
+  - [*Type declaration* syntax](#type-declaration-syntax)
+- [Vectors](#vectors)
+  - [*Initialization* syntax](#initialization-syntax-1)
+    - [Syntax options for *pre initialized* vectors:](#syntax-options-for-pre-initialized-vectors)
+    - [Syntax options for *empty* vectors:](#syntax-options-for-empty-vectors)
+  - [*Type declaration* syntax](#type-declaration-syntax-1)
 <!-- TOC -->
 
 <br>
@@ -22,7 +23,7 @@ Arrays are **allocated** on the **stack**.
 <br>
 
 ## *Initialization* syntax
-### Syntax options for *pre initialized* arrays:
+### Syntax options for *pre initialized* arrays
 - **Comma-delimited**: explicit enumeration of values within square brackets \[\]:
 ```Rust
 let arr = [0, 1, 2];
@@ -33,7 +34,32 @@ let arr = [0, 1, 2];
 let arr = [100; 5];
 ```
 
-### Syntax options for *empty* arrays:
+<br>
+
+### `from_fn`
+**Code**:
+```rust
+fn main() {
+  let arr: [_; 10] = std::array::from_fn(|i| i as u32);
+  println!("{:#?}", arr);
+}
+```
+
+**Output**:
+```bash
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+```
+
+<br>
+
+**Note**:
+- when using `from_fn()` for an array, you can pull in the index of each item if you want to use it or use `|_|` if you don’t need it;
+- most of the time, you will have to tell the compiler the length of the array;
+- type of element can be inferred and you can use `_`: `[_;N]`;
+
+<br>
+
+### Syntax options for *empty* arrays
 - **Repeat expression** where `N` = 0:
 ```Rust
 let a = [100; 0];
