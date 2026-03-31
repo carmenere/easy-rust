@@ -5,6 +5,8 @@
     - [Token types](#token-types)
     - [Nested declarative macros](#nested-declarative-macros)
     - [Repetitions](#repetitions)
+      - [More examples](#more-examples)
+    - [Nesting](#nesting)
     - [Scope](#scope)
       - [Textual scope](#textual-scope)
       - [Path-based scope](#path-based-scope)
@@ -16,12 +18,69 @@
 - [Procedural macros](#procedural-macros)
   - [Procedural macro crate](#procedural-macro-crate)
 - [Example: custom derive macros](#example-custom-derive-macros)
-- [More examples](#more-examples)
+- [More examples](#more-examples-1)
 - [`unimplemented!` vs `todo!`](#unimplemented-vs-todo)
 
 <br>
 
 # Macros
+The **macro** simply **takes an input** and **gives an output**. Technically, **macro** is called a **token parser**.<br>
+In other words, *macro* generates something *that can then be checked by compiler*.<br>
+
+<br>
+
+In the example below, the `6` is just a **token**, it **isn’t** an `i32` type.<br>
+```rust
+macro_rules! six_or_print {
+  (6) => {
+    6
+  };
+  () => {
+    println!("You didn't give me 6.");
+  };
+}
+fn main() {
+  let _ = six_or_print!(6);
+  six_or_print!();
+}
+```
+
+
+
+<br>
+
+The code below **compiles** because there **isn’t any code** because we **haven’t called** the **macro** `pure_nonsense` anywhere:
+```rust
+macro_rules! pure_nonsense {
+  (foo bar) => {
+    GRITTINGS. MA NAM IS KAHLFIN. HEERYOR LUNBOKS. HOFFA GUT TAY ASKOOL.
+  }
+}
+
+fn main() {
+}
+```
+
+<br>
+
+But if we **call the macro** `pure_nonsense`, we get **compile error**:
+```rust
+macro_rules! pure_nonsense {
+  (foo bar) => {
+    GRITTINGS. MA NAM IS KAHLFIN. HEERYOR LUNBOKS. HOFFA GUT TAY ASKOOL.
+  }
+}
+
+fn main() {
+    pure_nonsense!(foo bar);
+}
+```
+
+<br>
+
+So, it’s pretty clear that a **macro isn’t exactly Rust syntax**.<br>
+
+
 Rust supports following types of macros:
 1. **Declarative macros**.
 2. **Procedural /prəˈsiːdʒərəl/ macros**.
@@ -54,7 +113,28 @@ macro_rules! <NAME> {
 
 <br>
 
-Every **matcher** has following format: `$name` `:` `token type`.<br>
+Every **matcher** has following format: `$var` `:` `token_type`.<br>
+
+In macros, **variables** (technically, they are called **arguments**) start with a `$`:
+```rust
+macro_rules! might_print {
+    ($input:expr) => {
+        println!("You gave me: {:?}", $input);
+    }
+}
+
+fn main() {
+    might_print!("Foo");
+    might_print!(100);
+}
+```
+**Output**:
+```bash
+You gave me: "Foo"
+You gave me: 100
+```
+
+<br>
 
 When a **declarative macro** is invoked by its name, then *macro engine* tries **each matcher** and **transcribes the first successful match**.<br>
 In other words, once compiler has matched a declarative macro matcher it **generates code** using associated with this matcher **transcriber**.<br>
@@ -67,17 +147,19 @@ The variables defined inside matcher are called **metavariables** and compiler s
 
 |**Token type**|**Description**|
 |:-------------|:--------------|
+|`block`|Any **block** `{ ... }`|
+|`expr`|Any **expression**|
+|`ident`|Any **identifier**|
 |`item`|Any **item** in Rust, e.g., *function*, *struct*, *module*, etc.|
-|`block`|Any **block** `{ ... }`.|
-|`stmt`|Any **statement**.|
-|`pat`|A **pattern**.|
-|`expr`|An **expression**.|
-|`ty`|A **type**.|
-|`ident`|An **identifier**.|
-|`path`|A **path**, e.g., `foo`, `::std::mem::replace`,` transmute::<_, int>`.|
-|`meta`|A meta item, i.e., the **things** that go **inside** `#[...]` and `#![...]` **attributes**.|
-|`tt`|A **single token tree**.|
-|`vis`|Possibly an empty **Visibility qualifier**.|
+|`lifetime`|*Examples*: `'a`, `'static`, etc.|
+|`literal`|*Examples*: `"hello"`, `9`, etc.|
+|`meta`|Any information that go **inside** attributes `#[...]` and `#![...]` **attributes**|
+|`pat`|Any **pattern**|
+|`path`|Any **path**, e.g., `foo`, `::std::mem::replace`,` transmute::<_, int>`|
+|`stmt`|Any **statement**|
+|`tt`|Any *single token tree*, which **matches almost anything**|
+|`ty`|Any **type name**|
+|`vis`|Any **visibility modifier** like `pub`|
 
 <br>
 
@@ -87,6 +169,26 @@ It is possible to use **nested** *declarative macros* but with **restriction**: 
 <br>
 
 ### Repetitions
+**Consider example**:
+```rust
+macro_rules! print_anything {
+  ($input:tt) => {
+    let output = stringify!($input);
+    println!("{}", output);
+  };
+}
+fn main() {
+  print_anything!(qwerty); // OK
+  print_anything!(foo bar); // ❌ ERROR
+}
+```
+
+<br>
+
+If we give `print_anything` macro something with *spaces*, *commas*, *etc*. the `print_anything` macro will think that we are giving it **more than one token** and we get **error** `error: no rules expected 'bar'`.<br>
+
+To give a macro **more than one** item at a time, we have to use a **different syntax**.<br>
+
 In both the **matcher** and **transcriber**, **repetitions** are indicated by placing the tokens to be repeated inside `$( )`, followed by a **repetition operator**, optionally with a **separator token** between.<br>
 
 The **repetition operators** are:
@@ -97,11 +199,156 @@ The **repetition operators** are:
 <br>
 
 Examples:
-- `$( $i:ident),*` represents **any number** of identifiers separated by commas, here comma `,` is **out of** parentheses, because it **isn't** a **part** of *captured value*;
+- `$( $i:ident ),*` represents **any number** of identifiers separated by commas, here comma `,` is **out of** parentheses, because it **isn't** a **part** of *captured value*;
 - `$($field_name:ident : $field_type:ty,)*` represents **any number** of fields separated by commas, here comma `,` is **inside** parentheses, because it **is** a **part** of *captured value*;
 
 If there is **repetition** in *matcher* then it can be used in *transcriber* and **it will be repeated once for each match in the input**.<br>
 A **metavariable** must appear in **exactly** the **same number** of repetitions in the **transcriber** as it did in the **matcher**.<br>
+
+<br>
+
+The `$(,)?` allows **trailing comma**.<br>
+
+<br>
+
+**Code**:
+```rust
+macro_rules! comma_check {
+  // 1
+  () => {
+    println!("comma_check!() => Matcher: ()")
+  };
+  // 2
+  ($input:expr) => {
+    println!("comma_check!(8) => Matcher: ($input:expr)")
+  };
+  // 3
+  ($val:expr,) => {
+    println!("comma_check!(8,) => Matcher: ($val:expr,)")
+  };
+  // 4
+  ($input:expr $(,)? $(,)?) => {
+    println!("comma_check!(8,,); => Matcher: ($input:expr $(,)? $(,)?)")
+  };
+  // 5
+  ($input:expr $(;)? $(,)?) => {
+    println!("comma_check!(8;,) => Matcher: ($input:expr $(;)? $(,)?)")
+  };
+  // 6
+  ($($input:expr),+ $(;)? $(,)?) => {
+    println!("comma_check!(foo, bar;,) => Matcher: ($($input:expr),+ $(;)? $(,)?)")
+  };
+}
+
+fn main() {
+  comma_check!(); // 1
+  comma_check!(8); // 2
+  comma_check!(8,); // 3
+  comma_check!(8,,); // 4
+  comma_check!(8;,); // 5
+  comma_check!(foo, bar;,); // 6
+}
+```
+**Output**:
+```rust
+comma_check!() => Matcher: ()
+comma_check!(8) => Matcher: ($input:expr)
+comma_check!(8,) => Matcher: ($val:expr,)
+comma_check!(8,,); => Matcher: ($input:expr $(,)? $(,)?)
+comma_check!(8;,) => Matcher: ($input:expr $(;)? $(,)?)
+comma_check!(foo, bar;,) => Matcher: ($($input:expr),+ $(;)? $(,)?)
+```
+
+<br>
+
+#### More examples
+**Example** - the `stringify!` macro:
+```rust
+fn main() {
+  println!("{}", stringify!(a; b; 10));
+  println!("{}", stringify!(a, b, 10));
+}
+```
+**Output**:
+```bash
+a; b; 10
+a, b, 10
+```
+
+<br>
+
+**Example**:
+```rust
+macro_rules! print_anything {
+  ($($input:tt);*) => {
+    let output = stringify!($($input),*);
+    println!("{}", output);
+  };
+}
+
+fn main() {
+  print_anything!(foo; bar);
+  print_anything!();
+  print_anything!(foo; bar; 10; 20);
+}
+```
+**Output**:
+```bash
+foo, bar
+
+foo, bar, 10, 20
+```
+
+In the above example the macro `print_anything` **expects** *tokens to be separated by a semicolon* `;`.<br>
+
+<br>
+
+Example:
+```rust
+macro_rules! make_a_function {
+  ($name:ident, $($input:tt),+) => {
+    fn $name() {
+      let output = stringify!($($input),+);
+      println!("{}", output);
+    }
+  };
+}
+
+fn main() {
+  make_a_function!(foo, 1, 2);
+  make_a_function!(bar, abc, xyz);
+
+  foo();
+  bar();
+}
+```
+
+<br>
+
+### Nesting
+The **macros** is that they can call themselves:
+```rust
+macro_rules! my_macro {
+    () => {
+        println!("Let's print this.");
+    };
+    ($input:expr) => {
+        my_macro!();
+    };
+    ($($input:expr),*) => {
+        my_macro!();
+    }
+}
+
+fn main() {
+    my_macro!(vec![8, 9, 0]);
+    my_macro!(foo);
+    my_macro!(foo, 10, 20);
+    my_macro!();
+}
+```
+
+This one takes **()**, **one expression**, or **many expressions**. **But** when it receives **one** or **many expressions**: it **ignores** its arguments and calls itself **without** arguments `my_macro!()`.<br>
 
 <br>
 
@@ -335,3 +582,6 @@ More examples [here](../examples/macros/macros.md).
 
 # `unimplemented!` vs `todo!`
 The difference between `unimplemented!` and `todo!` is that `todo!` conveys an intent of **implementing the functionality later**, while `unimplemented!` makes no such claims.
+
+<br>
+
