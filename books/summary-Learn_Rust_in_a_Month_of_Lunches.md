@@ -157,6 +157,7 @@
 - [Chapter 20](#chapter-20)
 - [Chapter 21](#chapter-21)
   - [`column!`, `line!`, `file!` and `module_path!`](#column-line-file-and-module_path)
+  - [`matches!`](#matches)
   - [`thread_local!`](#thread_local)
   - [`cfg!`](#cfg-1)
 <!-- TOC -->
@@ -4911,6 +4912,30 @@ Err(
 - `file!` gives the **filename** in which this macro is called;
 - `line!` gives the **line number** in which this macro is called;
 - `module_path!` gives the **path to the module** in which this macro is called;
+
+<br>
+
+## `matches!`
+The `matches!` macro converts result of `match` to `bool`, the `matches!` lets us add an `if` clause and an `expression`:
+```rust
+fn main() {
+  let var = 333;
+  println!("1: {}", matches!(var, 9));
+  println!("2: {}", matches!(var, 0..=10));
+  println!("3: {}", matches!(var, 100..=1000));
+
+  println!("4: {}", matches!(var, 10..=1000 if var % 3 == 0));
+  println!("4: {}", matches!(var, 10..=1000 if var % 3 != 0));
+}
+```
+**Output**:
+```bash
+1: false
+2: false
+3: true
+4: true
+4: false
+```
 
 <br>
 
