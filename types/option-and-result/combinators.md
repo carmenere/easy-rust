@@ -37,6 +37,12 @@ The `if let` construct reads: if `let` destructures `some_value` into `Some(v)`,
 <br>
 
 ## Option/Result methods
+[**Result/Option transformations**](https://docs.google.com/drawings/u/0/d/1EOPs0YTONo_FygWbuJGPfikO9Myt5HwtiFUHRuE1JVM/preview?pli=1):<br>
+![result-option](/img/result-option.png)
+
+<br>
+
+**Methods**:
 - `.ok()` it converts **from** `Result<T, E>` **to** `Option<T>`
   - What if you have a function that returns a `Result` but you must to return an `Option`. No problem: there is a method called `.ok()`;
   - all that can be passed on from a `Result` to an `Option` is the information inside an `Ok` variant and because `None` **doesn’t hold** any information any `.ok()` **drops any error** inside `Err` variant;
