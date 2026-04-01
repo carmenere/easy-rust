@@ -241,7 +241,7 @@ Also it means that:
 <br>
 
 ## Examples of how Rust infers type of closure
-**FnOnce** vs. **FnMut**:
+**FnOnce** vs. **FnMut**:<br>
 ![no_move_and_FnOnce](/img/fn_once_vs_fn_mut.png)
 
 <br>
