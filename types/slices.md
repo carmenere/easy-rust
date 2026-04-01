@@ -1,13 +1,14 @@
 # Table of contents
 <!-- TOC -->
-* [Table of contents](#table-of-contents)
-* [Slice type](#slice-type)
-  * [Slice notation](#slice-notation)
-  * [Slice rules](#slice-rules)
-  * [String slice](#string-slice)
-  * [`impl str`](#impl-str)
-  * [String slice as type of function parameter](#string-slice-as-type-of-function-parameter)
-  * [Get last element of dynamically growing collection](#get-last-element-of-dynamically-growing-collection)
+- [Table of contents](#table-of-contents)
+- [Slice type](#slice-type)
+  - [Slice notation](#slice-notation)
+  - [Slice rules](#slice-rules)
+  - [String slice](#string-slice)
+  - [`impl str`](#impl-str)
+  - [String slice as type of function parameter](#string-slice-as-type-of-function-parameter)
+  - [Get last element of dynamically growing collection](#get-last-element-of-dynamically-growing-collection)
+- [Examples](#examples)
 <!-- TOC -->
 
 <br>
@@ -188,3 +189,48 @@ fn main() {
 Notes:
 - `last_mut` method returns a **mutable pointer** to the **last item** in the collection;
 - signature of `last_mut` method: `pub fn last_mut(&mut self) -> Option<&mut T>`.
+
+<br>
+
+# Examples
+To get slice of an array `arr` you need a `&` and range `..`: `&arr[start..end]`.<br>
+The range like `&arr[start..end]` **doesn't** include index `end`, it's called **exclusive**.<br>
+The range like `&arr[start..=end]` includes index `end`, it's called **inclusive**.<br>
+The range like `&arr[..]` means **slice the whole array** and this is **NOT equivalent** to reference to array: `&arr`.<br>
+
+**Example**:
+```rust
+fn main() {
+    let arr = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+    let two_to_four = &arr[2..5]; // the type of two_to_four is &[u8]
+    let start_at_one = &arr[1..]; // the type of start_at_one is &[u8]
+    let end_at_four = &arr[..5]; // the type of end_at_four is &[u8]
+    let end_at_five = &arr[..=5]; // the type of end_at_five is &[u8]
+    let slice_of_all = &arr[..]; // the type of slice_of_all is &[u8]
+    let ref_to_arr = &arr; // the type of ref_to_arr is &[u8; 10], NOT &[u8]
+    println!("&arr[2..5]: {two_to_four:?}, len: {},
+&arr[1..]: {start_at_one:?}, len: {},
+&arr[..5]: {end_at_four:?}, len: {},
+&arr[..=5]: {end_at_five:?}, len: {},
+&arr[..]: {slice_of_all:?}, len: {}
+&arr: {ref_to_arr:?}, len: {}", 
+    two_to_four.len(), start_at_one.len(), end_at_four.len(), end_at_five.len(), slice_of_all.len(), ref_to_arr.len());
+    take_slice(two_to_four);
+    take_slice(ref_to_arr);
+}
+
+fn take_slice(s: &[u8]) {
+    println!("s = {:?}", s);
+}
+```
+**Output**:
+```bash
+&arr[2..5]: [2, 3, 4], len: 3,
+&arr[1..]: [1, 2, 3, 4, 5, 6, 7, 8, 9], len: 9,
+&arr[..5]: [0, 1, 2, 3, 4], len: 5,
+&arr[..=5]: [0, 1, 2, 3, 4, 5], len: 6,
+&arr[..]: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], len: 10
+&arr: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], len: 10
+s = [2, 3, 4]
+s = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+```

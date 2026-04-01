@@ -1,34 +1,34 @@
 # Table of contents
 <!-- TOC -->
-* [Table of contents](#table-of-contents)
-* [URLs](#urls)
-* [Declarations](#declarations)
-  * [`Borrow`](#borrow)
-  * [`BorrowMut`](#borrowmut)
-  * [`AsRef`](#asref)
-  * [`AsMut`](#asmut)
-* [In a nutshell](#in-a-nutshell)
-  * [When to use `Borrow` and `BorrowMut`?](#when-to-use-borrow-and-borrowmut)
-  * [When to use `AsRef` and `AsMut`?](#when-to-use-asref-and-asmut)
-* [Implementations in `std`](#implementations-in-std)
-  * [`Borrow` in `HashMap`](#borrow-in-hashmap)
-* [Blanket implementations](#blanket-implementations)
-  * [`Borrow`](#borrow-1)
-    * [`impl Borrow for T`](#impl-borrow-for-t)
-    * [`impl Borrow for &T`](#impl-borrow-for-t-1)
-    * [`impl Borrow for &mut T`](#impl-borrow-for-mut-t)
-  * [`BorrowMut`](#borrowmut-1)
-    * [`impl BorrowMut for T`](#impl-borrowmut-for-t)
-    * [`impl BorrowMut for &mut T`](#impl-borrowmut-for-mut-t)
-  * [`AsRef`](#asref-1)
-    * [`impl AsRef for &T`](#impl-asref-for-t)
-    * [`impl AsRef for &mut T`](#impl-asref-for-mut-t)
-  * [`AsMut`](#asmut-1)
-    * [`impl AsMut for &mut T`](#impl-asmut-for-mut-t)
-* [Examples](#examples)
-  * [Function that accepts both `&str` and `String`](#function-that-accepts-both-str-and-string)
-  * [`AsRef<Path>>`](#asrefpath)
-  * [More examples](#more-examples)
+- [Table of contents](#table-of-contents)
+- [URLs](#urls)
+- [Declarations](#declarations)
+  - [`Borrow`](#borrow)
+  - [`BorrowMut`](#borrowmut)
+  - [`AsRef`](#asref)
+  - [`AsMut`](#asmut)
+- [In a nutshell](#in-a-nutshell)
+  - [When to use `Borrow` and `BorrowMut`?](#when-to-use-borrow-and-borrowmut)
+  - [When to use `AsRef` and `AsMut`?](#when-to-use-asref-and-asmut)
+- [Implementations in `std`](#implementations-in-std)
+  - [`Borrow` in `HashMap`](#borrow-in-hashmap)
+- [Blanket implementations](#blanket-implementations)
+  - [`Borrow`](#borrow-1)
+    - [`impl Borrow for T`](#impl-borrow-for-t)
+    - [`impl Borrow for &T`](#impl-borrow-for-t-1)
+    - [`impl Borrow for &mut T`](#impl-borrow-for-mut-t)
+  - [`BorrowMut`](#borrowmut-1)
+    - [`impl BorrowMut for T`](#impl-borrowmut-for-t)
+    - [`impl BorrowMut for &mut T`](#impl-borrowmut-for-mut-t)
+  - [`AsRef`](#asref-1)
+    - [`impl AsRef for &T`](#impl-asref-for-t)
+    - [`impl AsRef for &mut T`](#impl-asref-for-mut-t)
+  - [`AsMut`](#asmut-1)
+    - [`impl AsMut for &mut T`](#impl-asmut-for-mut-t)
+- [Examples](#examples)
+  - [Function that accepts both `&str` and `String`](#function-that-accepts-both-str-and-string)
+  - [`AsRef<Path>>`](#asrefpath)
+  - [More examples](#more-examples)
 <!-- TOC -->
 
 <br>
@@ -296,19 +296,53 @@ where
 
 # Examples
 ## Function that accepts both `&str` and `String`
+Both `String` and `str` implement `AsRef<str>`:
 ```rust
-fn print<T> (s: T)
-where
-    T: AsRef<str>
-{
-    println!("{}", s.as_ref());
+impl AsRef<str> for str {
+    fn as_ref(&self) -> &str {
+        self
+    }
+}
+```
+
+```rust
+impl AsRef<str> for String {
+    fn as_ref(&self) -> &str {
+        self
+    }
+}
+```
+
+<br>
+
+Example: a function that can take **both** a `String` and a `&str`:
+```rust
+fn print_it<T: AsRef<str>>(input: T) {
+    println!("{}", input)
 }
 
 fn main() {
-    let foo = "Foo";
-    let bar = String::from("Bar");
-    print(foo);
-    print(bar);
+    print_it("Please print me");
+    print_it("Also, please print me".to_string());
+}
+```
+**Output**:
+```rust
+Here is the error: error[E0277]: `T` doesn't implement `std::fmt::Display`.
+```
+
+<br>
+
+We got this **error** because `T` is a type that implements `AsRef<str>`, but `T` **may** or **may not** implement `Display`.<br>
+But we can turn it into a reference to a `str`, thanks to the `AsRef` trait. To do that, call the **trait’s method**: `.as_ref()`.<br>
+```rust
+fn print_it<T: AsRef<str>>(input: T) {
+    println!("{}", input.as_ref())
+}
+
+fn main() {
+    print_it("Please print me");
+    print_it("Also, please print me".to_string());
 }
 ```
 

@@ -1,13 +1,13 @@
 # Table of contents
 <!-- TOC -->
-* [Table of contents](#table-of-contents)
-* [About](#about)
-* [Benefits of Rust](#benefits-of-rust)
-  * [Compile time memory safety](#compile-time-memory-safety)
-    * [Examples](#examples)
-  * [No UB at runtime](#no-ub-at-runtime)
-    * [Examples](#examples-1)
-  * [Modern features](#modern-features)
+- [Table of contents](#table-of-contents)
+- [About](#about)
+- [Benefits of Rust](#benefits-of-rust)
+  - [Compile time memory safety](#compile-time-memory-safety)
+    - [Examples](#examples)
+  - [No UB at runtime](#no-ub-at-runtime)
+    - [Examples](#examples-1)
+  - [Modern features](#modern-features)
 <!-- TOC -->
 
 <br>

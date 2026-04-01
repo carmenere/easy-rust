@@ -1,21 +1,22 @@
 # Table of contents
 <!-- TOC -->
-* [Table of contents](#table-of-contents)
-* [URLs](#urls)
-* [Declarations](#declarations)
-  * [`Deref`](#deref)
-  * [`DerefMut`](#derefmut)
-* [In a nutshell](#in-a-nutshell)
-  * [Example](#example)
-* [Deref coercion](#deref-coercion)
-  * [Deref coercion rules](#deref-coercion-rules)
-  * [Example](#example-1)
-* [Dot `.` operator](#dot--operator)
-  * [Example](#example-2)
-* [Implementations in `std`](#implementations-in-std)
-* [Blanket implementations](#blanket-implementations)
-  * [`impl Deref<Target=T> for &T`](#impl-dereftargett-for-t)
-  * [`impl Deref<Target=T> for &mut T`](#impl-dereftargett-for-mut-t)
+- [Table of contents](#table-of-contents)
+- [URLs](#urls)
+- [Intro](#intro)
+- [Declarations](#declarations)
+  - [`Deref`](#deref)
+  - [`DerefMut`](#derefmut)
+- [In a nutshell](#in-a-nutshell)
+  - [Example](#example)
+- [Deref coercion](#deref-coercion)
+  - [Deref coercion rules](#deref-coercion-rules)
+  - [Example](#example-1)
+- [Dot `.` operator](#dot--operator)
+  - [Example](#example-2)
+- [Implementations in `std`](#implementations-in-std)
+- [Blanket implementations](#blanket-implementations)
+  - [`impl Deref<Target=T> for &T`](#impl-dereftargett-for-t)
+  - [`impl Deref<Target=T> for &mut T`](#impl-dereftargett-for-mut-t)
 <!-- TOC -->
 
 <br>
@@ -25,6 +26,43 @@
 |:----|:------------|
 |`Deref`|[std::ops::Deref](https://doc.rust-lang.org/std/ops/trait.Deref.html)|
 |`DerefMut`|[std::ops::DerefMut](https://doc.rust-lang.org/std/ops/trait.DerefMut.html)|
+
+<br>
+
+# Intro
+```rust
+use std::ops::Deref;
+
+struct Foo<T> {
+    value: T
+}
+
+impl<T> Deref for Foo<T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        &self.value
+    }
+}
+
+fn main() {
+    let x = Foo { value: 'a' };
+    assert_eq!('a', *x);
+}
+```
+
+<br>
+
+You need `Deref` before you can implement `DerefMut`, as the signature shows:
+```rust
+pub trait DerefMut: Deref
+```
+
+<br>
+
+`*` vs. `.`:
+- rust **calls** `.deref()` when you use `*`;
+- rust **finds** and **calls** method when you use **dot operator**: `.`;
 
 <br>
 

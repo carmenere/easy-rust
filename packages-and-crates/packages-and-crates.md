@@ -1,5 +1,6 @@
 # Table of contents
 - [Table of contents](#table-of-contents)
+- [Intro](#intro)
 - [Registry](#registry)
 - [Crate’s module tree](#crates-module-tree)
 - [Crate auto-discovery](#crate-auto-discovery)
@@ -18,6 +19,76 @@
 - [Workspaces](#workspaces)
   - [The `[workspace]` section settings](#the-workspace-section-settings)
   - [Package selection](#package-selection)
+
+<br>
+
+# Intro
+Every time you write code in Rust, you are writing it in a **crate**. A **crate** is the **file** that correspont the **root module**.<br>
+Inside the file you write, you can also make **modules** using the keyword `mod`. In other programming languages, a *module* is often known as a **namespace**.<br>
+To make a *module*, just write `mod %NAME%` and start a code block with `{}`.<br>
+
+Without the `pub` keyword in front of `fn` it will stay **private** and **inaccessible**.<br>
+Inside a `mod`, you can create other modules.<br>
+If you start a **path** to a *type* or *function* with `crate::`, it starts from the name of crate.<br>
+If you are **inside** a module, you can use `super::` to **move up one module**.<br>
+
+A **child module** (a module **inside** a module) can always use **anything** inside a **parent** module **regardless of** `pub`:
+```rust
+mod country {
+    fn country_foo() {}
+
+    mod province_A {
+        fn province_A_foo() {}
+
+        mod city_X {
+            fn city_X_foo() {}
+        }
+
+        mod city_Y {
+            fn city_Y_foo() {
+                super::super::country_foo(); // ✅ OK
+                crate::country::country_foo(); // ✅ OK
+
+                super::province_A_foo(); // ✅ OK
+                crate::country::province_A::province_A_foo(); // ✅ OK
+                
+                // super::city_X::city_X_foo(); // ❌ ERROR: function `city_X_foo` is private
+            }
+        }
+    }
+
+    mod province_B {
+        fn province_B_foo() {
+            super::country_foo(); // ✅ OK
+            crate::country::country_foo(); // ✅ OK
+        }
+    }
+}
+
+fn main() {
+    // country::country_foo(); // ❌ ERROR: function `country_foo` is private
+}
+```
+
+The interesting part is that `city_Y_foo()` **can access** *private functions* `province_A_foo()` and `country_foo()`. That’s because `mod city_Y` is inside the `mod province_A which` in turn is insude `mod country`.<br>
+
+<br>
+
+The `pub` keyword works a little differently depending on what you are making public:
+- `pub` for a `struct`: `pub` makes the *struct* **public**, **but** the *parameters* are still **private**;
+  - to make a *parameter* **public**, you have to write `pub` for it;
+  - the same rule applies to `tuple struct`s;
+  - consider type `pub Email(String)`:
+    - users can use it, but they **can’t** use `.0` to access its `String`;
+    - to make a `pub Email(String)` fully public, you would have to write `pub Email(pub String)`;
+- `pub` for an `enum` or `trait`:
+  -  **every method** in the **trait** becomes **public**;
+  -  **every variant** of the **enum** becomes **public**
+- `pub` for a `module`: `pub` makes the *module* **public**;
+
+<br>
+
+**Note**, a **top-level modules** are **public by default** inside its own crate **but** they aren't accessible from outside without `pub`.<br>
 
 <br>
 

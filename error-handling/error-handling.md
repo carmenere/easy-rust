@@ -6,7 +6,10 @@
 - [Custom error type](#custom-error-type)
     - [Example](#example)
 - [Macros `try!` and `?` operator](#macros-try-and--operator)
-  - [Example](#example-1)
+- [Examples](#examples)
+  - [Example 1](#example-1)
+  - [Example 2](#example-2)
+  - [Example 3](#example-3)
 
 <br>
 
@@ -40,6 +43,8 @@ if n < 1 || n > 100 {
 <br>
 
 # Boxing errors
+Consider function that returns `Result<String, Box<dyn Error>>`. By returning a `Box<dyn Error>`, we can return a `Box` that **holds anything** that implements the `Error` trait.<br>
+
 Specifying `Result<(), Box<dyn Error>>` as the return type allows pass to `Err()` **any type**, that can be converted to `Box<dyn Error>`.<br>
 
 For example, `Box<dyn Error>` implements `From<&str> `:
@@ -53,6 +58,35 @@ impl From<&str> for Box<dyn Error> {
 
 <br>
 
+If we didn’t have a `Box<dyn Error>` and wrote just `Result<String, Error>` the compiler gives us error: `Result<String, Error> doesn't have a size known at compile-time`. Indeed, a trait `Error` can be implemented on many types and compiler doesn't know exact size of type.<br>
+
+Consider a function with **two types of possible errors**, for example, an error when parsing into an `i32` and an error when parsing into an `f64`. But we want to use `?` operator inside this function and thus we can use only **one** `Error` inside returning `Result`.<br>
+We can use `Result<f64, Box<dynError>>` as returning type:
+```rust
+use std::error::Error;
+
+fn parse_numbers(int: &str, float: &str) -> Result<f64, Box<dyn Error>> {
+    let num_1 = int.parse::<i32>()?;
+    let num_2 = float.parse::<f64>()?;
+    Ok(num_1 as f64 + num_2)
+}
+fn main() {
+    let n = parse_numbers("8", "ninepointnine");
+    println!("{:?}", n);
+    let n = parse_numbers("8", "9.");
+    println!("{:?}", n);
+}
+```
+
+**Output**:
+```rust
+Err(ParseFloatError { kind: Invalid })
+Ok(17.0)
+```
+
+<br>
+
+**Example**:
 ```rust
 use std::{error::Error, io::ErrorKind};
 
@@ -152,6 +186,14 @@ The `?` operator is equivalent to `try!`. Now, `try!` is **deprecated**.<br>
 
 `?` **unwrap** `Result` **or** perform **prematurely** /premətʃʊəʳli/ **return** from function.<br>
 
+After anything that returns a `Result` or `Option`, you can add `?`. This will:
+- automatically **pulls out** the `Ok` value from a `Result`;
+- if the value inside `Result` is `Err` it will **exit the function early** (**early return**) and return `Err` of the `Result` of function's returning type
+
+<br>
+
+We **don’t** need to write `std::result::Result` because `Result` is **always in scope**.<br>
+
 <br>
 
 `expression?` **unfolds to**:
@@ -173,7 +215,8 @@ A common alternative to a `From` implementation is `Result::map_err`, especially
 
 <br>
 
-## Example
+# Examples
+## Example 1
 ```Rust
 use std::fs;
 use std::io;
@@ -206,3 +249,50 @@ fn open_and_parse_file(file_name: &str) -> Result<i32, CliError> {
 <br>
 
 The `fs::read_to_string(&file_name)?` under the hood converts the `io::Error` to the type `CliError` returned by the function `open_and_parse_file`.<br>
+
+<br>
+
+## Example 2
+```rust
+use std::num::ParseIntError;
+
+fn parse_str(input: &str) -> Result<u32, ParseIntError> 
+{
+    let parsed_number = input.parse::<u32>()?;
+    println!("Number parsed successfully into {parsed_number}");
+    Ok(parsed_number)
+}
+
+fn main() {
+    let input = vec!["Seven", "8", "9.0", "nice", "6060"];
+    for item in input {
+        let parsed = parse_str(item);
+        println!("{parsed:?}");
+    }
+}
+```
+
+<br>
+
+## Example 3
+Imagine that you want to *take some bytes*, turn *them into* a `String`, and then *parse* it into a *number*. **First**, you need to successfully create a `String` from the bytes using a method called `String::from_utf8()`. **And then** it needs to successfully parse into a number.<br>
+
+**The problem is the return type**:
+- if `String::from_utf8()` **fails**, it will return `Err(FromUtf8Error)`;
+- and if `string.parse()` **fails**, it will return an `Err(ParseIntError)`;
+- but we **can’t return** a `Result<i32, ParseIntError or FromUtf8Error>`;
+
+What must be in the place of `????`:
+```rust
+use std::num::ParseIntError;
+use std::string::FromUtf8Error;
+
+fn turn_into_string_and_parse(bytes: Vec<u8>) -> Result<i32, ????> {
+    let num = String::from_utf8(bytes)?.parse::<i32>()?; // Two possible errors can be returned here
+    Ok(num)
+}
+```
+
+<br>
+
+The `?` operator **automatically** converts the **error** to `Err` variant of `Result` type.<br>

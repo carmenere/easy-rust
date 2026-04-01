@@ -1,8 +1,8 @@
 # Table of contents
 <!-- TOC -->
-* [Table of contents](#table-of-contents)
-* [`PhantomData`](#phantomdata)
-* [Example](#example)
+- [Table of contents](#table-of-contents)
+- [`PhantomData`](#phantomdata)
+- [Example](#example)
 <!-- TOC -->
 
 <br>

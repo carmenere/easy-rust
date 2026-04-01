@@ -1,6 +1,7 @@
 # Table of contents
 <!-- TOC -->
 - [Table of contents](#table-of-contents)
+- [Intro](#intro)
 - [Const context](#const-context)
 - [Const functions](#const-functions)
 - [Constants](#constants)
@@ -15,6 +16,20 @@
   - [`lazy_static`](#lazy_static)
   - [`OnceLock` and `OnceCell`](#oncelock-and-oncecell)
 <!-- TOC -->
+
+<br>
+
+# Intro
+Both `const` and `static` are for values that **don’t change** (`const` means constant). Technically, `static` can change.<br>
+The two main differences are
+- `const` is for values that don’t change and are created at compile time.
+- `static` is similar to `const` but
+  - it has a **fixed memory location**;
+  - it **might not be created** at compile time;
+
+You write them with `ALL CAPITAL LETTERS` and **outside** of `main` so that they can **live for the whole program**.<br>
+
+These types (`const` and `static`) are made at compile time and have restriction: they **can't** use the *heap* during compile time because the program needs to perform a memory allocation.<br>
 
 <br>
 

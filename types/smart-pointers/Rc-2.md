@@ -1,15 +1,15 @@
 # Table of contents
 <!-- TOC -->
-* [Table of contents](#table-of-contents)
-* [URLs](#urls)
-* [Declarations](#declarations)
-  * [`RcInner<T>`](#rcinnert)
-  * [`Rc<T>`](#rct)
-* [Rc memory layout](#rc-memory-layout)
-* [In a nutshell](#in-a-nutshell)
-  * [Example](#example)
-* [Cloning](#cloning)
-* [Deref](#deref)
+- [Table of contents](#table-of-contents)
+- [URLs](#urls)
+- [Declarations](#declarations)
+  - [`RcInner<T>`](#rcinnert)
+  - [`Rc<T>`](#rct)
+- [Rc memory layout](#rc-memory-layout)
+- [In a nutshell](#in-a-nutshell)
+  - [Example](#example)
+- [Cloning](#cloning)
+- [Deref](#deref)
 <!-- TOC -->
 
 <br>

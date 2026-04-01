@@ -2,6 +2,7 @@
 <!-- TOC -->
 - [Table of contents](#table-of-contents)
 - [Strings](#strings)
+  - [Types of `&str`](#types-of-str)
   - [UTF-8](#utf-8)
   - [Bytes. Chars. Vec](#bytes-chars-vec)
   - [String literals](#string-literals)
@@ -37,6 +38,18 @@ other variable, so just a **slice** of it.
 
 The biggest difference is that a `String` **owns** its data, while a `&str` is a **slice**. Because you use a `&` to interact with a `str`, you **don’t** *own* it.<br>
 But a `String` is an **owned type**.<br>
+
+<br>
+
+## Types of `&str`
+There are 2 types of `&str`:
+- **string literal**:
+  - you make **string literals** when you write `let my_str = "I am a string literal";`;
+  - they **last for the whole program** because they are **written directly into the binary**;
+  - they have the type `&'static str`;
+- **borrowed** `str`:
+  - this is the regular `&str` form **without** a `'static` lifetime;
+  - consider you pass `&String` to a function parameter that declared as `&str`, Rust will convert `&String` to a `&str` (thanks `Deref` trait);
 
 <br>
 
