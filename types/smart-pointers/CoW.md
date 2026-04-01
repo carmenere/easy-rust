@@ -17,9 +17,19 @@
 <br>
 
 # Declaration
-Declaration of type `Cow`:
-```Rust
-pub enum Cow<'a, B>
+Let’s look at the **simplified version** of `Cow`:
+```rust
+enum Cow<B> {
+    Borrowed(B),
+    Owned(B),
+}
+```
+
+<br>
+
+Then let’s look at the **real version** of `Cow`:
+```rust
+enum Cow<'a, B>
 where
     B: 'a + ToOwned + ?Sized,
 {
@@ -27,6 +37,12 @@ where
     Owned(<B as ToOwned>::Owned),
 }
 ```
+
+<br>
+
+- the `'a` means that `Cow` **can** hold a reference;
+- the `ToOwned` means that `B` **must** be a type that can be turned into an owned type;
+- the `?Sized` means that `B` **might** be dynamically sized type;
 
 <br>
 
@@ -43,34 +59,8 @@ The type `Cow` is a smart pointer providing **clone-on-write** functionality:
 <br>
 
 If we need to **mutate** `T`, then we can convert it into an **owned** variable using the `into_owned()`:<br>
- - if the variant of `Cow` was already `Owned` then we **move ownership**.
- - if the variant of `Cow` is `Borrowed`, then we **allocate** new memory.
-
-<br>
-
-# Example
-Let’s look at the simplified version of `Cow`:
-```rust
-enum Cow<B> {
-    Borrowed(B),
-    Owned(B),
-}
-```
-
-Then let’s look at the real version of `Cow`:
-```rust
-enum Cow<'a, B>
-where
-    B: 'a + ToOwned + ?Sized,
-{
-    Borrowed(&'a B),
-    Owned(<B as ToOwned>::Owned),
-}
-```
-
-- the `'a` means that `Cow` **can** hold a reference;
-- the `ToOwned` means that `B` **must** be a type that can be turned into an owned type;
-- the `?Sized` means that `B` **might** be dynamically sized type;
+ - if the variant of `Cow` was already `Owned` then we **move ownership**;
+ - if the variant of `Cow` is `Borrowed`, then we **allocate** new memory;
 
 <br>
 
@@ -84,7 +74,8 @@ The `Cow` has some other methods, like `into_owned()` or `into_borrowed()`, so y
 
 <br>
 
-**Example**:
+# Example
+**Code**:
 ```rust
 use std::borrow::Cow;
 struct User<'a> {
@@ -129,5 +120,3 @@ Borrowed name, didn't need an allocation:
 Owned name because we needed an allocation:
  User3
 ```
-
-<br>
