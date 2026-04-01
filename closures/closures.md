@@ -126,9 +126,9 @@ Rust’s compiler automatically **determines** which `Fn*` **trait** to implemen
 
 In other words, what trait is implemented is decided by **what the closure does with the captured variable**:
 1. Compiler choose `impl Fn()` for those closures which
-  - **don't mutate** the captured variables **inside** closure; 
-  - **don't move** the captured variables **out** of the closure;
-  - **don't capture any variables** at all;
+   - **don't mutate** the captured variables **inside** closure;
+   - **don't move** the captured variables **out** of the closure;
+   - **don't capture any variables** at all;
 2. Compiler choose `impl FnMut()` for those closures which
    - **mutate at least 1 captured variable** but **don't move any of captured variables out** of the closure;
 3. Compiler choose `impl FnOnce()` for those closures which 
