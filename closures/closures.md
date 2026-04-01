@@ -1,25 +1,25 @@
 # Table of contents
 <!-- TOC -->
-* [Table of contents](#table-of-contents)
-* [Closures](#closures)
-  * [Syntax](#syntax)
-    * [Notation](#notation)
-    * [Closure with args](#closure-with-args)
-    * [Closure without args](#closure-without-args)
-    * [Compare to functions](#compare-to-functions)
-* [Closure traits and closure capture modes](#closure-traits-and-closure-capture-modes)
-* [Closure type](#closure-type)
-  * [impl Fn()](#impl-fn)
-  * [impl FnMut()](#impl-fnmut)
-  * [impl FnOnce()](#impl-fnonce)
-* [Returning closures](#returning-closures)
-* [`move` keyword](#move-keyword)
-    * [Example](#example)
-    * [Example](#example-1)
-* [How the compiler implements closures](#how-the-compiler-implements-closures)
-* [Another examples](#another-examples)
-    * [Function that accepts one closures](#function-that-accepts-one-closures)
-    * [Function that accepts two closures](#function-that-accepts-two-closures)
+- [Table of contents](#table-of-contents)
+- [Closures](#closures)
+  - [Syntax](#syntax)
+    - [Notation](#notation)
+    - [Closure with args](#closure-with-args)
+    - [Closure without args](#closure-without-args)
+    - [Compare to functions](#compare-to-functions)
+- [`|_|` in a closure](#_-in-a-closure)
+- [Types of closures](#types-of-closures)
+  - [The relationship between `FnOnce`, `FnMut`, and `Fn`](#the-relationship-between-fnonce-fnmut-and-fn)
+  - [Examples of how Rust infers type of closure](#examples-of-how-rust-infers-type-of-closure)
+- [Closure type](#closure-type)
+- [Returning closures](#returning-closures)
+- [`move` keyword](#move-keyword)
+    - [Example](#example)
+    - [Example](#example-1)
+- [How the compiler implements closures](#how-the-compiler-implements-closures)
+- [Another examples](#another-examples)
+    - [Function that accepts one closures](#function-that-accepts-one-closures)
+    - [Function that accepts two closures](#function-that-accepts-two-closures)
 <!-- TOC -->
 
 <br>
@@ -86,11 +86,18 @@ fn addone (x: i64) -> i64 { 1 + x }
 
 <br>
 
-# Closure traits and closure capture modes
-There are **3 capture modes**:
-- by **taking ownership**;
-- by **mutable borrowing**;
-- by **immutable borrowing**;
+# `|_|` in a closure
+The `|_|` in a closure means that the closure needs to take an argument, but you don't want to use it.<br>
+
+<br>
+
+# Types of closures
+A **closure** is just **sugar** for defining a *struct to contain the environment* (aka **closure's struct** or **closure object**) and *implementing one of the* `Fn*` *traits on it*.<br>
+
+A *closure* can **capture** variables in **3 ways** (**3 capture modes**):
+- **by value** (by **taking ownership**, **move**);
+- **by mutable reference** (**&mut**);
+- **by immutable reference** (**&**);
 
 <br>
 
@@ -104,16 +111,24 @@ There are **3 capture modes**:
 <br>
 
 > **Note**:<br>
-> `FnOnce` is **supertrait** for `FnMut`.<br>
-> `FnMut` is **supertrait** for `Fn`.
+> 1. Closure of `impl Fn()` type can be called **multiple times**, even in **parallel** on **multiple threads**.
+> 2. Closure of `impl FnMut()` type can be called **multiple times** but **not** in **parallel** on **multiple threads**.
+> 3. Closure of `impl FnOnce()` type can be called **only once** because after calling it the first time it **no longer owns the captured variable**.
 
 <br>
 
-What trait is implemented is decided by **what the closure does with the captured variable**:
+Rust’s compiler automatically **determines** which `Fn*` **trait** to implements based on **how captured variables are used inside the closure**:
+- `Fn` if *all* captured values ​​are for **read-only** access; 
+- `FnMut` if *at least one* captured value is **changed**;
+- `FnOnce` if *at least one* captured value is **moved out** or **dropped**;
+
+<br>
+
+In other words, what trait is implemented is decided by **what the closure does with the captured variable**:
 1. Compiler choose `impl Fn()` for those closures which
-  - **don't mutate** the captured variables **inside** closure; 
-  - **don't move** the captured variables **out** of the closure;
-  - **don't capture any variables** at all;
+   - **don't mutate** the captured variables **inside** closure;
+   - **don't move** the captured variables **out** of the closure;
+   - **don't capture any variables** at all;
 2. Compiler choose `impl FnMut()` for those closures which
    - **mutate at least 1 captured variable** but **don't move any of captured variables out** of the closure;
 3. Compiler choose `impl FnOnce()` for those closures which 
@@ -121,10 +136,154 @@ What trait is implemented is decided by **what the closure does with the capture
 
 <br>
 
-> **Note**:<br>
-> 1. Closure of `impl Fn()` type can be called **multiple times**, even in **parallel** on **multiple threads**.
-> 2. Closure of `impl FnMut()` type can be called **multiple times** but **not** in **parallel** on **multiple threads**.
-> 3. Closure of `impl FnOnce()` type can be called **only once** because after calling it the first time it **no longer owns the captured variable**.
+**Closure's struct** that **captures variables by value** looks like:
+```rust
+struct EnvOwn {
+    variable1: Type1,
+    variable2: Type2,
+}
+```
+
+<br>
+
+**Closure's struct** that **captures variables by reference** looks like:
+```rust
+struct EnvRef<'a> {
+    variable1: &'a Type1,
+    variable2: &'a mut Type2, // Note: if an `&mut` reference to `variable2` is used in the closure.
+}
+```
+
+<br>
+
+Take a look at the **signature** of the `call` method in the `Fn*` traits:
+- `FnOnce` -> `FnOnce::call_once(self, ...)`;
+- `Fn` -> `Fn::call(&self, ...)`;
+- `FnMut` -> `FnMut::call_mut(&mut self, ...)`;
+
+<br>
+
+The `self` is the *closure's struct* that contains **captured variables** from closure's **environment**.<br>
+
+<br>
+
+The `move` keword **moves variables** from the stack where the closure is defined into the *closure's struct*.<br>
+When invoked, `FnOnce` moves the **closure object** into the closure's call stack and thus consumes it. So, **closure can be used only once**.<br>
+Both `Fn` and `FnMut` put a reference to **closure object** on the call stack.<br>
+
+<br>
+
+## The relationship between `FnOnce`, `FnMut`, and `Fn`
+```rust
+pub trait FnOnce
+pub trait FnMut: FnOnce
+pub trait Fn: FnMut
+```
+
+`FnOnce` is a **supertrait** of `FnMut` and `FnMut` is a **supertrait** of `Fn`.<br>
+
+<br>
+
+To sum up:
+- `Fn` **must** implement `FnMut` and `FnOnce`;
+- `FnMut` **must** implement **only** `FnOnce`;
+- `FnOnce` **doesn’t need any** other traits to be implemented;
+
+<br>
+
+Note, **all closures implement** `FnOnce`.<br>
+
+<br>
+
+Also it means that:
+- if a **function takes** an `F: FnOnce()` as an argument `f`:
+  - it can accept **any closure** (`Fn`, `FnMut` or `FnOnce`) matching the signature;
+  - but it **can call** `f()` **only once**;
+```rust
+fn foo<F>(f: F)
+where
+    F: FnOnce(),
+{
+    f();
+    // f(); // ❌ ERROR: use of moved value: `f`
+}
+```
+- if a **function takes** an `F: FnMut()` as an argument `f`:
+  - it can **also** accept `Fn` closure matching the signature (because `Fn` implements `FnMut`);
+  - `FnMut` requires `mut` before argument `mut f`:
+```rust
+fn foo<F>(mut f: F)
+where
+    F: FnMut(),
+{
+    f();
+    f();
+}
+```
+- if a **function takes** an `F: Fn()` as an argument `f`: it **only** accepts `Fn`:
+```rust
+fn foo<F>(f: F)
+where
+    F: Fn(),
+{
+    f();
+    f();
+}
+```
+
+<br>
+
+Also it means that:
+- closure implementing `Fn` can be used **anywhere**;
+- closure implementing `FnMut` can be used where `FnOnce` or `FnMut` is expected;
+- closure implementing `FnOnce` can be used where **only** `FnOnce` is expected;
+
+<br>
+
+## Examples of how Rust infers type of closure
+**FnOnce** vs. **FnMut**:<br>
+![no_move_and_FnOnce](/img/fn_once_vs_fn_mut.png)
+
+<br>
+
+**Fn**:<br>
+![Fn](/img/Fn.png)
+
+<br>
+
+**FnMut**:<br>
+![FnMut](/img/FnMut.png)
+
+<br>
+
+**FnMut** - using `move` keyword:<br>
+![move_and_FnMut](/img/move_and_FnMut.png)
+
+<br>
+
+**FnOnce** - *drop*:<br>
+![FnOnce](/img/FnOnce.png)
+
+<br>
+
+**FnOnce** - *mutation* + *drop*:<br>
+![FnOnce_and_mutation](/img/FnOnce_and_mutation.png)
+
+<br>
+
+**FnOnce** - *transferring ownership out*:<br>
+![no_move_and_FnOnce](/img/no_move_and_FnOnce.png)
+
+<br>
+
+```rust
+fn do_something<F>(f: F)
+where
+    F: FnOnce(),
+{
+    f();
+}
+```
 
 <br>
 
@@ -187,54 +346,6 @@ fn main() {
     };
     println!("foo = {foo}");
     capture_foo();
-}
-```
-
-<br>
-
-
-## impl Fn()
-Closure `capture_foo` is of `impl Fn()` type:
-```rust
-fn main() {
-    let mut foo = "foo".to_string();
-    let mut capture_foo = || {
-        println!("foo = {foo}");
-    };
-    println!("foo = {foo}");
-    capture_foo();
-}
-```
-
-<br>
-
-## impl FnMut()
-Closure `capture_foo` is of `impl FnMut()` type:
-```rust
-fn main() {
-    let mut foo = "foo".to_string();
-    let mut capture_foo = || {
-        foo.push_str("bar");
-        println!("foo = {foo}");
-    };
-    // println!("foo = {foo}"); // ERROR: cannot borrow `foo` as immutable because it is also borrowed as mutable
-    capture_foo();
-}
-```
-
-<br>
-
-## impl FnOnce()
-Closure `capture_foo` is of `impl FnOnce()` type:
-```rust
-fn main() {
-    let foo = "foo".to_string();
-    let capture_foo = || {
-        println!("foo = {foo}");
-        drop(foo);
-    };
-    capture_foo();
-    // println!("foo = {foo}"); // ERROR: borrow of moved value: `foo`
 }
 ```
 

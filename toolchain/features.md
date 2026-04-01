@@ -1,7 +1,7 @@
 # Table of contents
 - [Table of contents](#table-of-contents)
 - [Features](#features)
-      - [Example](#example)
+  - [Example](#example)
   - [Ways to manage features](#ways-to-manage-features)
     - [Command-line flags to mange features](#command-line-flags-to-mange-features)
     - [Dependency declaration attributes to mange features](#dependency-declaration-attributes-to-mange-features)
@@ -31,6 +31,7 @@
 **Features** are defined in the `[features]` section of `Cargo.toml` file.<br>
 **Each feature** can either be **enabled** or **disabled**.
 
+<br>
 
 Properties of features:
 - Each *feature* specifies an **array** of **other features** or **optional dependencies** that it enables;
@@ -38,7 +39,9 @@ Properties of features:
 - Empty array means that feature does not enable any other features;
 - *By default*, **all features are disabled** unless **explicitly enabled** or **listed in default feature**.
 
-#### Example
+<br>
+
+## Example
 ```toml
 [features]
 bmp = []
@@ -46,6 +49,8 @@ png = []
 ico = ["bmp", "png"]
 foo = []
 ```
+
+<br>
 
 Then feature `foo` can be used to conditionally include **any item** in code, for instance, module `bar`:
 ```Rust
@@ -60,6 +65,8 @@ pub mod bar;
 - *Features* of **dependencies** are managed in the **dependency declaration**;
 - *Features* of **dependencies** are also managed in the `[features]` table,  the syntax is `feature_name = ["package-name/feature-name"]`.
 
+<br>
+
 ### Command-line flags to mange features
 |CLI flag|Description|
 |:---|:----------|
@@ -67,12 +74,16 @@ pub mod bar;
 |`--no-default-features`|**Disables default feature**|
 |`--all-features`|Activates all available features of all packages|
 
+<br>
+
 ### Dependency declaration attributes to mange features
 |Attribute|Description|
 |:--------|:----------|
 |`features=["foo", "bar"]`|Comma separated **list of features** to activate.|
 |`default-features=true/false`|**Enables** or **disables** **default feature** of dependency.|
 |`optional=true`|`optional=true` makes dependency **optional**. It means that such dependency **will not be compiled by default**.|
+
+<br>
 
 #### Example
 ```toml
@@ -82,10 +93,14 @@ foo2 = { version = "0.2", features=["baz2"], default-features = false }
 foo3 = { version = "0.3", optional = true }
 ```
 
+<br>
+
 ### `package-name/feature-name` in the `[features]` table
 
 *Features* of **dependencies** can also be enabled in the `[features]` table.<br>
 The syntax is `feature_name = ["package-name/feature-name"]`.
+
+<br>
 
 #### Example
 ```toml
@@ -102,6 +117,8 @@ baz = ["foo/bar"]
 There is special feature: **default feature**.<br>
 *By default*, **default feature** is **enbaled**.<br>
 
+<br>
+
 #### Example
 ```toml
 [features]
@@ -111,6 +128,8 @@ png = []
 ico = ["bmp", "png"]
 webp = []
 ```
+
+<br>
 
 #### Ways to disable **default feature** 
 - The `--no-default-features` *command-line flag* **disables** the **default feature** of **the package**.

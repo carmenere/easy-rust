@@ -2,12 +2,11 @@
 - [Table of contents](#table-of-contents)
 - [Attributes](#attributes)
   - [Inner attributes](#inner-attributes)
-      - [Example](#example)
   - [Outer attributes](#outer-attributes)
-      - [Example](#example-1)
+  - [Example](#example)
   - [Attributes arguments](#attributes-arguments)
-      - [Attributes without arguments](#attributes-without-arguments)
-      - [Attributes with arguments](#attributes-with-arguments)
+  - [Attributes without arguments](#attributes-without-arguments)
+  - [Attributes with arguments](#attributes-with-arguments)
   - [Kinds of attributes](#kinds-of-attributes)
 - [Built-in attributes](#built-in-attributes)
   - [Attr: `derive`](#attr-derive)
@@ -19,6 +18,11 @@
   - [Attr: `cfg`](#attr-cfg)
   - [Attr: `cfg_attr`](#attr-cfg_attr)
 - [The `cfg!` macro](#the-cfg-macro)
+- [Some attributes](#some-attributes)
+  - [Lints](#lints)
+  - [Derive](#derive)
+  - [Clone and Copy](#clone-and-copy)
+  - [`#[cfg()]`](#cfg)
 
 <br>
 
@@ -26,8 +30,7 @@
 Declaration of **any item** in a Rust can be decorated (annotated) with one or more **attribute**. <br>
 Each **attribute** contains **instructions for compiler**.<br>
 
-
-In Rust items are
+In Rust **items** are:
 - Functions
 - Types (structs, enums, unions, type aliases)
 - Traits
@@ -42,19 +45,21 @@ In Rust items are
 <br>
 
 There are 2 types of attributes:
-- **inner** attributes;
-- **outer** attributes.
+- an *attribute* with a `#` is called an **outer attribute** because it stands **outside** of the **item** that follows it and **affetcts** only this item;
+- an attribute with a `#!` is called an **inner attribute** because it **affects everything inside its file**
+  - an *inner attribute* **must** be placed **at the very top** of the *file* or *module* it is used in;
+  - to attach *attribute* **to whole crate** include **inner atribute** to the **root module**: `main.rs` or `lib.rs`.<br>
 
 <br>
 
-To attach attribute **to whole crate** include **inner atribute** to the **root module**: `main.rs` or `lib.rs`.
+Some **attributes** are *built into the language*, some are *used to derive traits* (like `#[derive(Debug)]`).<br>
 
 <br>
 
 ## Inner attributes
 **Inner** attributes apply to **all items** within the scope where attribute is declared.
 
-#### Example
+Example:
 ```Rust
 mod Bar {
     #![bar]
@@ -68,7 +73,7 @@ Here, the `#![bar]` attribute applies **to all items** inside module `Bar`.
 ## Outer attributes
 **Outer** attributes apply **only to 1 item** following the attribute.
 
-#### Example
+## Example
 ```Rust
 #[foo]
 struct Foo;
@@ -80,7 +85,7 @@ Here, the `#[foo]` attribute applies **only to the next item** `Foo`.
 ## Attributes arguments
 Some *attributes* **require arguments**, some *attributes* can be used **without arguments**.
 
-#### Attributes without arguments
+## Attributes without arguments
 ```Rust
 // A unit test
 #[test]
@@ -91,7 +96,7 @@ fn check() {
 
 <br>
 
-#### Attributes with arguments
+## Attributes with arguments
 ```Rust
 // A conditional compilation
 #[cfg(target_os = "linux")]
@@ -378,3 +383,88 @@ let machine_kind = if cfg!(unix) {
 
 println!("I'm running on a {} machine!", machine_kind);
 ```
+
+<br>
+
+# Some attributes
+## Lints
+- `#[warn(unused_variables)]`
+- `#[warn(dead_code)]`
+
+You can make the compiler be **quiet** in 2 ways:
+- by adding `_` **before** name of variable or name of type:
+  - `struct _Foo {}`
+- by using attributes:
+  - **unused types** (structs, enums, ...): `#![allow(dead_code)]`
+  - **unused identifiers**: `#![allow(unused_variables)]`
+  - **everything unused**: `#![allow(unused)]`
+
+<br>
+
+## Derive
+The `#[derive(TraitName)]` lets you derive some traits (that **can be** *automatically derived*) for structs and enums that you create.<br>
+Some, like `Display`, **can’t be** *automatically derived* because `Display` is *for human-readable display*, so **human must implement** it.<br>
+
+<br>
+
+## Clone and Copy
+The `Clone` and `Copy` are deriveable: `#[derive(Clone, Copy)]`.<br>
+You can make a struct `Copy` **if and only if** it *implements* `Clone` and **if all its fields** *implement* `Copy`.<br>
+
+<br>
+
+## `#[cfg()]`
+Examples:
+- `#[cfg(target_os = "windows")]` with that, you can tell the compiler to run the code only on specifi platform;
+- `#[cfg(test)]`
+- `#![no_std]` this attribute tells Rust not to bring in the standard library;
+- `#[non_exhaustive]` when placed above a type, lets the compiler know that it may have more variants or fields in the future;
+- `#[deprecated]` lets you mark an item, usually a function, as **deprecated** (not used anymore);
+  - this attribute won’t stop people from using the function, but it will **give** a **warning**;
+  - you can add a **note** inside the **deprecated attribute** to give some more information: `#[deprecated(note = "use function `bar` instead")]`;
+
+<br>
+
+**Example 1**:
+```rust
+#[deprecated]
+fn foo() {}
+
+fn main() {
+    foo();
+}
+```
+**Output**:
+```rust
+warning: use of deprecated function `foo`
+ --> chapter_03/src/main.rs:5:5
+  |
+5 |     foo();
+  |     ^^^
+  |
+  = note: `#[warn(deprecated)]` on by default
+
+warning: `chapter_03` (bin "chapter_03") generated 1 warning
+    Finished `release` profile [optimized] target(s) in 0.19s
+     Running `target/release/chapter_03`
+```
+
+<br>
+<br>
+
+**Example 2**:
+```rust
+#[deprecated(note = "use function `bar` instead")]
+fn foo() {}
+
+fn main() {
+    foo();
+}
+```
+**Output**:
+```rust
+warning: use of deprecated function `foo`: use function bar instead
+...
+```
+
+<br>

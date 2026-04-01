@@ -1,30 +1,31 @@
 # Table of contents
 <!-- TOC -->
-* [Table of contents](#table-of-contents)
-* [Traits](#traits)
-  * [`impl ... for ...`](#impl--for-)
-      * [Example](#example)
-  * [Returning traits](#returning-traits)
-    * [Example](#example-1)
-      * [Incorrect code](#incorrect-code)
-      * [Working version](#working-version)
-* [Associated items](#associated-items)
-  * [Associated functions and methods](#associated-functions-and-methods)
-  * [Associated types](#associated-types)
-  * [GATs](#gats)
-    * [Default type parameters](#default-type-parameters)
-    * [Operator Overloading](#operator-overloading)
-    * [Generics vs. Associated types](#generics-vs-associated-types)
-  * [Associated constants](#associated-constants)
-* [Blanket implementations](#blanket-implementations)
-  * [`T`, `&T` and `&mut T`](#t-t-and-mut-t)
-* [Specializations](#specializations)
-* [Fully qualified path](#fully-qualified-path)
-  * [Example](#example-2)
-  * [Errors E0790 and E0034](#errors-e0790-and-e0034)
-    * [Example1](#example1)
-    * [Example2: type inference](#example2-type-inference)
-* [Supertraits](#supertraits)
+- [Table of contents](#table-of-contents)
+- [Traits](#traits)
+  - [`impl ... for ...`](#impl--for-)
+      - [Example](#example)
+  - [Returning traits](#returning-traits)
+    - [Example](#example-1)
+      - [Incorrect code](#incorrect-code)
+      - [Working version](#working-version)
+- [Associated items](#associated-items)
+  - [Associated functions and methods](#associated-functions-and-methods)
+  - [Associated types](#associated-types)
+  - [GATs](#gats)
+    - [Default type parameters](#default-type-parameters)
+    - [Operator Overloading](#operator-overloading)
+    - [Generics vs. Associated types](#generics-vs-associated-types)
+  - [Associated constants](#associated-constants)
+- [Partial implementation](#partial-implementation)
+- [Blanket implementations](#blanket-implementations)
+  - [`T`, `&T` and `&mut T`](#t-t-and-mut-t)
+- [Specializations](#specializations)
+- [Fully qualified path](#fully-qualified-path)
+  - [Example](#example-2)
+  - [Errors E0790 and E0034](#errors-e0790-and-e0034)
+    - [Example1](#example1)
+    - [Example2: type inference](#example2-type-inference)
+- [Supertraits](#supertraits)
 <!-- TOC -->
 
 <br>
@@ -90,6 +91,48 @@ fn main() {
     r.say_hello();
 }
 ```
+
+<br>
+
+Rust uses a special syntax called **attributes** to automatically implement traits like `Debug` because they are so common.<br>
+```rust
+#[derive(Debug)]
+struct MyStruct {
+    number: usize,
+}
+```
+
+<br>
+
+But other traits are more difficult for the compiler to guess, so you **can’t** use `derive` to implement them. Those traits **need to be manually implemented** with the
+`impl` keyword. A good example is the `Add` trait (found at `std::ops::Add`), which is used to add two things. Any type that implements the `Add` trait can use the `+` operator to add.<br>
+
+<br>
+
+To make a *trait*, write `trait` and then create some methods for it.<br>
+You can **just** write the function **signature** when making a *trait* or provide **default implementation** of method which **can be overwritten further**.<br>
+*Traits* can be **empty**, aka **marker traits**:
+```rust
+trait X {}
+trait Y {}
+```
+
+So when you create a trait, you must think: *Which methods should I write? And which ones should the user write?*:
+- if you think **most users will use the methods the same way every time**, it makes sense for you to write a **default method** inside the trait;
+- but if you think that **users will use the methods differently every time**, write the **signature**;
+
+<br>
+
+We can pass `&self` inside methods, but we **can’t** do much with it. That’s because Rust **doesn’t** know what type is going to use it. For example, we **can't** access any field on the `self` inside **default implementation** of method.<br>
+
+But we can add *trait bounds* to the trait:
+```rust
+trait A: B {
+
+}
+```
+
+The above code means any type that implements `A` must implement `B` and it allows to call `B`'s methods on `self` in the **default implementations**.<br>
 
 <br>
 
@@ -256,6 +299,35 @@ pub trait Iterator<T> {
 <br>
 
 ## Associated constants
+
+<br>
+
+# Partial implementation
+Consider example:
+```rust
+impl<T: Copy> Cell<T> {
+    pub fn get(&self) -> T {
+        
+    }
+
+    pub fn update<F>(&self, f: F) -> T
+    where
+        F: FnOnce(T) -> T,
+    {
+
+    }
+}
+
+impl<T: Copy> Clone for Cell<T> {
+    fn clone(&self) -> Cell<T> {
+        Cell::new(self.get())
+    }
+}
+```
+
+<br>
+
+All methods `get`, `update` and `clone` **don’t exist if the inner type doesn’t implement** `Copy` because they are written in **separate** `impl` blocks that start with `impl<T: Copy>`, thus requiring `T` to be `Copy` to be used.<br>
 
 <br>
 

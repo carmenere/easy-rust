@@ -1,13 +1,13 @@
 # Table of contents
 <!-- TOC -->
-* [Table of contents](#table-of-contents)
-* [Slice type](#slice-type)
-  * [Slice notation](#slice-notation)
-  * [Slice rules](#slice-rules)
-  * [String slice](#string-slice)
-  * [`impl str`](#impl-str)
-  * [String slice as type of function parameter](#string-slice-as-type-of-function-parameter)
-  * [Get last element of dynamically growing collection](#get-last-element-of-dynamically-growing-collection)
+- [Table of contents](#table-of-contents)
+- [Slice type](#slice-type)
+  - [Slice notation](#slice-notation)
+  - [Slice rules](#slice-rules)
+  - [String slice](#string-slice)
+  - [`impl str`](#impl-str)
+  - [String slice as type of function parameter](#string-slice-as-type-of-function-parameter)
+  - [Get last element of dynamically growing collection](#get-last-element-of-dynamically-growing-collection)
 <!-- TOC -->
 
 <br>

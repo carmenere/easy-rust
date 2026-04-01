@@ -1,12 +1,14 @@
 # Table of contents
 <!-- TOC -->
-* [Table of contents](#table-of-contents)
-* [URLs](#urls)
-* [Declaration](#declaration)
-* [In a nutshell](#in-a-nutshell)
-* [Box memory layout](#box-memory-layout)
-* [Examples](#examples)
-  * [Custom implementation of Box](#custom-implementation-of-box)
+- [Table of contents](#table-of-contents)
+- [URLs](#urls)
+- [Intro example](#intro-example)
+  - [Example: recursive struct](#example-recursive-struct)
+- [Declaration](#declaration)
+- [Box memory layout](#box-memory-layout)
+- [In a nutshell](#in-a-nutshell)
+- [Examples](#examples)
+  - [Custom implementation of Box](#custom-implementation-of-box)
 <!-- TOC -->
 
 <br>
@@ -15,6 +17,79 @@
 |Smart pointer|URL|
 |:----|:------------|
 |`Box`|[**std::boxed::Box**](https://doc.rust-lang.org/stable/std/boxed/struct.Box.html)|
+
+<br>
+
+# Intro example
+When you use a `Box`, you can put a variable’s data on the **heap** instead of the stack.<br>
+The `Box` **owns its data**.<br>
+You can use `*` on a `Box` to **get to the value**, just like with `&`:
+```rust
+fn main() {
+    let my_box = Box::new(1);
+    let an_integer = *my_box;
+}
+```
+
+<br>
+
+## Example: recursive struct
+You can also use a `Box` to create a **recursive struct**.<br>
+
+Consider example:
+```rust
+struct Foo {
+    next: Option<Foo>
+}
+
+fn main() {
+    let x = Foo {
+        next: Some(Foo {
+            next: Some(Foo { next: None }),
+        }),
+    };
+}
+```
+
+**Output**:
+```rust
+error[E0072]: recursive type `Foo` has infinite size
+ --> chapter_03/src/main.rs:1:1
+  |
+1 | struct Foo {
+  | ^^^^^^^^^^
+2 |     next: Option<Foo>
+  |                  --- recursive without indirection
+  |
+help: insert some indirection (e.g., a `Box`, `Rc`, or `&`) to break the cycle
+  |
+2 |     next: Option<Box<Foo>>
+  |                  ++++   +
+```
+
+<br>
+
+**Fix**:
+```rust
+#[derive(Debug)]
+struct Foo {
+    next: Option<Box<Foo>>
+}
+
+fn main() {
+    let x = Foo {
+        next: Some(Box::new(Foo {
+            next: Some(Box::new(Foo { next: None })),
+        })),
+    };
+    println!("{:?}", x);
+}
+```
+
+**Output**:
+```rust
+Foo { next: Some(Foo { next: Some(Foo { next: None }) }) }
+```
 
 <br>
 

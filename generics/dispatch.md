@@ -23,6 +23,11 @@ There are two forms of dispatch:
 
 <br>
 
+**Static dispatch** happens when the compiler turns a **generic type** into a **concrete type** at compile time.<br>
+**Dynamic dispatch** happens when a **concrete type** is being chosen at run time.<br>
+
+<br>
+
 ## Monomorphization
 **Static dispatch** is used for **generics** and is called **monomorphization**.<br>
 
@@ -69,6 +74,12 @@ There 2 approaches to implement **dynamic dispatch** for **subtyping polymorphis
 <br>
 
 ### vtable
+Consider trait `Foo`, then `dyn Foo` is a **trait object** and it is **unsized** and it can **only** be used **behind reference**, for example inside `Box`: `Box<dyn Foo>`.<br>
+
+A **trait object** represents some type that implements a trait but **doesn't show** you what the *concrete type* is. In other words, **you have access to** the *type’s implementation* of a trait but **not** the *concrete type* itself. **Not knowing** the *concrete type* is called **type erasure** because the *concrete type* is **erased**.<br>
+
+<br>
+
 Compiler creates **vtable** for every type that has at least one virtual method at compile time.<br>
 Compiler sets fixed offset in vtable for every virtual method of this class.<br>
 

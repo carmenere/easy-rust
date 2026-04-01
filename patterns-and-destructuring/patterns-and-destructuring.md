@@ -400,6 +400,7 @@ match v[..] {
 # Destructuring
 *Patterns* can be used to **destructure** *complex types*: *structs*, *enums*, *tuples*, *unions*.<br>
 **Destructuring** breaks up a *expression*/*value* of complex type into its **constituents**.<br>
+In other words, **destructuring** allows **extract** the **inner value** from some value.<br>
 The syntax used in a *pattern* that **destructures** an object is analogous to one used by the expression which **created** it.<br>
 In other words, *destructuring* **unpacks** the value is being matched against *into its constituent values*. Such *unpacked values* can be assigned to variables, this is called **pattern binding**.<br>
 

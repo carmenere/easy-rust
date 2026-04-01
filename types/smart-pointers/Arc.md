@@ -1,12 +1,13 @@
 # Table of contents
 <!-- TOC -->
-* [Table of contents](#table-of-contents)
-* [URLs](#urls)
-* [Declarations](#declarations)
-  * [`ArcInner<T>`](#arcinnert)
-  * [`Arc<T>`](#arct)
-* [Arc memory layout](#arc-memory-layout)
-* [In a nutshell](#in-a-nutshell)
+- [Table of contents](#table-of-contents)
+- [URLs](#urls)
+- [Intro example](#intro-example)
+- [Declarations](#declarations)
+  - [`ArcInner<T>`](#arcinnert)
+  - [`Arc<T>`](#arct)
+- [Arc memory layout](#arc-memory-layout)
+- [In a nutshell](#in-a-nutshell)
 <!-- TOC -->
 
 <br>
@@ -15,6 +16,33 @@
 |Smart pointer|URL|
 |:----|:------------|
 |`Arc`|[**std::sync::Arc**](https://doc.rust-lang.org/stable/std/sync/struct.Arc.html)|
+
+<br>
+
+# Intro example
+We use an `Rc` to give a variable **more than one owner**. If we are doing the **same thing** in a **thread**, we need an `Arc`.<br>
+`Arc` stands for **atomic reference counter**. **Atomic** means that it uses **atomic operations**.<br>
+You **can’t** change data with just an `Arc`, though — it’s **just a reference counter**. You must wrap the data in a `Mutex`, and then you wrap the `Mutex` in an `Arc`: `Arc<Mutex<T>>`.<br>
+
+**Example**:
+```rust
+use std::sync::{Arc, Mutex};
+
+fn main() {
+    let my_number = Arc::new(Mutex::new(0));
+    let mut threads = vec![];
+    for _ in 0..2 {
+        let my_number = Arc::clone(&my_number);
+        threads.push(std::thread::spawn(move || {
+            for _ in 0..10 {
+                *my_number.lock().unwrap() += 1;
+            }
+        }));
+    }
+    threads.into_iter().for_each(|h| h.join().unwrap());
+    println!("Value is: {my_number:?}");
+}
+```
 
 <br>
 

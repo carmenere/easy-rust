@@ -1,11 +1,11 @@
 # Table of contents
 <!-- TOC -->
-* [Table of contents](#table-of-contents)
-* [Version resolution](#version-resolution)
-* [Coherence](#coherence)
-    * [Example: hash table problem](#example-hash-table-problem)
-  * [Orphan rule](#orphan-rule)
-  * [Overlapping rule](#overlapping-rule)
+- [Table of contents](#table-of-contents)
+- [Version resolution](#version-resolution)
+- [Coherence](#coherence)
+    - [Example: hash table problem](#example-hash-table-problem)
+  - [Orphan rule](#orphan-rule)
+  - [Overlapping rule](#overlapping-rule)
 <!-- TOC -->
 
 <br>
@@ -61,10 +61,11 @@ This 2 modules will calculate **different** values for **the same key**!<br>
 In Rust, **trait coherence** is the property that there is **at most one implementation** of a trait for **any given type**.
 
 Rust enforces **trait coherence** through **2 rules**:
-- The **overlap rule** forbids you have two `impl` of **the same trait** for **the same type**;
-- The **orphan rule** forbids you have an `impl` where both **the trait** and **the type** are defined in a **different crate**;
-
-For example, `impl<T: Debug> for T` overlaps with `impl<T: Display> for T` because some types might implement both `Debug` and `Display`, so you can't write both.
+- the **overlap rule** forbids you have two `impl` of **the same trait** for **the same type**;
+- the **orphan rule** forbids you have an `impl` where both **the trait** and **the type** are defined in a **different crate**, in other words:
+  - you **can** implement **your** *trait* on **someone else’s** *type*;
+  - you **can** implement **someone else’s** *trait* on **your** *type*;
+  - **however**, you **can’t** implement **someone else’s** *trait* on **someone else’s** *type*;
 
 <br>
 
@@ -72,6 +73,11 @@ For example, `impl<T: Debug> for T` overlaps with `impl<T: Display> for T` becau
 **Rule**: `impl SomeTrait for SomeType` is valid if:
 - `SomeTrait` is from current crate **OR** `SomeType` is from current crate;
 - Few edge cases (see **RFC 1023**).
+
+<br>
+
+The best way to **get around** the *orphan rule* is to **wrap** *someone else’s type* in a **tuple struct**, thereby creating an entirely **new type**.<br>
+This is called the **newtype pattern**.<br>
 
 <br>
 
@@ -109,6 +115,7 @@ error: could not compile `playrs` due to previous error
 
 ## Overlapping rule
 **Rule**: you can never have two overlapping ``impl`` of **the same trait** for **the same type**.<br>
+For example, `impl<T: Debug> for T` overlaps with `impl<T: Display> for T` because some types might implement both `Debug` and `Display`, so you can't write both.<br>
 
 - This implementation will **not** compile, because `Vec<T>` and `Vec<i32>` overlap:
 ```Rust

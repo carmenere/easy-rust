@@ -138,6 +138,15 @@ The **value** for the `width` can also be provided as a `usize` in the **list of
 <br>
 
 ## Formatting traits
+Simple variables in Rust can be printed with `{}` inside `println!`. This is called *Display printing*.<br>
+But some variables won’t be able to use `{}` to print, and you need *Debug printing*.<br>
+
+- `{}` *Display printing*
+- `{:?}` *Debug printing*
+- `{:#?}` for *Debug pretty printing* (*Pretty* means easier to read)
+
+<br>
+
 Mapping between allowed values of `type` and **formatting traits**:
 - **no value** is specified ⇒ `Display` trait
 - `?` ⇒ `Debug` trait, it can be combined with others;
