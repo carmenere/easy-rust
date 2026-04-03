@@ -46,9 +46,9 @@ In Rust **items** are:
 
 There are 2 types of attributes:
 - an *attribute* with a `#` is called an **outer attribute** because it stands **outside** of the **item** that follows it and **affetcts** only this item;
-- an attribute with a `#!` is called an **inner attribute** because it **affects everything inside its file**
+- an attribute with a `#!` is called an **inner attribute** because it **affects everything inside its file**:
   - an *inner attribute* **must** be placed **at the very top** of the *file* or *module* it is used in;
-  - to attach *attribute* **to whole crate** include **inner atribute** to the **root module**: `main.rs` or `lib.rs`.<br>
+  - to attach *attribute* **to whole crate** include **inner atribute** to the **root module**: `main.rs` or `lib.rs`;
 
 <br>
 

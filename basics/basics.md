@@ -78,7 +78,10 @@ You need to write *line comments* (`//`, `//!`, `///`) for every line.<br>
 
 <br>
 
-The *doc comments* can be automatically made into documentation for your code. The *doc comments* support **Markdown** notation.<br>
+The *doc comments* can be automatically made into documentation for your code. The *doc comments* support **CommonMark**.<br>
+**CommonMark** and **Markdown** are essentially the same language, but *CommonMark* is a **specification** of **Markdown**, i.e. it is a **standardized**, **unambiguous version** of the original *Markdown*.<br>
+
+<br>
 
 Commonly used **sections** in *doc comments*:
 - `# Examples`;

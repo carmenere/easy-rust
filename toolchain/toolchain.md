@@ -30,9 +30,9 @@
 <br>
 
 # Release channel
-Every *toolchain* has a **toolchain specification** (aka r**elease channel**). 
+Every *toolchain* has a **toolchain specification** (aka **release channel** or just **toolchain**). <br>
 
-A **toolchain specification** has the general format: `<channel-name>`\[-`<date>`\]\[-`<target-triple>`\], where:
+A **toolchain** has the general format: `<channel-name>`\[-`<date>`\]\[-`<target-triple>`\], where:
 - `<channel-name>` = `stable`|`beta`|`nightly`|`<major.minor>`|`<major.minor.patch>`
 - `<date>` = `YYYY`-`MM`-`DD`
 - `<target-triple>` = `<arch>`[`<sub>`]-`<vendor>`-`<sys>`[-`<abi>`], where:

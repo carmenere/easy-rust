@@ -93,7 +93,7 @@ The **calling convention** specifies:
 
 use std::io;
 
-#[link(name = "C")]
+#[link(name = "C")] // Instructs rustc that these functions belong to the external library with name C
 extern "C" {
     fn write(fd: u32, buf: *const u8, count: usize) -> i32;
 }

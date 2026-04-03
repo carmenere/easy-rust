@@ -7,6 +7,11 @@
 <br>
 
 # Manage dependencies
+**Upstream dependencies** any crates (from **outside** your project) that **your crate depends on**.<br>
+**Downstream dependencies** any crates (from **outside** your project) that **depend on your crate**.<br>
+
+<br>
+
 There are 2 ways to manage external crates:
 - **add**/**del** it to/from `Cargo.toml` file in `[dependencies]` section;
 - using `cargo` command: `cargo add [options] dependency`

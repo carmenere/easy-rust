@@ -18,7 +18,7 @@
 time = "0.1.12"
 ```
 
-The string `0.1.12` is a **version requirement**. Although it looks like a specific version of the time crate, it actually specifies a **range of versions** (aka **compatibility range**) and allows SemVer compatible updates.<br>
+The string `0.1.12` is a **version requirement**. Although it looks like a specific version of the time crate, it actually specifies a **range of versions** (aka **compatibility range**) and allows *SemVer* compatible updates.<br>
 
 Cargo uses **SemVer** (`major`.`minor`.`patch`) for specifying version numbers. **Versions** are considered **compatible** if their **left-most non-zero component**  is the **same**. This convention also applies to versions with **leading zeros**.<br>
 For example:
@@ -38,12 +38,19 @@ The **version requirement syntax**:
     - `"~1.2.3"`, its appropriate **compatibility range** is `[1.2.0, 1.3.0)`;
     - `"~1.2"`, its appropriate **compatibility range** is `[1.2.0, 1.3.0)`;
     - `"~1"`, its appropriate **compatibility range** is `[1.0.0, 2.0.0)`;
+    - `"~0.2"`, its appropriate **compatibility range** is `[0.2.0, 0.3)`;
 - **wildcard requirement** allows for any version where the wildcard `*` is positioned;
   - example: `"1.*"`, its appropriate **compatibility range** is `[1.0.0, 2.0.0)`;
-- **equal requirement** specifies exact version only;
+- **comparison** allows comparison operators: `<`, `>`, `=`, `<=`, `>=`;
   - example: `"=1.2.3"`, its appropriate **compatibility range** is `[1.2.3, 1.2.3]`;
+  - **equal requirement** specifies **exact version** only;
+    - example: `">=1.2.3"`, its appropriate **compatibility range** is `[1.2.3, +∞)`;
 - **compound requirement** allows multiple version requirements separated with a comma:
   - example: `">=1.2, <1.5"`, its appropriate **compatibility range** is `[1.2.0, 1.5.0)`;
+
+<br>
+
+Only the *equal requirement* **prohibit** updates.<br>
 
 <br>
 
