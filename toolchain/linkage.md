@@ -87,9 +87,7 @@ This states that the package links to the `libfoo` **native library**.<br>
 <br>
 
 ## Static and dynamic C runtimes
-All targets in the compiler have a **default mode** of **linking** to the **C runtime library**. Here, **C runtime library** means **not** only **CRT**, but also **implementation** of *C standard library*, for eample, **glibc** or **musl**. Typically targets are linked **dynamically** by default, e.g. `aarch64-apple-darwin` or `x86_64-unknown-linux-gnu`. But there are **exceptions** which are linked **statically** by default, e.g. `x86_64-unknown-linux-musl`.<br>
-
-<br>
+All targets in the compiler have a **default mode** of **linking** to the **C runtime library**. Here, **C runtime library** means **not** only **CRT**, but also **implementation** of *C standard library*, for eample, **glibc** or **musl**. Typically targets are linked **dynamically** *by default*, e.g. `aarch64-apple-darwin` or `x86_64-unknown-linux-gnu`. But there are **exceptions** which are linked **statically** *by default*, e.g. `x86_64-unknown-linux-musl`. To **explicitly disable static linking**, use `-C target-feature=-crt-static`.<br>
 
 The `crt-static` **feature** of `target-feature` **codegen option** configure **linkage** of the **C runtime library**:
 - `-C target-feature=+crt-static` instructs the Rust compiler to **statically** link to **C runtime library**;

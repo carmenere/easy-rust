@@ -7,6 +7,7 @@
 - [Packages and Crates](#packages-and-crates)
   - [The `Cargo.toml` layout](#the-cargotoml-layout)
   - [Platform-specific dependencies](#platform-specific-dependencies)
+  - [The `[patch]` section settings](#the-patch-section-settings)
   - [The `[package]` section settings](#the-package-section-settings)
   - [The `include`/`exclude` keys](#the-includeexclude-keys)
   - [The \[lints\] section](#the-lints-section)
@@ -129,7 +130,7 @@ Cargo uses the **automatic target discovery** by default. *Automatic target disc
 <br>
 
 # Packages and Crates
-A **package** is a *collection* of **crates**. *Package* is a **project**, but every Rust project is also called a **crate**.<br>
+A **package** is a *collection* of **crates**. *Package* is a **project**, but in the Rust community, **packages** are also called **crates**.<br>
 
 Every **package** has `Cargo.toml` file. The `Cargo.toml` file for each package is called its **manifest**. <br>
 **Directory** with `Cargo.toml` file is called **package root**.<br>
@@ -154,6 +155,7 @@ Every `Cargo.toml` file consists of the following **sections**:<br>
 |`[profile.*]`|Compiler settings and optimizations.|
 |`[target.*.dependencies]`|**Platform-specific** dependencies.|
 |`[workspace]`|Workspace settings.|
+|`[patch]`|Can be used to override dependencies|
 
 <br>
 
@@ -163,6 +165,21 @@ Example of specifying **platform-specific dependencies**:
 [target.'cfg(target_os = "linux")'.dependencies]
 conntrack = { workspace = true }
 ```
+
+<br>
+
+## The `[patch]` section settings
+**Upstream dependencies** any crates (from **outside** your project) that **your crate depends on**.<br>
+**Downstream dependencies** any crates (from **outside** your project) that **depend on your crate**.<br>
+
+Sometimes, you need to patch **dependencies of dependencies**. Consider example:
+```toml
+[patch.crates-io]
+libc = { git = "https://github.com/rust-lang/libc", tag = "0.2.88" }
+```
+
+In the above example we replace **all** *upstream dependencies* for `libc` with your own version.<br>
+**Note**, it **does not affect** *downstream dependencies*, meaning any crates that depend on your crate won’t inherit the patch.<br>
 
 <br>
 
@@ -416,7 +433,15 @@ A **workspace** is a collection of **packages**, called **workspace members**, t
 If the `[workspace]` section is added to a `Cargo.toml` that already defines a `[package]`, the package is the **root package** of the **workspace**.<br>
 Alternatively, a `Cargo.toml` file can be created with a `[workspace]` section but **without** a `[package]` section. This is called a **virtual manifest**.<br>
 
-The **workspace root** is the directory where the workspace’s C`argo.toml` is located.<br>
+The **workspace root** is the directory where the workspace’s `Сargo.toml` is located.<br>
+
+<br>
+
+**Each project** within a workspace **shares** the following:
+-  a **top-level** `Cargo.lock` file;
+-  the `target/` output directory, containing project targets from **all packages**;
+-  `[patch]`, `[replace]`, and `[profile.*]` sections from the **top-level** `Cargo.toml`;
+
 
 <br>
 

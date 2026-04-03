@@ -22,7 +22,7 @@
   - [UTF-8](#utf-8-1)
     - [Accessing text as UTF-8](#accessing-text-as-utf-8)
     - [Producing text from UTF-8 data](#producing-text-from-utf-8-data)
-- [`std::ffi::OsStr`, `std::ffi::OsString`, `std::path::Path` and `std::path::PathBuf`](#stdffiosstr-stdffiosstring-stdpathpath-and-stdpathpathbuf)
+- [`std::ffi`, `std::path`, `CString`, `CStr`, `OsStr`, `OsString`, `Path` and `PathBuf`](#stdffi-stdpath-cstring-cstr-osstr-osstring-path-and-pathbuf)
 <!-- TOC -->
 
 <br>
@@ -520,18 +520,26 @@ There are **3 main ways** to convert non-textual values to strings:
 
 <br>
 
-# `std::ffi::OsStr`, `std::ffi::OsString`, `std::path::Path` and `std::path::PathBuf`
+# `std::ffi`, `std::path`, `CString`, `CStr`, `OsStr`, `OsString`, `Path` and `PathBuf`
 Inconveniently, your operating system does not force filenames to be valid Unicode.<br>
+
 This is why Rust has:
-- `std::ffi::OsStr`
-  - the `OsStr` is a string type that’s a superset of UTF-8;
+- [`std::ffi::CString`](https://doc.rust-lang.org/beta/std/ffi/struct.CString.html)
+  - owns a **heap-allocated**, **C-compatible**, **nul-terminated string** with **no** nul bytes in the middle;
+  - the `std::ffi::CString::new()` converts a Rust **UTF-8** string **into** an **ASCII C string**;
+- [`std::ffi::CStr`](https://doc.rust-lang.org/std/ffi/struct.CStr.html)
+  - represents a reference to a **borrowed** *nul-terminated array of bytes*;
+- [`std::ffi::OsStr`](https://doc.rust-lang.org/std/ffi/struct.OsStr.html)
   - its job is to be able to represent all filenames, command-line arguments, and environment variables on the current system, whether they’re valid Unicode or not;
-- `std::ffi::OsString` owns a **heap-allocated** `OsStr`;
+- [`std::ffi::OsString`](https://doc.rust-lang.org/std/ffi/struct.OsString.html)
+  - owns a **heap-allocated** `OsStr`;
   - `.to_os_string()`: **converts** `OsStr` **to** `OsString`;
-- `std::path::Path`
+- [`std::path::Path`](https://doc.rust-lang.org/std/path/struct.Path.html)
   - it is exactly like `OsStr`, but it adds many handy filename-related methods;
-- `std::path::PathBuf` owns a **heap-allocated** `Path`;
+- [`std::path::PathBuf`](https://doc.rust-lang.org/std/path/struct.PathBuf.html)
+  - owns a **heap-allocated** `Path`;
   - `.to_path_buf()`: **converts** `Path` **to** `PathBuf`;
+
 
 <br>
 

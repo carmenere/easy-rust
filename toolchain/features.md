@@ -34,10 +34,10 @@
 <br>
 
 Properties of features:
-- Each *feature* specifies an **array** of **other features** or **optional dependencies** that it enables;
-- If *feature* is enabled it in turn enables the listed features in array;
-- Empty array means that feature does not enable any other features;
-- *By default*, **all features are disabled** unless **explicitly enabled** or **listed in default feature**.
+- each *feature* specifies an **array** of **other features** or **optional dependencies** that it enables;
+- if *feature* is enabled it in turn enables the listed features in array;
+- empty array means that feature does not enable any other features;
+- *by default*, **all features are disabled** unless **explicitly enabled** or **listed in default feature**.
 
 <br>
 
@@ -52,10 +52,23 @@ foo = []
 
 <br>
 
-Then feature `foo` can be used to conditionally include **any item** in code, for instance, module `bar`:
+Then feature `foo` can be used to *conditionally* include **any item** in code, for instance, module `bar`:
 ```Rust
 #[cfg(feature = "foo")]
 pub mod bar;
+```
+
+<br>
+
+Or feature `foo` can be used to *conditionally* add **attribute**:
+```Rust
+use serde::Serialize;
+
+#[cfg_attr(
+  feature = "foo",
+  derive(Serialize)
+)]
+struct Foo;
 ```
 
 <br>
