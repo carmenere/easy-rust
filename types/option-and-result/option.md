@@ -209,8 +209,7 @@ assert_eq!(none_str.and(none_i32), none_i32);
 
 <br>
 
-All above methods treat the `Option` as a `boolean` value.<br>
-- The `and()` and `or()` methods take another `Option` as **input**, and produce an `Option` as **output**.<br>
-- The `and_then()` and `or_else()` methods take a function `f` as input, and only evaluate the function `f` when they need to produce a new value.
-  - Only the `and_then()` method can produce an `Option<U>` value having a different inner type `U` than `Option<T>`.
-
+All above methods treat the `Option` as a `boolean` value: `Some` is like **1** and `None` is like **0**:
+- the `and()` and `or()` methods take another `Option` as **input**, and produce an `Option` as **output**l;
+- the `and_then()` and `or_else()` methods take a function `f` as input, and only evaluate the function `f` when they need to produce a new value;
+- `and()` and `and_then()` methods can produce an `Option<U>` value having a different inner type `U` than `Option<T>`;
