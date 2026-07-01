@@ -7,11 +7,17 @@
   - [Predicates for checking the contained value](#predicates-for-checking-the-contained-value)
   - [Methods for working with references](#methods-for-working-with-references)
   - [Methods for extracting the contained value](#methods-for-extracting-the-contained-value)
+    - [Diagram](#diagram)
+    - [Examples](#examples)
+      - [`unwrap()`](#unwrap)
+      - [`expect()`](#expect)
   - [Methods for transforming the contained value](#methods-for-transforming-the-contained-value)
+    - [Diagram](#diagram-1)
     - [Transform `Option<T>` to `Result<T,E>`](#transform-optiont-to-resultte)
     - [Transform `Option<T>` to `Option<U>`:](#transform-optiont-to-optionu)
     - [Transform an `Option<T>` into a value of a **possibly** different type `U`:](#transform-an-optiont-into-a-value-of-a-possibly-different-type-u)
   - [Methods acting as `boolean` operators](#methods-acting-as-boolean-operators)
+    - [Diagram](#diagram-2)
 
 <br>
 
@@ -70,36 +76,58 @@ Here `val` is of type `Option<T>`, **after deconstructing**, `val` becomes of ty
 <br>
 
 ## Methods for extracting the contained value
-- [**unwrap()**](https://doc.rust-lang.org/std/option/enum.Option.html#method.unwrap):
-  - if the result is `Some(v)` returns **inner value** of type `T`;
-  - if the result is `None` **panics** with a **generic message**;
-- [**expect()**](https://doc.rust-lang.org/std/option/enum.Option.html#method.expect):
-  - if the result is `Some(v)` returns **inner value** of type `T`;
-  - if the result is `None` **panics** with a **custom message** provided by `msg`;
-- [**unwrap_or()**](https://doc.rust-lang.org/std/option/enum.Option.html#method.unwrap_or):
-  - if the result is `Some(v)` returns **inner value** of type `T`;
-  - if the result is `None` returns the **default value** of type `T` provided by `default`;
-- [**unwrap_or_else()**](https://doc.rust-lang.org/std/option/enum.Option.html#method.unwrap_or_else):
-  - if the result is `Some(v)` returns **inner value** of type `T`;
-  - if the result is `None` calls **closure** `f()` and returns **its result** of type `T`;
-- [**unwrap_or_default()**](https://doc.rust-lang.org/std/option/enum.Option.html#method.unwrap_or_default):
-  - if the result is `Some(v)` returns **inner value** of type `T`;
-  - if the result is `None` returns the **default value** tor type `T`. Type `T` must implement `Default` trait;
+### Diagram
+![Option-unwrap](/img/Option-unwrap.png)
+
+<br>
+
+**Methods**:
+- [**unwrap()**](https://doc.rust-lang.org/std/option/enum.Option.html#method.unwrap);
+- [**expect()**](https://doc.rust-lang.org/std/option/enum.Option.html#method.expect);
+- [**unwrap_or()**](https://doc.rust-lang.org/std/option/enum.Option.html#method.unwrap_or);
+- [**unwrap_or_else()**](https://doc.rust-lang.org/std/option/enum.Option.html#method.unwrap_or_else);
+- [**unwrap_or_default()**](https://doc.rust-lang.org/std/option/enum.Option.html#method.unwrap_or_default);
+
+<br>
+
+### Examples
+#### `unwrap()`
+```rust
+None::<i32>.unwrap();
+```
+
+**Output**:
+```bash
+thread 'main' (354353) panicked at src/main.rs:216:20:
+called `Option::unwrap()` on a `None` value
+```
+
+<br>
+
+#### `expect()`
+```rust
+None::<i32>.expect("some_message");
+```
+
+**Output**:
+```bash
+thread 'main' (354353) panicked at src/main.rs:216:20:
+some_message
+```
 
 <br>
 
 ## Methods for transforming the contained value
+### Diagram
+![Option-or-and-map](/img/Option-or-and-map.png)
+
+<br>
+
 ### Transform `Option<T>` to `Result<T,E>`
 - [**ok_or(err: E)**](https://doc.rust-lang.org/std/option/enum.Option.html#method.ok_or):
   - **transforms** `Option<T>` to `Result<T, E>`:
-    - `Some(v)` => `Ok(v)`;
-    - `None` => `Err(err)`, where `err` of type `E`.
-
 - [**ok_or_else(f)**](https://doc.rust-lang.org/std/option/enum.Option.html#method.ok_or_else):
   - **transforms** `Option<T>` to `Result<T, E>`:
-    - `Some(v)` => `Ok(v)`;
-    - `None` => `f()`, where `f()` returns value of type `E`.
-
 - [**transpose()**](https://doc.rust-lang.org/std/option/enum.Option.html#method.transpose):
   - **transposes** an `Option` of a `Result` into a `Result` of an `Option`: `Option<Result<T, E>>` to `Result<Option<T>, E>`
     - `None` => `Ok(None)`;
@@ -111,8 +139,6 @@ Here `val` is of type `Option<T>`, **after deconstructing**, `val` becomes of ty
 ### Transform `Option<T>` to `Option<U>`:
 - [**map(f)**](https://doc.rust-lang.org/std/option/enum.Option.html#method.map):
   - it **returns** `Option`;
-    - if the `self` is `None` it **returns** `None`;
-    - if the `self` is `Some(t)` it transforms `T` into `U` by applying the provided function `f` to the value `t: T` of the `Some` variant and **returns** `Some(u)`;
 - [**filter(p)**](https://doc.rust-lang.org/std/option/enum.Option.html#method.filter):
   - it **returns** `Option`;
     - if the `self` is `None` it **returns** `None`;
@@ -127,16 +153,54 @@ Here `val` is of type `Option<T>`, **after deconstructing**, `val` becomes of ty
 ### Transform an `Option<T>` into a value of a **possibly** different type `U`:
 - [**map_or(default: U, f)**](https://doc.rust-lang.org/std/option/enum.Option.html#method.map_or):
   - it **returns** **value** of type `U`;
-    - if the `self` is `Some(t)` it applies the provided function `f` to the value `t` of the `Some` variant, where `f(t)` **returns** `U`;
-    - if the `self` is `None` it returns the provided `default` value of type `U` by default;
 - [**map_or_else(d, f)**](https://doc.rust-lang.org/std/option/enum.Option.html#method.map_or_else):
   - it **returns** **value** of type `U`;
-    - if the `self` is `Some(t)` it applies the provided function `f` to the value `t` of the `Some` variant, where `f(t)` **returns** `U`;
-    - if the `self` is `None` it computes a **default** function `d()` and **returns** its result, where `d()` returns `U`;;
 
 <br>
 
 ## Methods acting as `boolean` operators
+### Diagram
+![Option-or-vs-and](/img/Option-or-vs-xor-vs-and.png)
+
+<br>
+
+**Example**:
+```rust
+let some_10: Option<i32> = Some(10);
+let some_20: Option<i32> = Some(20);
+let none_i32: Option<i32> = None;
+
+let some_a: Option<&'static str> = Some("A");
+let none_str: Option<&'static str> = None;
+
+// or
+assert_eq!(some_10.or(some_20), some_10);
+assert_eq!(some_10.or(none_i32), some_10);
+
+assert_eq!(none_i32.or(some_20), some_20);
+assert_eq!(none_i32.or(none_i32), none_i32);
+
+// xor
+assert_eq!(some_10.xor(none_i32), some_10);
+assert_eq!(none_i32.xor(some_20), some_20);
+
+assert_eq!(some_10.xor(some_20), none_i32);
+assert_eq!(none_i32.xor(none_i32), none_i32);
+
+// and
+assert_eq!(some_10.and(none_str), none_str);
+assert_eq!(some_10.and(some_a), some_a);
+
+assert_eq!(none_str.and(some_a), none_str);
+assert_eq!(none_str.and(none_str), none_str);
+
+// and: None cane be under different Option type
+assert_eq!(none_i32.and(none_str), none_str);
+assert_eq!(none_str.and(none_i32), none_i32);
+```
+
+<br>
+
 [**Boolean operators doc**](https://doc.rust-lang.org/std/option/index.html#boolean-operators):
 - [**and()**](https://doc.rust-lang.org/std/option/enum.Option.html#method.and);
 - [**or()**](https://doc.rust-lang.org/std/option/enum.Option.html#method.or);

@@ -9,11 +9,19 @@
   - [Predicates for checking the contained value](#predicates-for-checking-the-contained-value)
   - [Methods for working with references](#methods-for-working-with-references)
   - [Methods for extracting the contained value](#methods-for-extracting-the-contained-value)
+    - [Diagram](#diagram)
+    - [Examples](#examples)
+      - [`unwrap()`](#unwrap)
+      - [`expect()`](#expect)
+      - [`unwrap_err()`](#unwrap_err)
+      - [`expect_err()`](#expect_err)
   - [Methods for transforming the contained value](#methods-for-transforming-the-contained-value)
+    - [Diagram](#diagram-1)
     - [Transform `Result<T, E>` to `Option<E>` or `Option<T>`](#transform-resultt-e-to-optione-or-optiont)
     - [Transform `Result` to `Result`:](#transform-result-to-result)
     - [Transform an `Result<T, E>` into a value of a **possibly** different type `U`:](#transform-an-resultt-e-into-a-value-of-a-possibly-different-type-u)
-- [Methods acting as `boolean` operators](#methods-acting-as-boolean-operators)
+  - [Methods acting as `boolean` operators](#methods-acting-as-boolean-operators)
+    - [Diagram](#diagram-2)
 
 <br>
 
@@ -106,69 +114,146 @@ fn double_number(number_str: &str) -> Result<i32> {
 <br>
 
 ## Methods for extracting the contained value
-- [**unwrap()**](https://doc.rust-lang.org/std/result/enum.Result.html#method.unwrap):
-  - if the result is `Ok(v)` returns **inner value** `v` of type `T`;
-  - if the result is `Err(e)` **panics** with a **generic message**;
-- [**expect()**](https://doc.rust-lang.org/std/result/enum.Result.html#method.expect):
-  - if the result is `Ok(v)` returns **inner value** `v` of type `T`;
-  - if the result is `Err(e)` **panics** with a **custom message** provided by `msg`;
-- [**unwrap_or()**](https://doc.rust-lang.org/std/result/enum.Result.html#method.unwrap_or):
-  - if the result is `Ok(v)` returns **inner value** `v` of type `T`;
-  - if the result is `Err(e)` returns the **default value** of type `T` provided by `default`;
-- [**unwrap_or_else()**](https://doc.rust-lang.org/std/result/enum.Result.html#method.unwrap_or_else):
-  - if the result is `Ok(v)` returns **inner value** `v` of type `T`;
-  - if the result is `Err(e)` calls **closure** `f()` and returns **its result** of type `T`;
-- [**unwrap_or_default()**](https://doc.rust-lang.org/std/result/enum.Result.html#method.unwrap_or_default):
-  - if the result is `Ok(v)` returns **inner value** `v` of type `T`;
-  - if the result is `Err(e)` returns the **default value** tor type `T`. Type `T` must implement `Default` trait;
+### Diagram
+![Result-unwrap](/img/Result-unwrap.png)
+
+<br>
+
+**Methods**:
+- [**unwrap_err()**](https://doc.rust-lang.org/std/result/enum.Result.html#method.unwrap_err);
+- [**expect_err()**](https://doc.rust-lang.org/std/result/enum.Result.html#method.expect_err);
+- [**unwrap()**](https://doc.rust-lang.org/std/result/enum.Result.html#method.unwrap);
+- [**expect()**](https://doc.rust-lang.org/std/result/enum.Result.html#method.expect);
+- [**unwrap_or()**](https://doc.rust-lang.org/std/result/enum.Result.html#method.unwrap_or);
+- [**unwrap_or_else()**](https://doc.rust-lang.org/std/result/enum.Result.html#method.unwrap_or_else);
+- [**unwrap_or_default()**](https://doc.rust-lang.org/std/result/enum.Result.html#method.unwrap_or_default);
+
+<br>
+
+### Examples
+#### `unwrap()`
+```rust
+Err::<u32, u32>(1).unwrap();
+```
+
+**Output**:
+```bash
+thread 'main' (354353) panicked at src/main.rs:216:20:
+called `Result::unwrap()` on an `Err` value: 1
+```
+
+<br>
+
+#### `expect()`
+```rust
+Err::<u32, u32>(1).expect("some_message");
+```
+
+**Output**:
+```bash
+thread 'main' (354353) panicked at src/main.rs:216:20:
+some_message: 1
+```
+
+<br>
+
+#### `unwrap_err()`
+```rust
+Ok::<u32, u32>(1).unwrap_err();
+
+```
+
+**Output**:
+```bash
+thread 'main' (354353) panicked at src/main.rs:216:20:
+called `Result::unwrap_err()` on an `Ok` value: 1
+```
+
+<br>
+
+#### `expect_err()`
+```rust
+Ok::<u32, u32>(1).expect_err("some_message");
+```
+
+**Output**:
+```bash
+thread 'main' (354353) panicked at src/main.rs:216:20:
+some_message: 1
+```
 
 <br>
 
 ## Methods for transforming the contained value
+### Diagram
+![Result-or-and-map](/img/Result-or-and-map.png)
+
+<br>
+
 ### Transform `Result<T, E>` to `Option<E>` or `Option<T>`
 - [**err()**](https://doc.rust-lang.org/std/result/enum.Result.html#method.err):
   - transforms `Result<T, E>` into `Option<E>`
-    - `Err(e)` => `Some(e)`;
-    - `Ok(v)` => `None`;
 - [**ok()**](https://doc.rust-lang.org/std/result/enum.Result.html#method.ok):
   - transforms `Result<T, E>` into `Option<T>`
-    - `Ok(v)` => `Some(v)`;
-    - `Err(e)` => `None`;
 - [**transpose()**](https://doc.rust-lang.org/std/result/enum.Result.html#method.transpose):
   - transposes a `Result` of an `Option` into an `Option` of a `Result`: `Result<Option<T>, E>` => `Option<Result<T, E>>`:
     - `Ok(None)` => `None`;
     - `Ok(Some(v))` => `Some(Ok(v))`;
-    - `Err(e)` => `Some(Err(e))`.
+    - `Err(e)` => `Some(Err(e))`;
 
 <br>
 
 ### Transform `Result` to `Result`:
 - [**map(f)**](https://doc.rust-lang.org/std/result/enum.Result.html#method.map):
-  - transforms `Result<T, E>` into `Result<T2, E>`
-    - if the result is `Err(e)` it leaves the value `e` of the `Err` variant unchanged;
-    - if the result is `Ok(v)` it transforms `T` into `U` by applying the provided function `f` to the value `v` of the `Ok` variant.
+  - transforms `Result<T, E>` into `Result<T2, E>`;
 - [**map_err(f)**](https://doc.rust-lang.org/std/result/enum.Result.html#method.map_err):
-  - transforms `Result<T, E>` into `Result<T, E2>`
-    - if the result is `Ok(v)` it leaves the value `v` of the `Ok` variant unchanged;
-    - if the result is `Err(e)` it transforms `E` into `U` by applying the provided function `f` to the value e of the `Err` variant.
-
+  - transforms `Result<T, E>` into `Result<T, E2>`;
 
 <br>
 
 ### Transform an `Result<T, E>` into a value of a **possibly** different type `U`:
 - [**map_or(default, f)**](https://doc.rust-lang.org/std/result/enum.Result.html#method.map_or):
   - it **returns** **value** of type `U`;
-    - if the result is `Ok(v)` it applies the provided function `f` to the value `v` of the `Ok` variant;
-    - if the result is `Err(e)` it returns the provided **default value** by default.
 - [**map_or_else(d, f)**](https://doc.rust-lang.org/std/result/enum.Result.html#method.map_or_else):
   - it **returns** **value** of type `U`;
-    - if the result is `Ok(v)` it applies the provided function `f` to the value `v` of the `Ok` variant;
-    - if the result is `Err(e)` it applies the provided default fallback function `d` to the value `e` of the `Err` variant.
-
 
 <br>
 
-# Methods acting as `boolean` operators
+## Methods acting as `boolean` operators
+### Diagram
+![Result-or-vs-and](/img/Result-or-vs-and.png)
+
+<br>
+
+**Example**:
+```rust
+let ok_1_u32_str: Result<u32, &str> = Ok(1);
+let ok_1_u32_u8: Result<u32, u8> = Ok(1);
+let ok_2_u32_u8: Result<u32, u8> = Ok(2);
+let ok_a_str_str: Result<&str, &str> = Ok("A");
+
+let err_e1_u32_str: Result<u32, &str> = Err("e1");
+let err_e1_str_str: Result<&str, &str> = Err("e1");
+let err_e2_str_str: Result<&str, &str> = Err("e2");
+let err_2_u32_u8: Result<u32, u8> = Err(2);
+
+// or
+assert_eq!(ok_1_u32_str.or(ok_2_u32_u8), ok_1_u32_u8);
+assert_eq!(ok_1_u32_str.or(err_2_u32_u8), ok_1_u32_u8);
+
+assert_eq!(err_e1_u32_str.or(ok_2_u32_u8), ok_2_u32_u8);
+assert_eq!(err_e1_u32_str.or(err_2_u32_u8), err_2_u32_u8);
+
+// and
+assert_eq!(ok_1_u32_str.and(ok_a_str_str), ok_a_str_str);
+assert_eq!(ok_1_u32_str.and(err_e2_str_str), err_e2_str_str);
+
+assert_eq!(err_e1_u32_str.and(ok_a_str_str), err_e1_str_str);
+assert_eq!(err_e1_u32_str.and(err_e2_str_str), err_e1_str_str);
+```
+
+<br>
+
 [**Boolean operators doc**](https://doc.rust-lang.org/std/result/index.html#boolean-operators):
 - [**and()**](https://doc.rust-lang.org/std/result/enum.Result.html#method.and);
 - [**or()**](https://doc.rust-lang.org/std/result/enum.Result.html#method.or);
@@ -177,11 +262,6 @@ fn double_number(number_str: &str) -> Result<i32> {
 
 <br>
 
-All above methods treat the `Result` as a `boolean` value.
-- The `and()` and `or()` methods take another `Result` as **input**, and produce a `Result` as **output**.
-  - The `and` method can produce a `Result<U, E>` value having a different inner type `U` than `Result<T, E>`.
-  - The `or` method can produce a `Result<T, E2>` value having a different error type `E2` than `Result<T, E>`.
-- The `and_then()` and `or_else()` methods take a **function** `f` as **input**, and produce a **Result** as **output**.
-  - The `and_then()` method can produce a `Result<U, E>` value having a different inner type `U` than `Result<T, E>`.
-  - The `or_else()` method can produce a `Result<T, E2>` value having a different error type `E2` than `Result<T, E>`.
-
+All above methods treat the `Result` as a `boolean` value: `Ok` is like **1** and `Err` is like **0**:
+- the `and()` and `or()` methods take another `Result` as **input**, and produce a `Result` as **output**;
+- the `and_then()` and `or_else()` methods take a **function** `f` as **input**, and produce a **Result** as **output**;
