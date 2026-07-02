@@ -124,7 +124,7 @@ some_message
 
 <br>
 
-**Doc**:
+**Methods**:
 - **transforms** `Option<T>` to `Result<T, E>`:
   - [**ok_or(err: E)**](https://doc.rust-lang.org/std/option/enum.Option.html#method.ok_or);
   - [**ok_or_else(f)**](https://doc.rust-lang.org/std/option/enum.Option.html#method.ok_or_else);

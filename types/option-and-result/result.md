@@ -191,7 +191,7 @@ some_message: 1
 
 <br>
 
-**Doc**:
+**Methods**:
 - **transforms** `Result<T, E>` into `Option<T>`:
   - [**ok()**](https://doc.rust-lang.org/std/result/enum.Result.html#method.ok);
   - [**err()**](https://doc.rust-lang.org/std/result/enum.Result.html#method.err);
@@ -214,6 +214,8 @@ some_message: 1
     - `Ok(None)` => `None`;
     - `Ok(Some(v))` => `Some(Ok(v))`;
     - `Err(e)` => `Some(Err(e))`;
+- [**flatten()**](https://doc.rust-lang.org/std/result/enum.Result.html#method.flatten):
+  - converts from `Result<Result<T, E>, E>` to `Result<T, E>`;
 
 <br>
 
