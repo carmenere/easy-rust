@@ -162,10 +162,10 @@ some_message
 
 <br>
 
-Methods `and()`/`and_then()`/`or()`/`or_else()` treat the `Result<T,E>` as a `boolean` value: `Ok` is like **1** and `Err` is like **0**:
-- `and()` and `or()` methods take another `Result` as **input**, and produce a `Result` as **output**;
+Methods `and()`/`and_then()`/`or()`/`or_else()` treat the `Option<T>` as a `boolean` value: `Some` is like **1** and `None` is like **0**:
+- `and()` and `or()` methods take another `Option` as **input**, and produce a `Option` as **output**;
 - `and_then()` and `or_else()` methods take a **function** `f` as **input**, and produce a `Result` as **output**;
-- `and()` and `and_then()` methods can produce an `Option<U>` value having a different inner type `U` than `Option<T>`;
+- `and()` and `and_then()` methods can produce an `Option` with **different inner type** `U`: `Option<U>`;
 
 ### Diagram
 ![Option-or-vs-and](/img/Option-or-vs-xor-vs-and.png)

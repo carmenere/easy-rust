@@ -195,11 +195,11 @@ some_message: 1
 - **transforms** `Result<T, E>` into `Option<T>`:
   - [**ok()**](https://doc.rust-lang.org/std/result/enum.Result.html#method.ok);
   - [**err()**](https://doc.rust-lang.org/std/result/enum.Result.html#method.err);
-- **transforms** `Result<T, E1>` into `Result<T, E2>`:
+- **transforms** `Result<T, E>` into `Result<T, F>`:
   - [**or()**](https://doc.rust-lang.org/std/result/enum.Result.html#method.or);
   - [**or_else()**](https://doc.rust-lang.org/std/result/enum.Result.html#method.or_else);
   - [**map_err(f)**](https://doc.rust-lang.org/std/result/enum.Result.html#method.map_err);
-- **transforms** `Result<T1, E>` into `Result<T2, E>`:
+- **transforms** `Result<T, E>` into `Result<U, E>`:
   - [**and()**](https://doc.rust-lang.org/std/result/enum.Result.html#method.and);
   - [**and_then()**](https://doc.rust-lang.org/std/result/enum.Result.html#method.and_then);
   - [**map(f)**](https://doc.rust-lang.org/std/result/enum.Result.html#method.map);
@@ -224,7 +224,9 @@ some_message: 1
 
 Methods `and()`/`and_then()`/`or()`/`or_else()` treat the `Result` as a `boolean` value: `Ok` is like **1** and `Err` is like **0**:
 - `and()` and `or()` methods take another `Result` as **input**, and produce a `Result` as **output**;
-- `and_then()` and `or_else()` methods take a **function** `f` as **input**, and produce a **Result** as **output**;
+- `and_then()` and `or_else()` methods take a **function** `f` as **input**, and produce a `Result` as **output**;
+- `and()` and `and_then()` methods produce a `Result` with **different inner type** `U`: `Result<U,E>`;
+- `or()` and `or_else()` methods produce a `Result` with **different inner type** `F`: `Result<T,F>`;
 
 <br>
 
