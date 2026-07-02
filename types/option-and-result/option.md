@@ -13,9 +13,6 @@
       - [`expect()`](#expect)
   - [Methods for transforming the contained value](#methods-for-transforming-the-contained-value)
     - [Diagram](#diagram-1)
-    - [Transform `Option<T>` to `Result<T,E>`](#transform-optiont-to-resultte)
-    - [Transform `Option<T>` to `Option<U>`:](#transform-optiont-to-optionu)
-    - [Transform an `Option<T>` into a value of a **possibly** different type `U`:](#transform-an-optiont-into-a-value-of-a-possibly-different-type-u)
   - [Methods acting as `boolean` operators](#methods-acting-as-boolean-operators)
     - [Diagram](#diagram-2)
 
@@ -119,26 +116,36 @@ some_message
 
 ## Methods for transforming the contained value
 ### Diagram
+![Option-or-and-map](/img/Option-or-and-2.png)
+
+<br>
+
 ![Option-or-and-map](/img/Option-or-and-map.png)
 
 <br>
 
-### Transform `Option<T>` to `Result<T,E>`
-- [**ok_or(err: E)**](https://doc.rust-lang.org/std/option/enum.Option.html#method.ok_or):
-  - **transforms** `Option<T>` to `Result<T, E>`:
-- [**ok_or_else(f)**](https://doc.rust-lang.org/std/option/enum.Option.html#method.ok_or_else):
-  - **transforms** `Option<T>` to `Result<T, E>`:
+**Methods**:
+- **transforms** `Option<T>` to `Result<T, E>`:
+  - [**ok_or(err: E)**](https://doc.rust-lang.org/std/option/enum.Option.html#method.ok_or);
+  - [**ok_or_else(f)**](https://doc.rust-lang.org/std/option/enum.Option.html#method.ok_or_else);
+- **transforms** `Option<T>` to `Option<U>`:
+  - [**and()**](https://doc.rust-lang.org/std/option/enum.Option.html#method.and);
+  - [**and_then()**](https://doc.rust-lang.org/std/option/enum.Option.html#method.and_then);
+  - [**map(f)**](https://doc.rust-lang.org/std/option/enum.Option.html#method.map);
+- **transforms** `Option<T>` to `Option<T>`:
+  - [**or()**](https://doc.rust-lang.org/std/option/enum.Option.html#method.or);
+  - [**or_else()**](https://doc.rust-lang.org/std/option/enum.Option.html#method.or_else);
+- it **returns value** of type `U`:
+  - [**map_or(default: U, f)**](https://doc.rust-lang.org/std/option/enum.Option.html#method.map_or);
+  - [**map_or_else(d, f)**](https://doc.rust-lang.org/std/option/enum.Option.html#method.map_or_else);
+
+<br>
+
 - [**transpose()**](https://doc.rust-lang.org/std/option/enum.Option.html#method.transpose):
   - **transposes** an `Option` of a `Result` into a `Result` of an `Option`: `Option<Result<T, E>>` to `Result<Option<T>, E>`
     - `None` => `Ok(None)`;
     - `Some(Ok(v))` => `Ok(Some(v)) `;
-    - `Some(Err(e))` => `Err(e)`.
-
-<br>
-
-### Transform `Option<T>` to `Option<U>`:
-- [**map(f)**](https://doc.rust-lang.org/std/option/enum.Option.html#method.map):
-  - it **returns** `Option`;
+    - `Some(Err(e))` => `Err(e)`;
 - [**filter(p)**](https://doc.rust-lang.org/std/option/enum.Option.html#method.filter):
   - it **returns** `Option`;
     - if the `self` is `None` it **returns** `None`;
@@ -150,15 +157,16 @@ some_message
 
 <br>
 
-### Transform an `Option<T>` into a value of a **possibly** different type `U`:
-- [**map_or(default: U, f)**](https://doc.rust-lang.org/std/option/enum.Option.html#method.map_or):
-  - it **returns** **value** of type `U`;
-- [**map_or_else(d, f)**](https://doc.rust-lang.org/std/option/enum.Option.html#method.map_or_else):
-  - it **returns** **value** of type `U`;
+## Methods acting as `boolean` operators
+[**Boolean operators doc**](https://doc.rust-lang.org/std/option/index.html#boolean-operators).<br>
 
 <br>
 
-## Methods acting as `boolean` operators
+Methods `and()`/`and_then()`/`or()`/`or_else()` treat the `Option<T>` as a `boolean` value: `Some` is like **1** and `None` is like **0**:
+- `and()` and `or()` methods take another `Option` as **input**, and produce a `Option` as **output**;
+- `and_then()` and `or_else()` methods take a **function** `f` as **input**, and produce a `Option` as **output**;
+- `and()` and `and_then()` methods produce an `Option` with **different inner type** `U`: `Option<U>`;
+
 ### Diagram
 ![Option-or-vs-and](/img/Option-or-vs-xor-vs-and.png)
 
@@ -200,16 +208,3 @@ assert_eq!(none_str.and(none_i32), none_i32);
 ```
 
 <br>
-
-[**Boolean operators doc**](https://doc.rust-lang.org/std/option/index.html#boolean-operators):
-- [**and()**](https://doc.rust-lang.org/std/option/enum.Option.html#method.and);
-- [**or()**](https://doc.rust-lang.org/std/option/enum.Option.html#method.or);
-- [**and_then()**](https://doc.rust-lang.org/std/option/enum.Option.html#method.and_then);
-- [**or_else()**](https://doc.rust-lang.org/std/option/enum.Option.html#method.or_else);
-
-<br>
-
-All above methods treat the `Option` as a `boolean` value: `Some` is like **1** and `None` is like **0**:
-- the `and()` and `or()` methods take another `Option` as **input**, and produce an `Option` as **output**l;
-- the `and_then()` and `or_else()` methods take a function `f` as input, and only evaluate the function `f` when they need to produce a new value;
-- `and()` and `and_then()` methods can produce an `Option<U>` value having a different inner type `U` than `Option<T>`;
