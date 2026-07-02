@@ -186,6 +186,10 @@ some_message: 1
 
 ## Methods for transforming the contained value
 ### Diagram
+![Result-or-and-map](/img/Result-or-and-2.png)
+
+<br>
+
 ![Result-or-and-map](/img/Result-or-and-map.png)
 
 <br>

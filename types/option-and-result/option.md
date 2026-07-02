@@ -119,6 +119,10 @@ some_message
 
 ## Methods for transforming the contained value
 ### Diagram
+![Option-or-and-map](/img/Option-or-and-2.png)
+
+<br>
+
 ![Option-or-and-map](/img/Option-or-and-map.png)
 
 <br>
