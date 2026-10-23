@@ -8,6 +8,7 @@
   - [Inheriting a dependency from a workspace](#inheriting-a-dependency-from-a-workspace)
 - [Dependency resolution](#dependency-resolution)
   - [Dependency updates](#dependency-updates)
+- [SemVer trick](#semver-trick)
 
 <br>
 
@@ -133,3 +134,71 @@ One of Cargo’s primary tasks is to **determine the versions of dependencies to
 `cargo update` **without** any options updates **all packages** in the `Cargo.lock`. The `-p` **flag** can be used update for a **specific package**.
 
 <br>
+
+# SemVer trick
+Suppose some **crate** `X` has version **0.2.0** and exposes only `Foo` **type** and some **constant** `BAR` of type `i32`:
+```rust
+pub struct Foo;
+pub const BAR: i32 = 111;
+```
+
+The `Foo` type becomes **widely used**. After some time it is discovered that constant `BAR` should have been defined as `u32` rather than `i32`.<br>
+
+<br>
+
+Consider **fix**:
+```rust
+pub struct Foo;
+pub const BAR: u32 = 111;
+```
+
+<br>
+
+This fix is **breaking change**, because constant `BAR` has **new type**. This fix is published at **new major** version **0.3.0**.<br>
+Also, despite the fact that the definition of `Foo` **type** has **not** changed, technically the `Foo` from `X` **v0.2.0** and `Foo` from `X` **v0.3.0** are **different types**.<br>
+
+<br>
+
+Consider **dependency graph**: `A` -> `B` -> `X`: crate `A` depends on crate `B` which depends on `X`.<br>
+Consider `B` exposes in its *public API* function that has input parameter of type `X::Foo` and crate `A` uses this function.<br>
+Then crate `A` **cannot** upgrade its dependency `X` to **v0.3.0** until crate `B` has upgraded to `X` **v0.3.0**: if `A` **upgraded before** `B` then it pass `X::Foo` of **v0.3.0** to `B`'s function which **still** **expect** `X::Foo` of **v0.2.0**. It is **compile error**.<br>
+
+<br>
+
+First `B` must upgrade `X` to **v0.3.0** then release itself as a **new major version of** `B`, because its *public API* has changes in a **breaking way**.<br>
+Then `A` may upgrade to the **new version of** `B` and `X`.<br>
+
+<br>
+
+**For long dependency chain** this approach requires **coordinated upgrade** across its **downsream dependency** graph.<br>
+
+<br>
+
+**SemVer trick**:
+- breaking change is published as *new* **major** version **0.3.0** of crate `X`;
+- then *new* **minor** version **0.2.1** of crate is released;
+
+<br>
+
+This *new* **minor** version of crate **re-exports** API from **0.3.0**:
+- in **Cargo.toml**:
+```toml
+[package]
+name = "X"
+version = "0.2.1"
+
+[dependencies]
+X = "0.3.0"
+```
+- in **lib.rs**:
+```rust
+pub use X::Foo; // re-export from X of 0.3.0 version
+pub const BAR: u32 = 111;
+```
+
+<br>
+
+So, `Foo` from **0.2.1** and `Foo` from **0.3.0** are **precisely the same type**.<br>
+
+<br>
+

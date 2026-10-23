@@ -1,3 +1,76 @@
+# Table of contents
+- [Table of contents](#table-of-contents)
+- [Философия ЯП](#философия-яп)
+- [Рантйам языка программирования](#рантйам-языка-программирования)
+- [UB в Rust](#ub-в-rust)
+- [Скалярные типы](#скалярные-типы)
+  - [Целые числа](#целые-числа)
+  - [Литералы](#литералы)
+  - [Оператор `as`](#оператор-as)
+  - [Арифметика с переполнением](#арифметика-с-переполнением)
+  - [Floats](#floats)
+  - [Логический тип](#логический-тип)
+- [Составные типы](#составные-типы)
+  - [Кортежи](#кортежи)
+  - [Unit](#unit)
+  - [Массивы](#массивы)
+- [Vec](#vec)
+- [Ссылки и указатели](#ссылки-и-указатели)
+  - [Box](#box)
+- [Стек и куча](#стек-и-куча)
+- [Ownership](#ownership)
+- [Блоки](#блоки)
+- [if](#if)
+- [while](#while)
+- [break and continue](#break-and-continue)
+- [loop](#loop)
+- [for](#for)
+- [Lifetimes](#lifetimes)
+  - [Заморозка](#заморозка)
+- [New type pattern](#new-type-pattern)
+- [ZST](#zst)
+- [Виды структур](#виды-структур)
+- [DST](#dst)
+  - [Slice](#slice)
+- [Enums](#enums)
+- [Memory layout](#memory-layout)
+  - [Null pointer optimization](#null-pointer-optimization)
+- [Pattern matching](#pattern-matching)
+- [Трейты](#трейты)
+- [Return type polymorphism](#return-type-polymorphism)
+- [Monomorphization](#monomorphization)
+- [Inlining](#inlining)
+- [Статический полиморфизм vs. Динамический полиморфизм](#статический-полиморфизм-vs-динамический-полиморфизм)
+- [Fully qualified syntax](#fully-qualified-syntax)
+- [Where clause](#where-clause)
+- [Clone. Copy](#clone-copy)
+- [Derive](#derive)
+- [Eq, PartialEq](#eq-partialeq)
+- [Ord, PartialOrd](#ord-partialord)
+- [Hash. Hasher](#hash-hasher)
+- [Drop](#drop)
+  - [Drop check](#drop-check)
+- [`swap`, `replace`, `forget`, `take`](#swap-replace-forget-take)
+  - [Option.take()](#optiontake)
+- [Deref/DerefMut](#derefderefmut)
+- [`Index`/`IndexMut`](#indexindexmut)
+- [Итоговый пример - database shutdown](#итоговый-пример---database-shutdown)
+- [Модули](#модули)
+- [Модификаторы видимости](#модификаторы-видимости)
+- [use](#use)
+- [Реэкспорт](#реэкспорт)
+- [Cargo](#cargo)
+- [Прелюдия](#прелюдия)
+- [SemVer](#semver)
+- [Coherence](#coherence)
+- [ABI. FFI](#abi-ffi)
+  - [Виды линковки](#виды-линковки)
+  - [Позвать C код из Rust](#позвать-c-код-из-rust)
+- [Позвать Rust код из C](#позвать-rust-код-из-c)
+  - [Тулинг](#тулинг)
+
+<br>
+
 # Философия ЯП
 **Философия ЯП** - **набор фундаментальных идей**, лежащих в основе дизайна языка.<br>
 *Философия ЯП* **формирует мышление разработчика**.<br>
@@ -1705,11 +1778,241 @@ fn main() {
 
 <br>
 
-В **Cargo.toml** для либы было выбрано имя `w`, это имя **глобально доступно** в любом месте **binary** крейта. Это значит, что не нужно делать `mod w;` или `use w;`. Имя либы уже в скоупе **binary** крейта.
+В **Cargo.toml** для либы было выбрано имя `w`, это имя **глобально доступно** в любом месте **binary** крейта. Это значит, что не нужно делать `mod w;` или `use w;`. Имя либы уже в скоупе **binary** крейта.<br>
 Чтобы обратиться к items из либы, нужно использовать пути, начинающиеся с имени либы: `w::...`.<br>
 Имя либы можно поменять на `lib`, тогда к либе можно обращаться через `lib::`.<br>
-Если в **Cargo.toml** имя либы не указано явно, то в качестве имени либы используется имя пэкеджа, в примере выше это `foo`.
+Если в **Cargo.toml** имя либы не указано явно, то в качестве имени либы используется имя пэкеджа, в примере выше это `foo`.<br>
+
+<br>
+
+# Прелюдия
+По умолчанию, в начале каждого модуля неявно добавляется `use std::prelude::*` или `use core::prelude::*`.<br>
+Какой именно вариант использовать определяет атрибут `#![no_std]`, если он объявлен в **root module**, то используется `core::prelude::*`, если нет - `std::prelude::*`.<br>
+
+<br>
+
+Содержимое прелюдии - [**prelude**](https://doc.rust-lang.org/std/prelude/index.html).<br>
 
 <br>
 
 # SemVer
+**SemVer**: `Major.Minor.Patch`.<br>
+
+Если меняется что-то, что помечено как `pub`, то фактически **меняется public API**, а значит нужно бампать **major**.<br>
+Если часто меняется **pub API либы**, то приходится часто бампать **major**, т.к. **изменение pub API** - это **breaking change**.<br>
+Согласно **SemVer** - если часто меняется **pub API либы**, то нужно использовать **major = 0**: `0.0.X`.<br>
+**Major = 0** означает, что либа еще **не** стабилизировалась и в ней **часто** происходят **breaking changes**.<br>
+
+<br>
+
+С точки зрения **cargo**, `foo = 1.2.3` означает не конкретную версию, а **диапазон допустимых версий**. Согласно **SemVer** версии считаются совместимыми, если у них сопадает **самая левая цифра**. Во время первой сборки **cargo** првоерит какие доступны версии крейта `foo` и выберет **самую старшую**, которая **совместима** с `1.2.3`, например, `1.4.5` и сохранит ее в `Cargo.lock`. После чего обновить версию в `Cargo.lock` можно **только явно** через `cargo update`.<br>
+
+<br>
+
+# Coherence
+**Проблема**:
+- `foo.rs`
+```rust
+trait Foo { ... }
+struct S;
+```
+- `x.rs`
+```rust
+impl Foo for S { ... }
+```
+- `y.rs`
+```rust
+impl Foo for S { ... }
+```
+
+<br>
+
+**По отдельности** `x` и `y` использовать **можно**, но **вместе** - **нельзя**, т.к. **имплементация неоднозначна**.<br>
+
+<br>
+
+**Когерентность** достигается двумя правилами:
+- **Orphan rule**:
+  - если **trait** `Trait` определен в крейте `x`, а **type** `Type` определен в крейте `y`, то `impl Trait for Type` может быть либо в `x`, либо в `y`;
+- **Overlapping rule**:
+  - в любом крейте может быть **не более одной реализации** для пары (**type**, **trait**), **пересекающиеся реализации** также **не** **допустимы**;
+
+<br>
+
+Но есть один нюанс: **trait с дженериком** *из другого крейта* **после параметризации** становится *локальным типом текщего крейта*.<br>
+
+<br>
+
+**Пример**:
+```rust
+struct S;
+struct U32(u32);
+
+impl std::ops::Index<U32> for Vec<S> {
+    type Output = S;
+
+    fn index(&self, index: U32) -> &Self::Output {
+        todo!()
+    }
+}
+```
+
+<br>
+
+Данный код **скомпилируется**, потому что `Index<U32>` - это **локальный тип текущего крейта**, несмотря на то, что сам трейт `Index` определен в другом крейте `std`.<br>
+
+<br>
+
+# ABI. FFI
+The **System V ABI** (**Application Binary Interface**) is a set of specifications that defines:
+- calling conventions;
+- object file formats;
+- memory layout;
+- dynamic linking semantics;
+- system calls interface:
+
+<br>
+
+The **calling convention** specifies:
+- how **arguments** are passing to function;
+- how function **returns** its result;
+- how **registers** are used;
+- how **stack** is set up;
+
+<br>
+
+The **C calling convention** (aka **C declaration**, **cdecl**) is the most common one.<br>
+
+<br>
+
+## Виды линковки
+*Статическая* и *динамическая* линковки позволяют, используя только **header** файлы, получить **объектный файл**, в котором *адреса вызовов будут заполняться*:
+- **линковщиком** *во время линковки* - **статическая линковка**;
+  - **линковщик** вставляет объектный файл **статической либы** в объектный файл **бинаря** *во время линковки* и **подправляет** *адреса вызовов функций*;
+  - объектный файл **статической либы** обычно имеет расширение `.a`/`.lib`;
+- **загрузчиком** во время запуска - **динамическая линковка**:
+  - **загрузчик** добавляет объектный файл **динамической либы** в адресное пространство прцоесса **во время запуска** и **подправляет** *адреса вызовов функций*;
+  - объектный файл **динамической либы** обычно имеет расширение `.so`;
+
+<br>
+
+Есть еще **линковка времени выполнения** (**dlopen**) - она проиcходит уже **после загрузки** и передачи управления функции `main`.<br>
+
+<br>
+
+*Статическая* и *динамическая* линковки позволяют **скомпилировать либу один раз** из затем, используя только **headr'ы** для этой либы, **компилить** зависящие от нее объектные файлы **отдельно**. И по итогу собрать все в единый бинарь линковщиком, или подгружать динамические либы во время запуска.<br>
+
+<br>
+
+**По умолчанию** Rust **динамически** линкуется с **libc**. Чтобы получить **статически** слинкованный бинарь нужно использовать **musl-libc**.<br>
+
+<br>
+
+## Позвать C код из Rust
+**Файлы**:
+- **src/foo.c**:
+```C
+#include "stdint.h"
+
+int32_t add(int32_t x, int32_t y) {
+    return x + y;
+}
+```
+- **src/main.rs**:
+```rust
+unsafe extern "C" {
+    unsafe fn add (x: i32, y: i32) -> i32;
+}
+
+fn main() {
+    let r = unsafe {
+        add(62, 62)
+    };
+
+    println!("{}", r);
+}
+```
+
+<br>
+
+**Шаги**:
+- **компилим foo.c**
+```bash
+gcc -fPIC -shared -o target/libfoo.so src/foo.c
+```
+- `-fPIC -shared` - означает, что надо скомпилить **динамическую либу** `.so`;
+- `libfoo.so` имя либы должно иметь **префикс** `lib` и **расширение** `.so`;
+- **компилим main.rs**
+```bash
+rustc -l foo -L src src/main.rs
+```
+  - `-l foo` говорим `rustc`, что надо слинковать с либой `foo`;
+  - `-L src` указываем путь, где искать либу `foo`;
+- **добавляем в список путей** еще один путь, где искать `.so` файлы:
+  - **Linux**:
+    - `export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/Users/an.romanov/Projects/play/src"`
+  - **MacOS**:
+    - `export DYLD_LIBRARY_PATH="${DYLD_LIBRARY_PATH}:/Users/an.romanov/Projects/play/src"`
+- **запускаем бинарь**:
+```bash
+./main
+```
+
+<br>
+
+# Позвать Rust код из C
+**Файлы**:
+- **src/foo.rs**:
+```rust
+#[unsafe(no_mangle)]
+pub extern "C" fn add (x: i32, y: i32) -> i32 {
+    x + y
+}
+```
+- **src/main.c**:
+```c
+#include "stdint.h"
+#include "stdio.h"
+
+int32_t add(int32_t x, int32_t y);
+
+int main(void) {
+    int32_t r = add(42, 42);
+    printf("%d\n", (int)r);
+    return 0;
+}
+```
+
+<br>
+
+**Шаги**:
+- **компилим foo.rs**
+```bash
+rustc src/foo.rs --crate-type cdylib -o src/libfoo.dylib
+```
+- **компилим main.c**
+```bash
+gcc -l foo -L src -o main src/main.c
+```
+  - `-l foo` говорим `gcc`, что надо слинковать с либой `foo`;
+  - `-L src` указываем путь, где искать либу `foo`;
+- **добавляем в список путей** еще один путь, где искать `.so` файлы:
+  - **Linux**:
+    - `export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/Users/an.romanov/Projects/play/src"`
+  - **MacOS**:
+    - `export DYLD_LIBRARY_PATH="${DYLD_LIBRARY_PATH}:/Users/an.romanov/Projects/play/src"`
+- **запускаем бинарь**:
+```bash
+./main
+```
+
+<br>
+
+## Тулинг
+- `build.rs` - для сборки lib на C/C++;
+- `bindgen` - для генерации `extern "C"` блоков по .h файлам;
+- `cbindgen` - для генерации .h файлов из `extern "C" fn`;
+- крейт `libc` - обертка над `libc`;
+- экосистема безопасных оберток: **системный крейт** `libfoo-sys` содержит `extern "C"` для C кода + **основной крейт** `foo`;
+
+<br>

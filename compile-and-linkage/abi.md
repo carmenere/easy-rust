@@ -9,7 +9,7 @@
 <br>
 
 # ABI
-The **System V ABI** (**Application Binary Interface**) is a set of specifications that defines
+The **System V ABI** (**Application Binary Interface**) is a set of specifications that defines:
 - calling conventions;
 - object file formats;
 - memory layout;
