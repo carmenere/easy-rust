@@ -13,9 +13,9 @@
   - [Headers search path](#headers-search-path)
 - [PIC/PIE](#picpie)
   - [How dynamic linker fills GOT?](#how-dynamic-linker-fills-got)
-  - [Mitigations](#mitigations)
+- [RELRO](#relro)
 - [`.rela.text` and `.rela.data` sections](#relatext-and-reladata-sections)
-  - [Linker steps](#linker-steps)
+- [Linker steps](#linker-steps)
   - [Merging sections](#merging-sections)
 
 <br>
@@ -365,7 +365,7 @@ So, this `GOT[n]` entry points to resolver routine. Every time resolver is invol
 
 <br>
 
-## Mitigations
+# RELRO
 **Lazy binding** can cause to **security issues** because it vulnarable to overwriting function pointers in `.got.plt`.<br>
 There is a mitigation technique called **RELRO** (aka **RELocations Read-Only**).<br>
 
@@ -399,7 +399,7 @@ Wherever a final address of symbol is **unknown**, the **compiler** adds a **rel
 
 <br>
 
-## Linker steps
+# Linker steps
 Assume **linking** a **shared library** or a **PIE executable** with **dynamic symbols**. The **linker** (`ld`):
 - **reads all** *object files* (`.o`, `.so`);
 - **merges** their *sections* with the same name (`.text`, `.data`, *etc.*) and **symbol tables**:
@@ -458,10 +458,14 @@ Suppose we have:
 - `a.o` contains `.text` of size `0x20`, `foo()` defined at offset `0x10` inside it;
 - `b.o` contains `.text` of size `0x40`, `bar()` defined at offset `0x30` inside it;
 
+<br>
+
 Linker decides to place them in order: `a.o` first, then `b.o`, with 16‑byte (`0x10`) alignment between sections.<br>
+
+<br>
 
 **Layout**:
 - final **base VA** = `0x401000`;
 - the `.text` of `a.o` starts at **VA** = `0x401000`;
-- the `.text` of `b.o` starts at **VA** = `0x401000 + size_of(.text in a.o)`
+- the `.text` of `b.o` starts at **VA** = `0x401000 + size_of(.text in a.o)`;
 - in the merged section the **final computed** `st_value` for `bar()` is: `0x401000 + size_of(.text in a.o) + 0x30`, where `0x30` is an **original offset** in `b.o .text`;
