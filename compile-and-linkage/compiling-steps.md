@@ -11,8 +11,10 @@
 - [GCC search paths](#gcc-search-paths)
   - [Libraries search path](#libraries-search-path)
   - [Headers search path](#headers-search-path)
-- [PIC](#pic)
+- [PIC/PIE](#picpie)
+  - [How dynamic linker fills GOT?](#how-dynamic-linker-fills-got)
   - [Mitigations](#mitigations)
+  - [Relocation entries](#relocation-entries)
 
 <br>
 
@@ -90,31 +92,20 @@ There is **option** `-o` to specify the output file name **explicitly**. By defa
 <br>
 
 # Linking
-There are 3 type of binding libraries to binary:
-- **static linking**;
+There are **3 type of linking** libraries to binary:
+- **static linking** at **compile time** as final step;
 - **dynamic linking** at **loading time** (**by default**);
 - **dynamic linking** at **runtime** (`dl` library is needed);
 
 <br>
 
-When the linker creates a **shared library**, it **doesn't** know in advance where it might be loaded. Modern systems use **ASLR** feature (address space layout randomization) and load libraries at **different** locations on each program invocation. So, **shared libraries** are loaded into **non-deterministic** addresses and **absolute** addresses used inside them **must** be **updated** at load time.<br>
+When the linker creates a **shared library** or **binary**, it **doesn't** know in advance where it might be loaded. Modern systems use **ASLR** feature (address space layout randomization) and load *shared libraries*/*binaries* at **different** locations on each program invocation. So, *shared libraries*/*binaries* are loaded into **non-deterministic** addresses and **absolute** addresses used inside them **must** be **updated** at load time.<br>
 
 <br>
 
-There are 3 main approaches to solve this problem in Linux ELF shared libraries:
-- **Load-time relocation**;
-- **Position Independent Code** (**PIC**) for **shared libraries**;
-- **Position Independent Executables** (**PIE**) for **executable**;
-
-<br>
-
-**Load-time relocation** has a couple of problems:
-  - it requires to change the `.text` section and which makes using of the library **non-shareable**;
-  - it takes time to perform, because **dynamic linker** performs **all** relocations **before** calling `_start` entrypoint;
-
-<br>
-
-**PIC** and **PIE** are recommended solutions.<br>
+**PIC** (**Position Independent Code**) and **PIE** (**Position Independent Executables**) solve this problem:
+- **PIC** for **shared libraries**;
+- **PIE** for **executable**;
 
 <br>
 
@@ -230,33 +221,144 @@ Option `-I <dir>` (`-I<dir>`) adds the directory `<dir>` to the list of director
 
 <br>
 
-# PIC
-**PIC** uses the **Procedure Linkage Table** (**PLT**) and the **Global Offset Table** (**GOT**).<br>
+# PIC/PIE
+When an operating system loads an *executable* or a *shared library* (`.dll` or `.so`), it often places it at a **randomized memory location** for security (a feature called **ASLR**). If the code used absolute (fixed) addresses, the OS would have to patch every single memory-referencing instruction at startup.<br>
 
-The **GOT** holds entries of addresses of **global variables** and **external functions**. A **GOT** is simply a **table of addresses**, residing in the **data** section.<br>
-The **PLT** consists of short entries of instructions (aka **trampolines**), used to reach **external** functions.<br>
+**PIE/PIC** code uses **RIP-relative addressing** (aka **PC-relative addressing**) or/and **PLT**/**GOT** instead *absolute addressing*.<br>
+
+To enable **PIE/PIC** there are `-fPIC` and `-fPIE` options for `gcc`.<br>
+
+**Absolute addressing** is when the code refers to specific memory addresses **directly**.<br>
+**Relative addressing**, on the other hand, is when the code refers to memory addresses relative to the current program counter (PC).<br>
+
+The **PC** stands for **program counter**. The **PC** is a **special CPU register** that holds the **address** of the **next instruction** to be executed. **PC** and **RIP** refer to the exact same concept, but **PC** is the **generic** name, while **RIP** is the **specific** name in AMD64.<br>
+When a program is running, the **PC** is **incremented** after each instruction is executed. This means that the **PC always contains the address of the next instruction** to be executed. This means that all addresses are relative to a known base address.<br>
+
+**RIP-relative addressing** uses **signed 32-bit displacement** *from* **RIP** *to* **accessed value** and allows instructions to **access any data within ±2 GB from** the **current instruction**, which is more than enough for almost all applications.<br>
+
+When **CPU** fetches instruction it will calculate *address* of **value** as `value_addr = RIP + disp32`.<br>
+When **linker** relocates address it will calculate *disposal* as `disp32 = S + A − P`, where
+- `P` is an address of **next instruction** that will reside in **RIP** at the moment of execution **current instruction**;
+  - `P = address_of_current_instruction + length_of_current_instruction`;
+- `A` is an **addend** in *relocation entry*;
+- `S` is an **address of symbol**;
 
 <br>
 
-The **runtime memory address**, also known as **absolute memory address** of variables and functions is **unknown** before the program is started and cannot be hardcoded during compilation. The **GOT** maps symbols to their corresponding **absolute memory addresses**.<br>
+With *RIP-relative addressing*, the **distance** **between** the **code instruction** and the **address of symbol** remains **constant**, no matter where the segment is loaded in memory. This allows the code to be relocated to any memory address without having to be modified. So, *RIP-relative addressing* **works for any base address**.<br>
+
+After linker has merged sections of many object file in resulting section the `disp32` **does not change**.<br>
 
 <br>
 
-There are 2 approaches of relocating **GOT** entries:
-- **early binding**, when **GOT** entries are relocated by the **dynamic linker** at **load-time**;
-- **lazy linking**, when **GOT** entries are relocated on-demand **when they are called**, in other words, the **GOT** is populated **dynamically** as the program is running;
+For example:
+- a **current instruction** sits at address `0x1000`;
+- the length of this instruction is `7` bytes;
+- if **symbol** is located at address `0x1020`
+- the compiler will calculate and encode a **displacement** of `0x15`: `0x1020 - 0x1007 = 0x19`;
+- while executing it
+  - the CPU puts in **RIP** register an address of **next instruction** which is `0x1000 + 7 = 0x1007`;
+  - the CPU calculates **address of data** to be accessed as `0x1007 + 0x19 = 0x1020`;
 
 <br>
 
-One of the key insights on which **PIC** relies is the **offset** between the **text** and **data** sections, **known** to the linker at **link-time**. When the linker combines several object files together, it collects their sections. Therefore, the linker knows both about the sizes of the sections and about their relative locations:<br>
-
-![elf_got_code_data_offset](/img/elf_got_code_data_offset.png)
+**GOT**/**PLT** provide **PIC**/**PIE** for **extern symbols** (variables and functions from other object files) and for some **CPU instruction that requires abdsolute addressing** and does not allow *RIP-relative*.<br>
 
 <br>
 
-Suppose some instruction in the code section wants to refer to a **variable**. Instead of referring to it directly by absolute address, it refers to an entry in the **GOT**. Since the **GOT** is in a **known** place in the data section, this reference is **relative** and **known** to the linker. The **GOT** entry, in turn, will contain the **absolute address** of the variable.<br>
+The **GOT** (**Global Offset Table**) is an array of addresses of **extern symbols** (variables and functions from other object files). A **GOT** is simply a **table of addresses**, residing in the **data** section. The **runtime memory address**, also known as **absolute memory address** of variables and functions is **unknown** before the program is started and cannot be hardcoded during compilation. The **GOT** maps symbols to their corresponding **absolute memory addresses**.<br>
+
+The **PLT** (**Procedure Linkage Table**) contains **small code stubs** - one for each external function that the program calls through **PLT**.<br>
+
+<br>
+
+**GOT**/**PLT** uses *RIP-relative addressing* to access GOT entries. Since the **GOT** is in a **known** place in the data section, the **relative offset** to **GOT entry** is **known** and **fixed**. The **GOT entry**, in turn, will contain the **absolute address** of the variable.<br>
+
+Suppose some instruction in the code section wants to refer to an **extern variable**. Instead of referring to it directly by absolute address, it refers to an entry in the **GOT**:<br>
 
 ![elf_got_code_data](/img/elf_got_code_data.png)
+
+<br>
+
+<br>
+
+There **2 main scenarios** of using **GOT**:
+- **call to an external function**
+  - **with** *PLT*
+  - **without** *PLT* (option `-fno-plt`);
+- **access to external variables**
+
+<br>
+
+**Sections**:
+- `.got` - *GOT* for **variables**;
+- `.got.plt` - *GOT* for **functions**: `xxxxx@plt` (e.g., `printf@plt`, `malloc@plt`);
+- `.plt` contains **small code stubs** - one for each external function that the program calls through **PLT** (e.g., `printf@plt`, `malloc@plt`);
+`.rela.dyn` - all **relocation entries** that `ld.so` must process at **loading time**;
+`.rela.plt` - **relocation entries** for *PLT*/*GOT* (specifically `R_X86_64_JUMP_SLOT`) that responsible for updating **GOT entries** during **lazy binding**;
+
+<br>
+
+Ecah **code stub** in `.plt` has the same template:
+```
+call xxxxx@plt
+
+xxxxx@plt:
+    jmp QWORD PTR [xxxxx@GOT]     ; jump to the address from GOT
+    push OFFSET_FOR_RESOLVER      ; argument for the resolver
+    jmp resolver_stub             ; call the common resolution routine
+```
+
+<br>
+
+- `jmp QWORD PTR [xxxxx@GOT]` - a jump to the address stored in the GOT entry for the `xxxxx` symbol, i.e. `xxxxx` can be `printf` or `malloc`;
+- `push OFFSET_FOR_RESOLVER` and `jmp resolver_stub` are for resolver;
+
+<br>
+
+*Access to external variable* is made through an **entry in the GOT**:
+```assembly
+mov global_var@GOTPCREL(%rip), %rax   ; read address from GOT entry
+mov (%rax), %eax                      ; load value from that address
+```
+
+<br>
+
+Variants of calls in `.text`:
+- `name@GOT`: specifies the **offset** to the **GOT entry** for the symbol name from the **base of the GOT**;
+- `name@GOTPLT`: specifies the **offset** to the **GOT entry** for the symbol name from the **base of the GOT**, implying that there is a **corresponding PLT entry**;
+- `name@GOTOFF`: specifies the **offset** to the location of the symbol name from the **base of the GOT**;
+- `name@GOTPCREL`: specifies the **offset** to the **GOT entry** for the symbol name from the **current code location**;
+- `name@PLT`: specifies the **offset** to the **PLT entry** of symbol name from the **current code location**;
+- `name@PLTOFF`: specifies the **offset** to the **PLT entry** of symbol name from the **base of the GOT**;
+
+<br>
+
+## How dynamic linker fills GOT?
+
+The **dynamic linker** fills `.got` (*GOT* for variables) by addresses of variables at **loading time**.<br>
+
+The **dynamic linker** can fill `.got.plt` in **2 modes**:
+- **lazy binding**
+  - **GOT entries** are relocated on-demand **when they are called**, in other words, the **GOT** is populated **dynamically** as the program is running;
+- **immediate binding**
+  - **all GOT entries** are relocated by the **dynamic linker** at **load-time**;
+
+<br>
+
+How **lazy binding** works:
+- **First call to** `xxxxx()`:
+  - `GOT[xxxxx]` initially holds the address of the second line (right after the jmp).
+  - the `jmp [GOT]` instruction transfers control to the `push + jmp resolver_stub sequence`;
+  - the `resolver_stub` in `ld.so`
+    - reads the argument from the stack;
+    - finds the corresponding relocation (usually of type `R_X86_64_JUMP_SLOT`);
+    - computes the real address of the;function in the shared library;
+  - it **overwrites** the `GOT[xxxxx]` **entry** with the real function address;
+  - then it **calls the function**;
+- **Second** and **subsequent calls to** `xxxxx()`:
+- now `GOT[xxxxx]` holds the **real function address**;
+- the `jmp [GOT]` instruction **jumps directly to the function**, bypassing the resolver;
 
 <br>
 
@@ -277,27 +379,88 @@ So, this `GOT[n]` entry points to resolver routine. Every time resolver is invol
 
 <br>
 
-The `.got.plt` section is used in conjunction with `.plt` in the **lazy** binding process:
-- `.got.plt` is a **runtime-writable** part of **GOT**: linker updates entires corresponding `.got.plt` section as they are accessed;
-- `.plt` is a part of **PLT** for **runtime-writable** part of **GOT**;
-
-<br>
-
-The `.got` section is used in conjunction with `.plt.got` in the **non-lazy** binding process:
-- `.got` is a **read-only** part of **GOT**: linker updates all entires corresponding `.got` section at **load-time**;
-- `.plt.got` is a part of **PLT** for **read-only** part of **GOT**;
-
-<br>
-
 ## Mitigations
-**Lazy linking** can cause to security issues because it vulnarable to overwriting function pointers in `.got.plt`.<br>
+**Lazy binding** can cause to **security issues** because it vulnarable to overwriting function pointers in `.got.plt`.<br>
 There is a mitigation technique called **RELRO** (aka **RELocations Read-Only**).<br>
 
 <br>
 
 **RELRO** gives **two** levels of protection:
-- **partial RELRO** enabled with `-Wl,-z,relro`:
+- **partial RELRO** is for **lazy binding**, it is enabled with `-Wl,-z,relro`:
   - it sets memory regions corresponing to `.got` section as `read-only`;
-- **full RELRO** enabled with `-Wl,-z,relro,-z,now` and protects against overwriting function pointers in `.got.plt`:
+  - it sets memory regions corresponing to `.got.plt` section as `read-write`;
+- **full RELRO** is for **immediate binding**, it is enabled with `-Wl,-z,relro,-z,now` and protects against overwriting function pointers in `.got.plt`:
   - it causes the **dynamic linker** to **immediately** look up every symbol in the **PLT** and update the addresses;
-  - then it sets memory regions corresponing to `.got.plt` section as `read-only`;
+  - then, it sets memory regions corresponing to both `.got` and `.got.plt` sections as `read-only`;
+
+<br>
+
+## Relocation entries
+|Тип релокации|Размер смещения|Где применяется|Кто применяет|Ключевой смысл|
+|:-|:-|:-|:-|:-|
+|R_X86_64_GOTPCREL|32‑бит (disp32)|Инструкции: доступ к внешним переменным|Статический линковщик|RIP‑relative до ячейки GOT|
+|R_X86_64_PC32|32‑бит|Инструкции: локальные/внутренние символы|Статический линковщик|Прямой RIP‑relative|
+|R_X86_64_64|64‑бит|Ячейки GOT, данные|Динамический линковщик (и иногда статический)|Абсолютный адрес символа|
+|R_X86_64_PLT32|32‑бит|Вызовы функций через PLT|Статический линковщик|RIP‑relative до PLT|
+|R_X86_64_GOTOFF64|64‑бит|Доступ к данным относительно GOT|Статический линковщик|Смещение внутри GOT|
+|R_X86_64_GOTPC32|	32‑бит|Код, работающий с GOT напрямую|Статический линковщик|RIP‑relative до GOT|
+|R_X86_64_RELATIVE|Зависит|Смещения, зависящие от базы образа|Динамический линковщик|Коррекция на базовый адрес|
+|R_X86_64_JUMP_SLOT|Обычно 64‑бит|Записи GOT для функций|Динамический линковщик|Привязка адреса функции|
+
+<br>
+
+`R_X86_64_PC32` (прямой RIP‑relative доступ)
+  Статический линковщик выполняет релокацию
+`R_X86_64_GOTPCREL` (доступ до GOT ячейки)
+  Статический линковщик выполняет релокацию
+  Используется для внешних переменных, чтобы поддержать переопределение символа:
+  disp32=адрес_ячейки_в_GOT−(адрес_инструкции+размер)
+
+mov    global_var@GOTPCREL(%rip), %rax   ; RIP‑relative доступ к ячейке GOT
+mov    (%rax), %eax                      ; чтение значения переменной
+`R_X86_64_64`
+  динамический линковщик (в GOT)
+
+R_X86_64_GOTPCREL + R_X86_64_64
+
+
+`R_X86_64_GOTPCREL` — главный для доступа к внешним переменным
+Что делает: вычисляет 32‑битное смещение до ячейки GOT, которая хранит адрес символа.
+disp32=(адрес_ячейки_GOT + addend) − (r_offset+размер_инструкции)
+Когда появляется: при обращении к extern ‑переменным в PIC/PIE‑коде.
+Кто применяет: Статический линковщик
+Ключевой смысл
+`R_X86_64_PC32` — прямой RIP‑relative доступ (локальные и внутренние символы)
+Что делает: 32‑битное знаковое смещение напрямую до символа.
+Кто применяет: Статический линковщик
+
+`R_X86_64_64` — абсолютный 64‑битный адрес (для GOT и динамических релокаций)
+Что делает: записывает полный 64‑битный адрес символа в указанное место.
+
+Важно: это не про инструкции, а про ячейки в секциях .got, .got.plt, .data, .bss и т. д.
+
+Типичный случай: в ячейку GOT нужно положить реальный адрес внешней переменной. Эту работу делает динамический линковщик (ld.so) при загрузке, используя релокации типа R_X86_64_64 из секции .rela.dyn.
+
+`R_X86_64_PLT32`
+для вызовов внешних функций (через PLT)
+Что делает: RIP‑relative смещение до записи в PLT (Procedure Linkage Table).
+
+`R_X86_64_GOTOFF64`
+смещение от начала GOT до символа (абсолютное в пределах GOT). Используется, например, для доступа к своим (не внешним) данным относительно GOT.
+
+`R_X86_64_GOTPC32`: смещение до самого GOT относительно RIP. Часто встречается в низкоуровневом коде, который «знает» про GOT.
+
+`R_X86_64_RELATIVE` — «базовые» релокации для ASLR и загрузки
+Что делает: просто добавляет базовый адрес загрузки образа к значению.
+
+`R_X86_64_JUMP_SLOT`
+динамические привязки для функций
+Это тип релокации в динамической таблице (.rela.dyn), который говорит: «в эту ячейку (обычно в GOT) нужно записать адрес функции».
+
+в `.rela.text` обычно
+- `R_X86_64_PC32`
+- `R_X86_64_GOTPCREL`
+- `R_X86_64_PLT32`
+
+в `.rela.dyn` обычно
+- `R_X86_64_JUMP_SLOT`
