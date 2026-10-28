@@ -28,6 +28,7 @@
 - [новый\_r\_offset](#новый_r_offset)
 - [Addend](#addend)
 - [disp32](#disp32-2)
+- [](#-1)
 <!-- TOC -->
 
 <br>
@@ -1161,6 +1162,21 @@ R_X86_64_JUMP_SLOT
 |R_X86_64_RELATIVE|Зависит|Смещения, зависящие от базы образа|Динамический линковщик|Коррекция на базовый адрес|
 |R_X86_64_JUMP_SLOT|Обычно 64‑бит|Записи GOT для функций|Динамический линковщик|Привязка адреса функции|
 
+Как это выглядит в `.text`:
+- `name@GOT`: specifies the **offset** to the **GOT entry** for the symbol name from the **base of the GOT**;
+- `name@GOTPLT`: specifies the **offset** to the **GOT entry** for the symbol name from the **base of the GOT**, implying that there is a **corresponding PLT entry**;
+- `name@GOTOFF`: specifies the **offset** to the location of the symbol name from the **base of the GOT**;
+- `name@GOTPCREL`: specifies the **offset** to the **GOT entry** for the symbol name from the **current code location**;
+- `name@PLT`: specifies the **offset** to the **PLT entry** of symbol name from the **current code location**;
+- `name@PLTOFF`: specifies the **offset** to the **PLT entry** of symbol name from the **base of the GOT**;
+
+в `.rela.text` обычно
+- `R_X86_64_PC32`
+- `R_X86_64_GOTPCREL`
+- `R_X86_64_PLT32`
+
+в `.rela.dyn` обычно
+- `R_X86_64_JUMP_SLOT`
 
 
 Есть 3 объектных файла a.o b.o c.o, в каждом есть .text и .rel.text. момле слияния секций воедино как линковщик поймет какие записи релокаций к каким секциям относятся?
@@ -1181,10 +1197,10 @@ R_X86_64_JUMP_SLOT
 Итоговый .text = [a.o .text] + [b.o .text] + [c.o .text]
                = [0x000..0x100] + [0x100..0x200] + [0x200..0x300]
 
-a.o .text → начинается с 0x000 (относительно начала итогового .text)
-b.o .text → начинается с 0x100
-c.o .text → начинается с 0x200
-Это смещение линковщик хранит явно и использует для пересчёта r_offset.
+`a.o .text` → начинается с `0x000` (относительно начала итогового .text)
+`b.o .text` → начинается с `0x100`
+`c.o .text` → начинается с `0x200`
+Это смещение линковщик хранит явно и использует для пересчёта `r_offset`.
 
 Шаг 3: Пересчёт r_offset для каждой релокации
 У каждой релокации есть r_offset — это смещение внутри входной секции. Чтобы применить релокацию в итоговом файле, линковщик делает:
@@ -1262,3 +1278,8 @@ disp32
 адрес_RIP
 disp32=адрес_GOT_ячейки−адрес_RIP
 Именно поэтому в выводе readelf часто видишь + 0.
+
+
+
+#
+
