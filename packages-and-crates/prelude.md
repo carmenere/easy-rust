@@ -23,8 +23,8 @@ The `std` defines **prelude**.<br>
 <br>
 
 # Prelude
-A **prelude** is **small collection of items** that are **automatically imported** into **every** module of **every** crate by compiler.<br>
-It means that compiler **implicitly** injects `use std::prelude::*` into **every** module of **every** crate.
+A **prelude** is **small collection of items** that are **automatically imported** into **every** module.<br>
+It means that compiler **implicitly** injects `use std::prelude::*` into **every** module.<br>
 
 <br>
 
