@@ -16,15 +16,11 @@
   - [Symbol binding](#symbol-binding)
   - [Symbol types](#symbol-types)
 - [ELF relocation entries](#elf-relocation-entries)
+  - [Relocation types](#relocation-types)
   - [Addends](#addends)
 - [ELF segments](#elf-segments)
   - [Segment types](#segment-types)
   - [Segment Permissions](#segment-permissions)
-- [Relocation](#relocation)
-  - [Шаг 2: Слияние секций и вычисление новых смещений](#шаг-2-слияние-секций-и-вычисление-новых-смещений)
-  - [Шаг 3: Пересчёт r\_offset для каждой релокации](#шаг-3-пересчёт-r_offset-для-каждой-релокации)
-- [новый\_r\_offset](#новый_r_offset)
-  - [Шаг 4: Применение релокаций или перенос в .rela.dyn](#шаг-4-применение-релокаций-или-перенос-в-reladyn)
 <!-- TOC -->
 
 <br>
@@ -562,8 +558,25 @@ typedef struct {
 
 <br>
 
+## Relocation types
+|Relocation Type|Displacement Size|Where It’s Applied|Who Applies It|Key Meaning|
+|:-|:-|:-|:-|:-|
+|`R_X86_64_GOTPCREL`|32‑bit (disp32)|Instructions: access to external variables|Static linker|RIP‑relative offset to a GOT entry|
+|`R_X86_64_PC32`|32‑bit|Instructions: local/internal symbols|Static linker|Direct RIP‑relative displacement|
+|`R_X86_64_64`|64‑bit|GOT entries, data|Dynamic linker (and sometimes static linker)|Absolute address of the symbol|
+|`R_X86_64_PLT32`|32‑bit|Function calls via PLT|Static linker|RIP‑relative offset to the PLT stub|
+|`R_X86_64_GOTOFF64`|64‑bit|Access to data relative to GOT|Static linker|Offset within the GOT itself|
+|`R_X86_64_GOTPC32`|32‑bit|Code that works directly with GOT|Static linker|RIP‑relative offset to the GOT|
+|`R_X86_64_RELATIVE`|Depends on context|Offsets dependent on the image base address|Dynamic linker|Adjustment based on the actual load address (ASLR‑aware)|
+|`R_X86_64_JUMP_SLOT`|Usually 64‑bit|GOT entries for functions|Dynamic linker|Lazy binding the function’s runtime address into the GOT slot|
+
+<br>
+
+
 ## Addends
-Примеры, где addend ≠ 0
+Examples where **addend ≠ 0**:
+- **fields in structs**:
+```c
 struct S {
     int a;
     int b;
@@ -574,28 +587,12 @@ extern struct S s;
 int get_b(void) {
     return s.b;
 }
-
-Компилятор сгенерирует RIP‑relative доступ к s, но со смещением на 4 байта (потому что b — второе поле). Релокация будет типа R_X86_64_GOTPCREL, а addend = 4.
-
-Формула линковщика:
-disp32=(адрес_ячейки_GOT+4)−(адрес_RIP)
-То есть addend учитывает смещение внутри структуры.
-
-Указатель с начальным смещением
+```
+- **access to array item by index**:
+```c
 extern int arr[10];
-int *p = arr + 3;  // указатель на arr[3]
-В .data будет лежать 8‑байтовое значение, которое должно стать адресом arr+3. Релокация R_X86_64_64 будет иметь addend = 12 (если int = 4 байта, то 3 * 4 = 12).
-
-Динамический линковщик при загрузке запишет в эту ячейку: адрес_arr + 12.
-Частый случай: addend = 0
-Во многих простых обращениях addend равен нулю:
-extern int x;
-x += 1;
-
-Релокация R_X86_64_GOTPCREL будет с addend = 0, потому что мы обращаемся к самому символу без смещения. Формула упрощается до:
-
-disp32 = адрес_GOT_ячейки − адрес_RIP
-Именно поэтому в выводе readelf часто видишь + 0.
+int *p = arr + 3;
+```
 
 <br>
 
@@ -733,78 +730,5 @@ The following table shows both the **exact** flag interpretation and the **allow
 |`PF_R`+`PF_X`|5|Read, execute|Read, execute|
 |`PF_R`+`PF_W`|6|Read, write|Read, write, execute|
 |`PF_R`+`PF_W`+`PF_X`|7|Read, write, execute|Read, write, execute|
-
-<br>
-
-# Relocation
-`.rel.text` и `.rel.data` существуют только в перемещаемых объектных файлах (.o), а не в финальных исполняемых файлах или shared-библиотеках. В готовом PIE-бинаре ты их не увидишь — там вместо них будут `.rela.dyn` и `.rela.plt`.
-В объектном файле (main.o) линковщик ещё не знает финальных адресов символов (они станут известны только при сборке всего проекта). Поэтому ассемблер оставляет «дырки» в коде и данных и создаёт таблицы релокаций, чтобы линкер потом подставил туда правильные адреса.
-
-`.rel.text` — хранит релокации для инструкций в секции .text (вызовы функций, относительные переходы, обращения к символам из кода).
-`.rel.data` — хранит релокации для инициализированных данных в секции .data (например, когда глобальная переменная инициализируется адресом другой функции/переменной).
-Их главная задача: сообщить линковщику, где именно в коде/данных нужно подставить адрес символа и по какой формуле.
-
-Линкер:
-Читает `.rel.text`, `.rel.data` (и другие .rel.*) из каждого .o.
-Применяет статические релокации: подставляет адреса символов, которые уже известны внутри проекта.
-Формирует динамические релокации в `.rela.dyn` и `.rela.plt` для тех символов, которые разрешаются при загрузке (например, printf из libc).
-Не копирует старые `.rel.text`/`.rel.data` в финальный бинарь: они нужны только для этапа статической линковки.
-
-Есть 3 объектных файла `a.o` `b.o` `c.o`, в каждом есть `.text` и `.rel.text`. момле слияния секций воедино как линковщик поймет какие записи релокаций к каким секциям относятся?
-
-Каждая запись релокации в ELF привязана к конкретной входной секции. В структуре Elf64_Rela нет явного имени секции, но линковщик при чтении объектного файла хранит для каждой секции:
-
-её имя (`.text` из `a.o`),
-её индекс в таблице секций,
-её размер и выравнивание,
-и самое главное: все релокации, относящиеся к этой секции, он хранит вместе с ней.
-
-То есть внутренне у линковщика получается что-то вроде:
-
-И фиксирует для каждой входной секции её смещение внутри итоговой секции:
-
-## Шаг 2: Слияние секций и вычисление новых смещений
-Линковщик собирает итоговый .text так:
-Итоговый .text = [a.o .text] + [b.o .text] + [c.o .text]
-               = [0x000..0x100] + [0x100..0x200] + [0x200..0x300]
-
-`a.o .text` → начинается с `0x000` (относительно начала итогового .text)
-`b.o .text` → начинается с `0x100`
-`c.o .text` → начинается с `0x200`
-Это смещение линковщик хранит явно и использует для пересчёта `r_offset`.
-
-## Шаг 3: Пересчёт r_offset для каждой релокации
-У каждой релокации есть r_offset — это смещение внутри входной секции. Чтобы применить релокацию в итоговом файле, линковщик делает:
-
-новый_r_offset
-=
-смещение_входной_секции_в_итоге
-+
-старый_r_offset
-новый_r_offset=смещение_входной_секции_в_итоге+старый_r_offset
-
-Пример:
-
-В b.o есть релокация с r_offset = 0x28 (внутри .text b.o).
-Мы знаем, что .text из b.o начинается в итоговом .text с адреса 0x100.
-Значит, в итоговом бинаре эту релокацию надо применять по адресу 0x128.
-Так линковщик получает актуальные позиции для всех релокаций в итоговой секции.
-
-
-## Шаг 4: Применение релокаций или перенос в .rela.dyn
-Дальше линковщик действует по типу символа:
-
-Если символ разрешён (определён в одном из входных файлов)
-Он:
-Берёт итоговый адрес символа (из таблицы символов, уже посчитанный как base_of_section + offset).
-Подставляет в формулу релокации (например, S + A - P для R_X86_64_PC32).
-Записывает результат прямо в байты итогового .text по новому_r_offset.
-Не копирует эту запись в выходной файл: она уже отработана.
-Если символ внешний (например, printf из libc)
-Тогда линковщик:
-
-Пересчитывает r_offset как выше.
-Оставляет запись релокации в новой таблице (обычно в .rela.dyn или .rela.plt).
-Теперь эта запись ссылается на итоговую позицию в итоговом .text, а не на старую в b.o.
 
 <br>

@@ -14,7 +14,9 @@
 - [PIC/PIE](#picpie)
   - [How dynamic linker fills GOT?](#how-dynamic-linker-fills-got)
   - [Mitigations](#mitigations)
-  - [Relocation entries](#relocation-entries)
+- [`.rela.text` and `.rela.data` sections](#relatext-and-reladata-sections)
+  - [Linker steps](#linker-steps)
+  - [Merging sections](#merging-sections)
 
 <br>
 
@@ -224,7 +226,7 @@ Option `-I <dir>` (`-I<dir>`) adds the directory `<dir>` to the list of director
 # PIC/PIE
 When an operating system loads an *executable* or a *shared library* (`.dll` or `.so`), it often places it at a **randomized memory location** for security (a feature called **ASLR**). If the code used absolute (fixed) addresses, the OS would have to patch every single memory-referencing instruction at startup.<br>
 
-**PIE/PIC** code uses **RIP-relative addressing** (aka **PC-relative addressing**) or/and **PLT**/**GOT** instead *absolute addressing*.<br>
+**PIE/PIC** code uses **RIP-relative addressing** (aka **PC-relative addressing**) and **GOT-based addressing** instead *absolute addressing*.<br>
 
 To enable **PIE/PIC** there are `-fPIC` and `-fPIE` options for `gcc`.<br>
 
@@ -262,13 +264,15 @@ For example:
 
 <br>
 
-**GOT**/**PLT** provide **PIC**/**PIE** for **extern symbols** (variables and functions from other object files) and for some **CPU instruction that requires abdsolute addressing** and does not allow *RIP-relative*.<br>
+**GOT-based addressing** is used for **extern symbols** (variables and functions from other object files) and for some **CPU instruction that requires abdsolute addressing** and does not allow *RIP-relative*.<br>
 
 <br>
 
 The **GOT** (**Global Offset Table**) is an array of addresses of **extern symbols** (variables and functions from other object files). A **GOT** is simply a **table of addresses**, residing in the **data** section. The **runtime memory address**, also known as **absolute memory address** of variables and functions is **unknown** before the program is started and cannot be hardcoded during compilation. The **GOT** maps symbols to their corresponding **absolute memory addresses**.<br>
 
-The **PLT** (**Procedure Linkage Table**) contains **small code stubs** - one for each external function that the program calls through **PLT**.<br>
+<br>
+
+The **PLT** (**Procedure Linkage Table**) contains special **stub code** - one for each external function that the program calls through **PLT**.<br>
 
 <br>
 
@@ -277,8 +281,6 @@ The **PLT** (**Procedure Linkage Table**) contains **small code stubs** - one fo
 Suppose some instruction in the code section wants to refer to an **extern variable**. Instead of referring to it directly by absolute address, it refers to an entry in the **GOT**:<br>
 
 ![elf_got_code_data](/img/elf_got_code_data.png)
-
-<br>
 
 <br>
 
@@ -299,24 +301,7 @@ There **2 main scenarios** of using **GOT**:
 
 <br>
 
-Ecah **code stub** in `.plt` has the same template:
-```
-call xxxxx@plt
-
-xxxxx@plt:
-    jmp QWORD PTR [xxxxx@GOT]     ; jump to the address from GOT
-    push OFFSET_FOR_RESOLVER      ; argument for the resolver
-    jmp resolver_stub             ; call the common resolution routine
-```
-
-<br>
-
-- `jmp QWORD PTR [xxxxx@GOT]` - a jump to the address stored in the GOT entry for the `xxxxx` symbol, i.e. `xxxxx` can be `printf` or `malloc`;
-- `push OFFSET_FOR_RESOLVER` and `jmp resolver_stub` are for resolver;
-
-<br>
-
-*Access to external variable* is made through an **entry in the GOT**:
+**Compiler** generates following code to perform **GOT-based access** to **external symbols**:
 ```assembly
 mov global_var@GOTPCREL(%rip), %rax   ; read address from GOT entry
 mov (%rax), %eax                      ; load value from that address
@@ -324,7 +309,7 @@ mov (%rax), %eax                      ; load value from that address
 
 <br>
 
-Variants of calls in `.text`:
+Variants of **GOT-based access**:
 - `name@GOT`: specifies the **offset** to the **GOT entry** for the symbol name from the **base of the GOT**;
 - `name@GOTPLT`: specifies the **offset** to the **GOT entry** for the symbol name from the **base of the GOT**, implying that there is a **corresponding PLT entry**;
 - `name@GOTOFF`: specifies the **offset** to the location of the symbol name from the **base of the GOT**;
@@ -335,8 +320,9 @@ Variants of calls in `.text`:
 <br>
 
 ## How dynamic linker fills GOT?
-
 The **dynamic linker** fills `.got` (*GOT* for variables) by addresses of variables at **loading time**.<br>
+
+<br>
 
 The **dynamic linker** can fill `.got.plt` in **2 modes**:
 - **lazy binding**
@@ -395,72 +381,87 @@ There is a mitigation technique called **RELRO** (aka **RELocations Read-Only**)
 
 <br>
 
-## Relocation entries
-|Тип релокации|Размер смещения|Где применяется|Кто применяет|Ключевой смысл|
-|:-|:-|:-|:-|:-|
-|R_X86_64_GOTPCREL|32‑бит (disp32)|Инструкции: доступ к внешним переменным|Статический линковщик|RIP‑relative до ячейки GOT|
-|R_X86_64_PC32|32‑бит|Инструкции: локальные/внутренние символы|Статический линковщик|Прямой RIP‑relative|
-|R_X86_64_64|64‑бит|Ячейки GOT, данные|Динамический линковщик (и иногда статический)|Абсолютный адрес символа|
-|R_X86_64_PLT32|32‑бит|Вызовы функций через PLT|Статический линковщик|RIP‑relative до PLT|
-|R_X86_64_GOTOFF64|64‑бит|Доступ к данным относительно GOT|Статический линковщик|Смещение внутри GOT|
-|R_X86_64_GOTPC32|	32‑бит|Код, работающий с GOT напрямую|Статический линковщик|RIP‑relative до GOT|
-|R_X86_64_RELATIVE|Зависит|Смещения, зависящие от базы образа|Динамический линковщик|Коррекция на базовый адрес|
-|R_X86_64_JUMP_SLOT|Обычно 64‑бит|Записи GOT для функций|Динамический линковщик|Привязка адреса функции|
+# `.rela.text` and `.rela.data` sections
+Wherever a final address of symbol is **unknown**, the **compiler** adds a **relocation entry** into `.rela.text` or `.rela.data` sections:
+- `R_X86_64_PC32` for **PC‑relative relocations**:
+  - `disp32 = symbol.st_value + A - P + instruction_size`
+    - `A` is an addend from the relocation;
+    - `P` is an address of the instruction being patched (i.e., `section_base_VA + offset`);
+- `R_X86_64_64` for **absolute relocations**:
+  - `address = symbol.st_value + addend`
+- `R_X86_64_GOTPCREL` **GOT‑based relocations** for **GOT‑based access**:
+  - `disp32 = (GOT_entry_address + A) - (P + instruction_size)`
+    - `A` is an addend from the relocation;
+    - `P` is an address of the instruction being patched (i.e., `section_base_VA + offset`);
+    - `GOT_entry_address` is the address of the corresponding **GOT entry** in `.got` or `.got.plt`;
+    - the result `disp32` is a **RIP‑relative offset** that points to the **GOT entry**;
+    - the **actual symbol address** is filled later by the *dynamic linker*;
 
 <br>
 
-`R_X86_64_PC32` (прямой RIP‑relative доступ)
-  Статический линковщик выполняет релокацию
-`R_X86_64_GOTPCREL` (доступ до GOT ячейки)
-  Статический линковщик выполняет релокацию
-  Используется для внешних переменных, чтобы поддержать переопределение символа:
-  disp32=адрес_ячейки_в_GOT−(адрес_инструкции+размер)
+## Linker steps
+Assume **linking** a **shared library** or a **PIE executable** with **dynamic symbols**. The **linker** (`ld`):
+- **reads all** *object files* (`.o`, `.so`);
+- **merges** their *sections* with the same name (`.text`, `.data`, *etc.*) and **symbol tables**:
+  - `a.o .text` + `b.o .text` + `c.o .text` → `final .text`;
+  - `a.o .data` + `b.o .data` + `c.o .data` → `final .data`;
+  - `a.o .bss` + `b.o .bss` + `c.o .bss` → `final .bss`;
+  - *etc.*;
+- assigns final base **virtual addresses** (**VA**) for **result** *executable* or *shared object file*;
+- assigns base **VA** for **each merged section**;
+  - `.text` **base VA** = `0x401000`
+  - `.data` **base VA** = `0x402000`
+  - `.bss` **base VA** = `0x403000` (no space in file, only in memory)
+  - these base addresses become the starting point for all symbols defined inside those sections;
+- **resolves symbols**
+  - for every symbol that is defined in the input object files, the linker computes the **final address** and assigns it to `st_value` as:
+  - `st_value = section_base_VA + offset_in_section`
+  - where:
+    - `section_base_VA` is the base VA assigned to the merged section;
+    - `offset_in_section` is the original value of `st_value` of symbol, it holds **offset** of the symbol in that section;
+- **applies static relocations**
+  - when the *linker* applies a relocation:
+    - it uses the **final computed** `st_value`;
+    - it calculates **new** `r_offset` for each *relocation entry* and use this **new** `r_offset`;
+    - **applies relocations** in `.rela.text` or `.rela.data` for **all known** and **defined** **symbols** directly in `.text` / `.data`;
+    - for extern symbols it **adds** *relocation entry* with new `r_offset` in `.rela.dyn`/`.rela.plt`;
+    - **removes** *relocation entry* from `.rela.text` or `.rela.data`;
+- creates the **GOT**:
+  - allocates space for:
+    - `.got`: **general** *GOT entries* for **data references**;
+    - `.got.plt`: **special** *GOT entries* **used by the PLT** for function calls;
+- creates the **PLT**:
+  - for **each external function call** (`call xxxxx@plt`) that needs **lazy binding** the linker creates a **typical stub code** in `.plt`:
 
-mov    global_var@GOTPCREL(%rip), %rax   ; RIP‑relative доступ к ячейке GOT
-mov    (%rax), %eax                      ; чтение значения переменной
-`R_X86_64_64`
-  динамический линковщик (в GOT)
+```
+xxxxx@plt:
+    jmp QWORD PTR [xxxxx@GOT]     ; jump to the address from GOT
+    push OFFSET_FOR_RESOLVER      ; argument for the resolver
+    jmp resolver_stub             ; call the common resolution routine
+```
 
-R_X86_64_GOTPCREL + R_X86_64_64
+  - where:
+    - `jmp QWORD PTR [xxxxx@GOT]` - a jump to the address stored in the GOT entry for the `xxxxx` symbol, i.e. `xxxxx` can be `printf` or `malloc`;
+    - `push OFFSET_FOR_RESOLVER` and `jmp resolver_stub` are for resolver;
 
+- emits *relocation entries* in `.rela.dyn` for all **unknown symbols**, that must be resolved at runtime:
+  - these *relocation entries* tell the *dynamic loader* (`ld.so`) where and how to **patch** the *GOT entries* by **actual symbol address**;
+    - `R_X86_64_GLOB_DAT` for **data symbols** resolved to their final address;
+    - `R_X86_64_JUMP_SLOT` for **function calls** in the GOT used by PLT;
+- generates **PLT‑specific** relocations in `.rela.plt`;
+  - `.rela.plt` is used specifically for entries related to the PLT/GOT pair for functions:
 
-`R_X86_64_GOTPCREL` — главный для доступа к внешним переменным
-Что делает: вычисляет 32‑битное смещение до ячейки GOT, которая хранит адрес символа.
-disp32=(адрес_ячейки_GOT + addend) − (r_offset+размер_инструкции)
-Когда появляется: при обращении к extern ‑переменным в PIC/PIE‑коде.
-Кто применяет: Статический линковщик
-Ключевой смысл
-`R_X86_64_PC32` — прямой RIP‑relative доступ (локальные и внутренние символы)
-Что делает: 32‑битное знаковое смещение напрямую до символа.
-Кто применяет: Статический линковщик
+<br>
 
-`R_X86_64_64` — абсолютный 64‑битный адрес (для GOT и динамических релокаций)
-Что делает: записывает полный 64‑битный адрес символа в указанное место.
+## Merging sections
+Suppose we have:
+- `a.o` contains `.text` of size `0x20`, `foo()` defined at offset `0x10` inside it;
+- `b.o` contains `.text` of size `0x40`, `bar()` defined at offset `0x30` inside it;
 
-Важно: это не про инструкции, а про ячейки в секциях .got, .got.plt, .data, .bss и т. д.
+Linker decides to place them in order: `a.o` first, then `b.o`, with 16‑byte (`0x10`) alignment between sections.<br>
 
-Типичный случай: в ячейку GOT нужно положить реальный адрес внешней переменной. Эту работу делает динамический линковщик (ld.so) при загрузке, используя релокации типа R_X86_64_64 из секции .rela.dyn.
-
-`R_X86_64_PLT32`
-для вызовов внешних функций (через PLT)
-Что делает: RIP‑relative смещение до записи в PLT (Procedure Linkage Table).
-
-`R_X86_64_GOTOFF64`
-смещение от начала GOT до символа (абсолютное в пределах GOT). Используется, например, для доступа к своим (не внешним) данным относительно GOT.
-
-`R_X86_64_GOTPC32`: смещение до самого GOT относительно RIP. Часто встречается в низкоуровневом коде, который «знает» про GOT.
-
-`R_X86_64_RELATIVE` — «базовые» релокации для ASLR и загрузки
-Что делает: просто добавляет базовый адрес загрузки образа к значению.
-
-`R_X86_64_JUMP_SLOT`
-динамические привязки для функций
-Это тип релокации в динамической таблице (.rela.dyn), который говорит: «в эту ячейку (обычно в GOT) нужно записать адрес функции».
-
-в `.rela.text` обычно
-- `R_X86_64_PC32`
-- `R_X86_64_GOTPCREL`
-- `R_X86_64_PLT32`
-
-в `.rela.dyn` обычно
-- `R_X86_64_JUMP_SLOT`
+**Layout**:
+- final **base VA** = `0x401000`;
+- the `.text` of `a.o` starts at **VA** = `0x401000`;
+- the `.text` of `b.o` starts at **VA** = `0x401000 + size_of(.text in a.o)`
+- in the merged section the **final computed** `st_value` for `bar()` is: `0x401000 + size_of(.text in a.o) + 0x30`, where `0x30` is an **original offset** in `b.o .text`;
